@@ -1,0 +1,235 @@
+Maricopa County
+85012 Phoenix
+85013 Phoenix
+85014 Phoenix
+85015 Phoenix
+85016 Phoenix
+85017 Phoenix
+85018 Phoenix
+85019 Phoenix
+85020 Phoenix
+85021 Phoenix
+85022 Phoenix
+85023 Phoenix
+85024 Phoenix
+85025 Phoenix
+85026 Phoenix
+85027 Phoenix
+85027 New River
+85028 Phoenix
+85029 Phoenix
+85030 Phoenix
+85031 Phoenix
+85032 Phoenix
+85033 Phoenix
+85034 Phoenix
+85035 Phoenix
+85036 Phoenix
+85037 Phoenix
+85038 Phoenix
+85039 Phoenix
+85040 Phoenix
+85041 Phoenix
+85042 Phoenix
+85043 Phoenix
+85044 Phoenix
+85045 Phoenix
+85046 Phoenix
+85048 Phoenix
+85050 Phoenix
+85051 Phoenix
+85053 Phoenix
+85054 Phoenix
+85055 Phoenix
+85060 Phoenix
+85061 Phoenix
+85062 Phoenix
+85063 Phoenix
+85064 Phoenix
+85065 Phoenix
+85066 Phoenix
+85067 Phoenix
+85068 Phoenix
+85069 Phoenix
+85070 Phoenix
+85071 Phoenix
+85072 Phoenix
+85073 Phoenix
+85074 Phoenix
+85075 Phoenix
+85076 Phoenix
+85078 Phoenix
+85079 Phoenix
+85080 Phoenix
+85082 Phoenix
+85085 Phoenix
+85086 Phoenix
+85086 Anthem
+85086 Desert Hills
+85087 Phoenix
+85087 New River
+85201 Mesa
+85202 Mesa
+85203 Mesa
+85204 Mesa
+85205 Mesa
+85206 Mesa
+85207 Mesa
+85208 Mesa
+85210 Mesa
+85211 Mesa
+85212 Mesa
+85213 Mesa
+85214 Mesa
+85215 Mesa
+85216 Mesa
+85224 Chandler
+85225 Chandler
+85226 Chandler
+85227 Chandler Heights
+85233 Gilbert
+85234 Gilbert
+85236 Higley
+85242 Queen Creek
+85244 Chandler
+85246 Chandler
+85248 Chandler
+85248 Sun Lakes
+85249 Chandler
+85250 Scottsdale
+85251 Scottsdale
+85252 Scottsdale
+85253 Scottsdale
+85253 Paradise Valley
+85254 Scottsdale
+85255 Scottsdale
+85256 Scottsdale
+85257 Scottsdale
+85258 Scottsdale
+85259 Scottsdale
+85260 Scottsdale
+85261 Scottsdale
+85262 Scottsdale
+85263 Scottsdale
+85263 Rio Verde
+85264 Scottsdale
+85264 Fort McDowell
+85266 Scottsdale
+85267 Scottsdale
+85268 Fountain Hills
+85268 Scottsdale
+85269 Fountain Hills
+85269 Scottsdale
+85271 Scottsdale
+85274 Mesa
+85275 Mesa
+85277 Mesa
+85280 Tempe
+85281 Tempe
+85282 Tempe
+85283 Tempe
+85283 Guadalupe
+85284 Tempe
+85285 Tempe
+85287 Tempe
+85290 Apache Junction
+85290 Tortilla Flat
+85296 Gilbert
+85297 Gilbert
+85299 Gilbert
+85301 Glendale
+85302 Glendale
+85303 Glendale
+85304 Glendale
+85305 Glendale
+85306 Glendale
+85307 Glendale
+85307 Luke AFB
+85308 Glendale
+85309 Glendale
+85309 Gila Bend Af Aux Field
+85309 Luke AFB
+85310 Glendale
+85311 Glendale
+85312 Glendale
+85318 Glendale
+85320 Aguila
+85322 Arlington
+85323 Avondale
+85326 Buckeye
+85327 Cave Creek
+85329 Cashion
+85331 Cave Creek
+85335 El Mirage
+85337 Gila Bend
+85338 Goodyear
+85339 Laveen
+85340 Litchfield Park
+85342 Morristown
+85343 Palo Verde
+85345 Peoria
+85351 Sun City
+85352 Tacna
+85353 Tolleson
+85354 Tonopah
+85355 Waddell
+85358 Wickenburg
+85361 Wittmann
+85363 Youngtown
+85372 Sun City
+85373 Sun City
+85374 Sun City West
+85374 Sun City
+85374 Surprise
+85375 Sun City West
+85375 Sun City
+85376 Sun City West
+85377 Carefree
+85378 Surprise
+85379 Surprise
+85379 Sun City
+85380 Peoria
+85381 Peoria
+85382 Peoria
+85383 Peoria
+85385 Peoria
+85387 Surprise
+85387 Sun City
+85387 Sun City West
+85390 Wickenburg
+
+Pinal County
+85117 Apache Junction (PO Box)
+85118 Gold Canyon (Standard)
+85119 Apache Junction (Standard)
+85120 Apache Junction (Standard)
+85121 Bapchule (PO Box)
+85122 Casa Grande (Standard)
+85123 Arizona City (PO Box)
+85128 Coolidge (Standard)
+85130 Casa Grande (PO Box)
+85131 Eloy (Standard)
+85132 Florence (Standard)
+85137 Kearny (Standard)
+85138 Maricopa (Standard)
+85139 Maricopa (Standard)
+85140 San Tan Valley (Standard)
+85141 Picacho (Standard)
+85142 Queen Creek (Standard)*
+85143 San Tan Valley (Standard)
+85144 San Tan Valley (Standard)
+85145 Red Rock (Standard)
+85147 Sacaton (PO Box)
+85172 Stanfield (Standard)
+85173 Superior (Standard)
+85178 Apache Junction (PO Box)
+85190 Tortilla Flat (PO Box)
+85191 Valley Farms (PO Box)
+85192 Winkelman (Standard)
+85193 Casa Grande (Standard)
+85194 Casa Grande (Standard)
+85618 Mammoth (PO Box)
+85623 Oracle (Standard)
+85631 San Manuel (Standard)
+
+If ZIP codes in both counties are shared across counties (e.g. Queen Creek, Florence), allow user to select the most appropriate city

@@ -1,0 +1,65 @@
+Replit Autoscale Deployment Setup for React + Express + Video
+This guide walks you through configuring your React + Express app on Replit using Autoscale deployment. It ensures your React build, Express backend, and video file at /videos/myvideo_fixed.mp4 are all served correctly.
+1. Update package.json scripts
+Modify the scripts section to build React into dist/ and the server into server-dist/. Start will run the server bundle.
+{
+  "scripts": {
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=server-dist",
+    "start": "NODE_ENV=production node server-dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  }
+}
+2. Server code (server/index.ts)
+Create or update server/index.ts with the following code. This serves the Vite build, the video in /public/videos, and falls back to index.html for React SPA routes.
+// server/index.ts
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const projectRoot = path.resolve(__dirname, "..");
+const clientDir = path.join(projectRoot, "dist");
+const publicDir = path.join(projectRoot, "public");
+
+app.use(express.static(clientDir, { maxAge: "1h" }));
+app.use("/videos", express.static(path.join(publicDir, "videos"), { maxAge: "1d" }));
+
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDir, "index.html"));
+});
+
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`✅ Server listening on http://0.0.0.0:${PORT}`);
+});
+3. File locations
+- React build: dist/ (created by vite build)
+- Server bundle: server-dist/ (created by esbuild)
+- Video asset: public/videos/myvideo_fixed.mp4
+In your React hero component:
+<video autoplay muted loop playsinline class="hero-video">
+  <source src="/videos/myvideo_fixed.mp4" type="video/mp4" />
+</video>
+4. Replit Autoscale Deployment Settings
+In the Replit deployment wizard:
+- Build command: npm run build
+- Run command: npm start
+- Health check path: /
+
+Start with smaller resources to save cost:
+- Machine power: 1–2 vCPUs, 1–2 GiB RAM
+- Max machines: 1 while testing, increase if needed later.
+5. Local test in Replit shell
+Before deploying, test locally in the Replit shell:
+
+npm install
+npm run build
+npm start
+
+Open the preview — the app should load and the hero video should play.

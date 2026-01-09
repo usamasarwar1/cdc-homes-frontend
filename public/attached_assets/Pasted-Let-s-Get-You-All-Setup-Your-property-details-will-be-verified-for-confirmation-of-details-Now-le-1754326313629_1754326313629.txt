@@ -1,0 +1,25 @@
+Let's Get You All Setup!
+Your property details will be verified for confirmation of details. Now let's help you learn more about our comprehensive inspection services.
+Change to 
+Let's Get You Verified and Setup!
+We need just a little bit more information from you. 
+To ensure accurate, property-specific pricing, we ask for a quick confirmation of your contact details. You'll receive a verification code via email or text. This step helps us filter serious inquiries and provide instant and accurate service prices below.
+Then I would like to create a contact form for the client 
+Payee Name:	First Name	Last Name
+Are you the buyer: Yes No, if no, then explain that the client is the person paying for the inspection. The client can list any parties on the home inspection report.
+I would like the client to be listed with edit option to delete and add option. Everyone listed would have an email address to send the report to. Okay if the email is the same, some spouses share the same email. 
+Phone Number 
+Inspection Address: (transfer the address over from the insert address information and make it static – grayed out with the city, state and zip code as well) (ask if the address is correct, allow edits)
+Square Footage (transfers over) (ask if the square footage is correct, allow edits)
+Occupancy Status: Occupied 
+Realtor Notification: Do you want your realtor to have a copy before you review the report? If yes, the require realtor’s name and email address. 
+Use Conditional Visibility and Unlock Meet Our Inspector and See What’s Included. 
+
+When the user selects meet our inspector, a back button should be displayed to go back to /inspection-confirmed or What’s Included. View Pricing will remain grayed out until Twilio Verification is complete. Same if the user selects What’s Included, a back button should be displayed to go back to /inspection-confirmed or Meet the Inspector. View Pricing will remain grayed out until Twilio Verification is complete.
+To prevent casual users from bypassing the pricing protection and ensure only serious leads gain access, here's a professional and secure strategy I want to implement using with Supabase for backend validation
+🔒 Message & Flow Concept
+1. Grayed-Out “View Detailed Pricing” Card Until Verified
+•	Disable or “gray out” the “View Pricing” button.
+•	Show a tooltip or inline message like:
+“🔒 To view pricing, please confirm your contact details. This helps us provide accurate estimates tailored to your property.”
+

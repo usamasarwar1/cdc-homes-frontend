@@ -1,0 +1,210 @@
+[
+  {
+    "id": "sf-575-paynow",
+    "amount": 575,
+    "type": "paynow",
+    "description": "Single Family ≤1,200 sq ft - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/dRm28qabEdTO5F984Mc7u00",
+    "lastUpdated": "2025-08-11T19:35:55.481Z"
+  },
+  {
+    "id": "sf-575-challenge",
+    "amount": 287.5,
+    "type": "challenge",
+    "description": "Single Family ≤1,200 sq ft - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/8x2aEW97A6rm2sXdp6c7u04",
+    "lastUpdated": "2025-08-11T19:36:21.402Z"
+  },
+  {
+    "id": "sf-650-paynow",
+    "amount": 650,
+    "type": "paynow",
+    "description": "Single Family 1,201-3,000 sq ft - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/eVq6oGcjM2b68Rl0Ckc7u01",
+    "lastUpdated": "2025-08-11T19:36:34.810Z"
+  },
+  {
+    "id": "sf-650-challenge",
+    "amount": 325,
+    "type": "challenge",
+    "description": "Single Family 1,201-3,000 sq ft - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/00w7sK4RkcPKd7BacUc7u05",
+    "lastUpdated": "2025-08-11T19:36:57.610Z"
+  },
+  {
+    "id": "sf-725-paynow",
+    "amount": 725,
+    "type": "paynow",
+    "description": "Single Family 3,001-5,000 sq ft - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/bJeaEWerU1721oTacUc7u02",
+    "lastUpdated": "2025-08-11T19:37:06.641Z"
+  },
+  {
+    "id": "sf-725-challenge",
+    "amount": 362.5,
+    "type": "challenge",
+    "description": "Single Family 3,001-5,000 sq ft - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/28EcN483w4je6Jdetac7u06",
+    "lastUpdated": "2025-08-11T19:38:13.409Z"
+  },
+  {
+    "id": "sf-800-paynow",
+    "amount": 800,
+    "type": "paynow",
+    "description": "Single Family 5,001-6,000 sq ft - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/5kQ3cu5Vo8zu0kP3Owc7u03",
+    "lastUpdated": "2025-08-11T19:38:24.242Z"
+  },
+  {
+    "id": "sf-800-challenge",
+    "amount": 400,
+    "type": "challenge",
+    "description": "Single Family 5,001-6,000 sq ft - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/00w7sKcjM8zu0kPfxec7u07",
+    "lastUpdated": "2025-08-11T19:38:37.418Z"
+  },
+  {
+    "id": "mf-825-paynow",
+    "amount": 825,
+    "type": "paynow",
+    "description": "2-Unit Multi-Family - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/aFa6oGbfIeXS9Vp4SAc7u0b",
+    "lastUpdated": "2025-08-11T19:38:56.818Z"
+  },
+  {
+    "id": "mf-825-challenge",
+    "amount": 412.5,
+    "type": "challenge",
+    "description": "2-Unit Multi-Family - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/cNi9AS2Jc1729Vp4SAc7u0c",
+    "lastUpdated": "2025-08-11T19:39:03.249Z"
+  },
+  {
+    "id": "mf-900-paynow",
+    "amount": 900,
+    "type": "paynow",
+    "description": "3-Unit Multi-Family - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/dRm8wO83w02Yc3x0Ckc7u0d",
+    "lastUpdated": "2025-08-11T19:39:13.266Z"
+  },
+  {
+    "id": "mf-900-challenge",
+    "amount": 450,
+    "type": "challenge",
+    "description": "3-Unit Multi-Family - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/3cIbJ02Jc4jec3xfxec7u0e",
+    "lastUpdated": "2025-08-11T19:39:22.561Z"
+  },
+  {
+    "id": "mf-950-paynow",
+    "amount": 950,
+    "type": "paynow",
+    "description": "4-Unit Multi-Family - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/dRm5kCdnQg1W3x184Mc7u0f",
+    "lastUpdated": "2025-08-11T19:39:36.466Z"
+  },
+  {
+    "id": "mf-950-challenge",
+    "amount": 475,
+    "type": "challenge",
+    "description": "4-Unit Multi-Family - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/bJebJ04Rk3fa1oT98Qc7u0g",
+    "lastUpdated": "2025-08-11T19:39:43.441Z"
+  },
+  {
+    "id": "mf-1050-paynow",
+    "amount": 1050,
+    "type": "paynow",
+    "description": "5-Unit Multi-Family - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/fZu14m1F802YgjNfxec7u0h",
+    "lastUpdated": "2025-08-11T19:39:51.738Z"
+  },
+  {
+    "id": "mf-1050-challenge",
+    "amount": 525,
+    "type": "challenge",
+    "description": "5-Unit Multi-Family - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/6oU9AS3NgeXSc3x0Ckc7u0i",
+    "lastUpdated": "2025-08-11T19:40:00.162Z"
+  },
+  {
+    "id": "mf-1500-paynow",
+    "amount": 1500,
+    "type": "paynow",
+    "description": "6-Unit Multi-Family - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/5kQdR883w4je3x170Ic7u0j",
+    "lastUpdated": "2025-08-11T19:40:08.706Z"
+  },
+  {
+    "id": "mf-1500-challenge",
+    "amount": 750,
+    "type": "challenge",
+    "description": "6-Unit Multi-Family - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/5kQ8wOabE9Dy9Vpetac7u0k",
+    "lastUpdated": "2025-08-11T19:40:20.498Z"
+  },
+  {
+    "id": "mobile-625-paynow",
+    "amount": 625,
+    "type": "paynow",
+    "description": "Single Wide Mobile Home - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/fZu7sK5VocPK0kP3Owc7u0l",
+    "lastUpdated": "2025-08-11T19:40:33.874Z"
+  },
+  {
+    "id": "mobile-625-challenge",
+    "amount": 312.5,
+    "type": "challenge",
+    "description": "Single Wide Mobile Home - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/4gM3cu2JcaHC1oT4SAc7u0p",
+    "lastUpdated": "2025-08-11T19:40:42.314Z"
+  },
+  {
+    "id": "mobile-750-paynow",
+    "amount": 750,
+    "type": "paynow",
+    "description": "Double Wide Mobile Home - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/5kQ28q6ZsdTOaZtacUc7u0m",
+    "lastUpdated": "2025-08-11T19:40:53.682Z"
+  },
+  {
+    "id": "mobile-750-challenge",
+    "amount": 375,
+    "type": "challenge",
+    "description": "Double Wide Mobile Home - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/aFaeVcerU7vq5F984Mc7u0o",
+    "lastUpdated": "2025-08-11T19:41:02.682Z"
+  },
+  {
+    "id": "mobile-800-paynow",
+    "amount": 800,
+    "type": "paynow",
+    "description": "Triple Wide Mobile Home - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/00w8wO3Ng9DyaZt2Ksc7u0n",
+    "lastUpdated": "2025-08-11T19:41:13.665Z"
+  },
+  {
+    "id": "mobile-800-challenge",
+    "amount": 400,
+    "type": "challenge",
+    "description": "Triple Wide Mobile Home - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/bJe5kC83w2b6d7B70Ic7u0q",
+    "lastUpdated": "2025-08-11T19:41:21.010Z"
+  },
+  {
+    "id": "commercial-1100-paynow",
+    "amount": 1100,
+    "type": "paynow",
+    "description": "Commercial Property - Pay Now",
+    "stripeUrl": "https://buy.stripe.com/7sY4gybfIg1W1oTetac7u0r",
+    "lastUpdated": "2025-08-11T19:41:29.090Z"
+  },
+  {
+    "id": "commercial-1100-challenge",
+    "amount": 550,
+    "type": "challenge",
+    "description": "Commercial Property - 50% Challenge",
+    "stripeUrl": "https://buy.stripe.com/bJebJ03Ng7vqd7B84Mc7u0s",
+    "lastUpdated": "2025-08-11T19:41:35.178Z"
+  }
+]
