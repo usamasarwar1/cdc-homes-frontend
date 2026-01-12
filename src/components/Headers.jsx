@@ -1,5 +1,37 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { testSecureFunction } from '../function/test-Secure-Function';
 function Header() {
+
+//  const baseUrl = import.meta.env.VITE_BASE_URL;
+// const baseUrl = import.meta.env.VITE_LOCAL_URL;
+
+//  const testSecureFunction = async () => {
+//   const url = `${baseUrl}/testSecureFunction`;
+  
+//   const response = await fetch(url, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({
+//       email: "test@example.com",
+//       role: "admin",
+//     }),
+//   });
+
+//   if (!response.ok) {
+//     throw new Error(`HTTP error! status: ${response.status}`);
+//   }
+
+//   const text = await response.text();
+//   console.log("text", text);
+  
+// };
+
+
+//   useEffect(()=>{
+//     testSecureFunction()
+//   },[])
 
   return (
         <>

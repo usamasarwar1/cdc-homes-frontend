@@ -20,6 +20,8 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
   const [propertyData, setPropertyData] = useState(null);
   const [isValidatingProperty, setIsValidatingProperty] = useState(false);
   const [squareFootageConfirmed, setSquareFootageConfirmed] = useState(false);
+  const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+  // const VITE_BASE_URL = import.meta.env.VITE_LOCAL_URL;
   
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualAddress, setManualAddress] = useState({
@@ -53,12 +55,23 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
       setShowSuggestions(false);
       return;
     }
+    console.log("input", input);
+    
 
     setIsLoadingSuggestions(true);
     try {
-      const response = await apiRequest('GET', `/api/places/autocomplete?input=${encodeURIComponent(input)}`);
-      const data = await response.json();
+       const url = `${VITE_BASE_URL}/placesAutocomplete?input=${encodeURIComponent(input)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+    });
+//     const response = await fetch(
+//   `/api/placesAutocomplete?input=${encodeURIComponent(input)}`
+// );
+    
+    const data = await response.json();
       setSuggestions(data.predictions || []);
+      console.log("---",data.predictions);
+      
       setShowSuggestions(true);
       setShowAddressNotFound(data.predictions?.length === 0);
     } catch (error) {
@@ -79,6 +92,8 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
+    
+    console.log("value", value);
     
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(value);
@@ -222,7 +237,7 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
         </div>
 
 
-             {showManualEntry ? (
+             {!showManualEntry ? (
               // google map search ( code comment by Haider)
           <div className="space-y-6">
                 <div className="relative">
