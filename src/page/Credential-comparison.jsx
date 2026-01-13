@@ -11,6 +11,7 @@ import { MiniProgressTracker } from '../components/gamification/MiniProgressTrac
 import { AchievementBadges } from '../components/gamification/AchievementBadges';
 
 
+
 const inspectorCredentials = [
   { label: "Home Inspector", value: "home_inspector" },
   { label: "GC KB-1 or KB-2", value: "gc_kb_license" },
@@ -75,12 +76,20 @@ export default function CredentialComparisonPage() {
   };
 
   const capitalizeWords = (text) => {
+    if (!text || typeof text !== 'string') return "";
     return text.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
+
+
   const handleInputChange = (field, value) => {
-    const capitalizedValue = capitalizeWords(value);
-    setInspectorDetails(prev => ({ ...prev, [field]: capitalizedValue }));
+    let newValue = value;
+    if(field === 'websiteUrl') {
+      newValue = value.trim()
+    } else {
+      newValue = capitalizeWords(value);
+    }
+    setInspectorDetails(prev => ({ ...prev, [field]: newValue }));
   };
 
   const calculateMatch = () => {

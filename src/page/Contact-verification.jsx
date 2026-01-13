@@ -3,6 +3,7 @@ import ContactVerification from '../components/booking/ContactVerification';
 import { MiniProgressTracker } from '../components/gamification/MiniProgressTracker';
 import { useProgress } from '../components/gamification/ProgressProvider';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
 
 export default function ContactVerificationPage() {
   const navigate = useNavigate();
@@ -57,8 +58,21 @@ export default function ContactVerificationPage() {
       </div>
       
       <header className="bg-white shadow-sm">
+        <div className="text-center md:absolute md:left-4 md:top-40 md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
+                        <Button
+                          onClick={() => {
+                            navigate('/property-confirmed')
+                          }}
+                          variant="ghost"
+                          className="text-blue-600 hover:bg-blue-50 text-sm cursor-pointer"
+                        >
+                          ← Back to Home
+                        </Button>
+                      </div>
         <div className="max-w-7xl mx-auto px-4 py-4">
+           
           <div className="text-center">
+            
             <h1 className="text-2xl font-bold text-gray-900">Contact Verification</h1>
             <p className="text-gray-600 mt-2">Verify your contact information to continue with booking</p>
           </div>

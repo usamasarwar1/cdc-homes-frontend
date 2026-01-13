@@ -55,7 +55,6 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
       setShowSuggestions(false);
       return;
     }
-    console.log("input", input);
     
 
     setIsLoadingSuggestions(true);
@@ -64,13 +63,9 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
     const response = await fetch(url, {
       method: 'GET',
     });
-//     const response = await fetch(
-//   `/api/placesAutocomplete?input=${encodeURIComponent(input)}`
-// );
     
     const data = await response.json();
       setSuggestions(data.predictions || []);
-      console.log("---",data.predictions);
       
       setShowSuggestions(true);
       setShowAddressNotFound(data.predictions?.length === 0);
@@ -92,9 +87,7 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    
-    console.log("value", value);
-    
+        
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(value);
     }, 300);
@@ -105,14 +98,31 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
     setShowSuggestions(false);
     setSuggestions([]);
     setIsValidatingProperty(true);
+
+    console.log("handleSuggestionSelect", suggestion.description, suggestion.place_id );
+    
     
     try {
-      const response = await apiRequest('POST', '/api/property/validate', {
-        address: suggestion.description,
-        placeId: suggestion.place_id
-      });
+      // const response = await apiRequest('POST', '/api/property/validate', {
+      //   address: suggestion.description,
+      //   placeId: suggestion.place_id
+      // });
+
+        const url = `${VITE_BASE_URL}/propertyValidate`;
+    const response = await fetch(url, {
+      method: 'POST',
+       headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    address: suggestion.description,
+    placeId: suggestion.place_id,
+  }),
+    });
       
       const data = await response.json();
+      // console.log("data", data);
+      
       
       if (data.success && data.property) {
         setPropertyData({
@@ -263,7 +273,7 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
                   {suggestions.map((suggestion, index) => (
                     <button
                       key={suggestion.place_id}
-                      className={`w-full text-left px-3 md:px-4 py-2 md:py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
+                      className={`w-full text-left cursor-pointer px-3 md:px-4 py-2 md:py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
                         index === selectedIndex ? 'bg-blue-50' : ''
                       }`}
                       onClick={() => handleSuggestionSelect(suggestion)}
@@ -279,8 +289,8 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
             </div>
 
 
-            {/*Code comment by Haider-dev Address Not Found Option - Legacy for backwards compatibility */}
-            {/* {showAddressNotFound && !isLoadingSuggestions && (
+            {/*Code comment by Haider-dev Address Not Found Option - ( Legacy for backwards compatibility ) */}
+            {showAddressNotFound && !isLoadingSuggestions && (
               <div className="text-center py-3 md:py-4 border border-amber-200 rounded-lg bg-amber-50">
                 <AlertCircle className="h-5 w-5 md:h-6 md:w-6 text-amber-500 mx-auto mb-2" />
                 <p className="text-sm md:text-base text-amber-700 mb-3 px-2">No results found for this address</p>
@@ -292,15 +302,15 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
                   Try Manual Entry
                 </Button>
               </div>
-            )} */}
+            )}
 
             {/* Property Validation Loading */}
-            {/* {isValidatingProperty && (
+            {isValidatingProperty && (
               <div className="text-center py-6">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-3" />
                 <p className="text-gray-600">Validating property data...</p>
               </div>
-            )} */}
+            )}
           </div>
         ) : (
           // Manual  currently working 

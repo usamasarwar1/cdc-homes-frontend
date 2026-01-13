@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/input';
@@ -14,6 +14,9 @@ import { useFormGuidance } from '../../hooks/useGormGuideance';
 
 
 export default function ContactVerification({ property, onVerified, onBack }) {
+  console.log("init property", property);
+  
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const [payeeName, setPayeeName] = useState({ firstName: '', lastName: '' });
@@ -23,6 +26,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   const [payerEmail, setPayerEmail] = useState('');
   const [reportEmail, setReportEmail] = useState('');
   const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const hasManuallyEditedAddress = useRef(false);
 
   const formatPhoneNumber = (digits) => {
     // Limit to 10 digits
@@ -37,40 +41,65 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   const handlePhoneChange = (e) => {
     const newValue = e.target.value;
     
-    console.log("Phone input - value:", newValue);
     
     // Extract digits only
     const digits = newValue.replace(/\D/g, '');
     const formatted = formatPhoneNumber(digits);
     
-    console.log("Digits extracted:", digits, "formatted:", formatted);
     
     setPhoneNumber(formatted);
   };
   const [isAddressCorrect, setIsAddressCorrect] = useState(true);
-  const [editedAddress, setEditedAddress] = useState(
-    property.address || 
-    (property.street && property.city && property.state && property.zip 
-      ? `${property.street}, ${property.city}, ${property.state} ${property.zip}`
-      : '')
-  );
+  // const [editedAddress, setEditedAddress] = useState(
+  //   property.address || 
+  //   (property.street && property.city && property.state && property.zip 
+  //     ? `${property.street}, ${property.city}, ${property.state} ${property.zip}`
+  //     : '')
+  // );
+  const [editedAddress, setEditedAddress] = useState('');
   const [isSquareFootageCorrect, setIsSquareFootageCorrect] = useState(null);
   const [editedSquareFootage, setEditedSquareFootage] = useState(property.squareFootage?.toString() || '');
 
   // code comment by Haider dev
   // Dynamic address and square footage with fallback to prevent "Not specified"
   const getDisplayAddress = () => {
-    // Try to build address from components first
     if (property.street && property.city && property.state && property.zip) {
       return `${property.street}, ${property.city}, ${property.state} ${property.zip}`;
     }
-    // Fall back to single address field
     if (property.address) {
       return property.address;
     }
-    // Final fallback to prevent "Not specified"
     return '123 Main Street, Phoenix, AZ 85001';
   };
+
+useEffect(() => {
+
+  console.log('useEffect running', {
+    hasManuallyEdited: hasManuallyEditedAddress.current,
+    propertyAddress: property?.address,
+    propertyStreet: property?.street,
+    propertyCity: property?.city,
+    propertyState: property?.state,
+    propertyZip: property?.zip
+  });
+
+  if (!hasManuallyEditedAddress.current) {
+    if (property?.address) {
+      setEditedAddress(property.address);
+    } else if (
+      property?.street &&
+      property?.city &&
+      property?.state &&
+      property?.zip
+    ) {
+      setEditedAddress(
+        `${property.street}, ${property.city}, ${property.state} ${property.zip}`
+      );
+    } else {
+      setEditedAddress('');
+    }
+  }
+}, [property?.address, property?.street, property?.city, property?.state, property?.zip]);
 
   const getDisplaySquareFootage = () => {
     if (property.squareFootage && property.squareFootage > 0) {
@@ -173,20 +202,21 @@ export default function ContactVerification({ property, onVerified, onBack }) {
     }
   }, []);
 
+  // code comment by Haider dev
   // Check if form sections should be blurred based on email validation
   // Blur when user has left email field without proper format
   const shouldBlurFormSections = hasEmailBlurred && !isPayerEmailValid;
   
-  // Debug logging for blur conditions
-  useEffect(() => {
-    console.log('Blur condition check:', {
-      hasEmailBlurred,
-      isPayerEmailValid,
-      hasInteracted,
-      hasClosedModal,
-      shouldBlur: shouldBlurFormSections
-    });
-  }, [hasEmailBlurred, isPayerEmailValid, hasInteracted, hasClosedModal, shouldBlurFormSections]);
+  // Debug logging for blur conditions code comment by Haider dev
+  // useEffect(() => {
+  //   console.log('Blur condition check:', {
+  //     hasEmailBlurred,
+  //     isPayerEmailValid,
+  //     hasInteracted,
+  //     hasClosedModal,
+  //     shouldBlur: shouldBlurFormSections
+  //   });
+  // }, [hasEmailBlurred, isPayerEmailValid, hasInteracted, hasClosedModal, shouldBlurFormSections]);
 
   const addContactPerson = () => {
     setContactPersons([...contactPersons, { 
@@ -524,10 +554,10 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   // Overall form completion check
   const isFormComplete = isFirstNameValid && 
     isLastNameValid && 
-    isRelationshipValid && 
-    isPhoneNumberValid && 
+    // isRelationshipValid && 
+    // isPhoneNumberValid && 
     isEmailValid && 
-    isVerified && 
+    // isVerified && 
     isAddressConfirmed && 
     isOccupancyStatusValid && 
     isRealtorNotificationValid && 
@@ -717,10 +747,10 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   ];
 
   // Initialize form guidance
-  const { resetActivityTimer } = useFormGuidance({
-    sections: formSections,
-    inactivityTimeout: 3000, // 3 seconds
-  });
+  // const { resetActivityTimer } = useFormGuidance({
+  //   sections: formSections,
+  //   inactivityTimeout: 3000, // 3 seconds
+  // });
 
   // Enhanced automatic highlighting system - highlight next incomplete field after 3 seconds of no activity
   useEffect(() => {
@@ -815,8 +845,10 @@ export default function ContactVerification({ property, onVerified, onBack }) {
           <Button
             onClick={() => {
               setHasInteracted(true);
+              setShowWhatsIncluded(false);
               setShowContractPreview(true);
-              resetActivityTimer();
+            
+              
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
           >
@@ -826,7 +858,8 @@ export default function ContactVerification({ property, onVerified, onBack }) {
           <Button
             onClick={() => {
               setShowWhatsIncluded(true);
-              resetActivityTimer();
+              setHasInteracted(false)
+            
             }}
             variant="outline"
             className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
@@ -837,7 +870,10 @@ export default function ContactVerification({ property, onVerified, onBack }) {
           <Button
             onClick={() => {
               setHasInteracted(true);
-              resetActivityTimer();
+              setShowWhatsIncluded(false);
+              setShowContractPreview(false);
+              
+
             }}
             variant="secondary"
             className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-blue-400"
@@ -1016,7 +1052,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   value={payeeName.firstName}
                   onChange={(e) => {
                     setPayeeName(prev => ({ ...prev, firstName: toTitleCase(e.target.value) }));
-                    resetActivityTimer();
+                  
                   }}
                   placeholder="Smart"
                   className="pr-12 border-2 border-blue-500"
@@ -1040,7 +1076,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   value={payeeName.lastName}
                   onChange={(e) => {
                     setPayeeName(prev => ({ ...prev, lastName: toTitleCase(e.target.value) }));
-                    resetActivityTimer();
+                   
                   }}
                   placeholder="Buyer"
                   className="pr-12 border-2 border-blue-500"
@@ -1068,7 +1104,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   variant={relationshipToBuyer === relationship.toLowerCase() ? "default" : "outline"}
                   onClick={() => {
                     setRelationshipToBuyer(relationship.toLowerCase());
-                    resetActivityTimer();
+                    
                   }}
                   className={`h-12 border-2 relative ${
                     relationshipToBuyer === relationship.toLowerCase() 
@@ -1111,7 +1147,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 value={phoneNumber}
                 onChange={(e) => {
                   handlePhoneChange(e);
-                  resetActivityTimer();
+               
                 }}
                 placeholder="(555) 123-4567"
                 className="pr-12 border-2 border-blue-500"
@@ -1138,7 +1174,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 value={payerEmail}
                 onChange={(e) => {
                   setPayerEmail(e.target.value);
-                  resetActivityTimer();
+                 
                 }}
                 onBlur={handleEmailBlur}
                 placeholder="your.email@example.com"
@@ -1474,13 +1510,16 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   <div className="text-sm sm:text-base font-semibold text-blue-900 mb-2">
                     Your Inspection Address:
                   </div>
+                 
                   <div className="text-blue-800 text-sm sm:text-base font-medium leading-relaxed">
-                    <div>{property.street}{unitNumber && `, Unit ${unitNumber}`}</div>
-                    <div>{property.city}, {property.state} {property.zip}</div>
-                    {displaySquareFootage && (
-                      <div className="mt-1">House Size: {displaySquareFootage.toLocaleString()} SF</div>
-                    )}
-                  </div>
+  {editedAddress ? (
+    editedAddress.split(',').map((line, i) => (
+      <div key={i}>{line.trim()}</div>
+    ))
+  ) : (
+    <div>Address not available</div>
+  )}
+</div>
                   <div className="mt-2 flex justify-between items-center">
                     <Button
                       variant="outline"
@@ -1527,7 +1566,15 @@ export default function ContactVerification({ property, onVerified, onBack }) {
             <div className="flex flex-col sm:flex-row gap-3 mt-3">
               <Button
                 variant={isAddressCorrect === true ? "default" : "outline"}
-                onClick={() => setIsAddressCorrect(true)}
+                onClick={() => {
+                  setIsAddressCorrect(true)
+                  // console.log('clicked correct');
+                  // console.log("editedAddress", editedAddress);
+                  // console.log(isAddressCorrect);
+                  
+                  
+                  // setEditedAddress
+                }}
                 className={`flex-1 border-2 relative h-14 text-lg font-semibold ${
                   isAddressCorrect === true 
                     ? 'border-green-500 bg-green-50 text-green-800 shadow-lg' 
@@ -1547,7 +1594,19 @@ export default function ContactVerification({ property, onVerified, onBack }) {
               </Button>
               <Button
                 variant={isAddressCorrect === false ? "default" : "outline"}
-                onClick={() => setIsAddressCorrect(false)}
+                // onClick={() => setIsAddressCorrect(false)}
+                onClick={() => {
+                  setIsAddressCorrect(false);
+                  // hasManuallyEditedAddress.current = true;
+                
+                  // if (!editedAddress) {
+                  //   const currentAddress = property.address || 
+                  //     (property.street && property.city && property.state && property.zip
+                  //       ? `${property.street}, ${property.city}, ${property.state} ${property.zip}`
+                  //       : '');
+                  //   setEditedAddress(currentAddress);
+                  // }
+                }}
                 className={`flex-1 border-2 h-14 text-lg font-semibold ${
                   isAddressCorrect === false 
                     ? 'border-green-500 bg-green-50 text-green-800 shadow-lg' 
@@ -1569,6 +1628,10 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 <Input
                   value={editedAddress}
                   onChange={(e) => setEditedAddress(e.target.value)}
+                  // onChange={(e) => {
+                  //   hasManuallyEditedAddress.current = true;
+                  //   setEditedAddress(e.target.value);
+                  // }}
                   placeholder="Enter correct address"
                   className="w-full"
                 />
@@ -1609,7 +1672,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   key={status}
                   onClick={() => {
                     setOccupancyStatus(status.toLowerCase());
-                    resetActivityTimer();
+                  
                   }}
                   className={`h-16 relative text-base font-semibold px-4 flex items-center justify-center border-2 ${
                     occupancyStatus === status.toLowerCase() 

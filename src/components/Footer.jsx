@@ -14,11 +14,9 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold mb-4">Services</h4>
               <ul className="space-y-2 text-base text-gray-400">
-                <li><a href="#" className="hover:text-white">Standard Inspection</a></li>
-                <li><a href="#pool-spa" className="hover:text-white" onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('pool-spa')?.scrollIntoView({ behavior: 'smooth' });
-                }}>Pool/Spa Inspection</a></li>
+             
+                  <li > Standard Inspection</li>
+                <li >  Pool/Spa Inspection</li>
               </ul>
             </div>
             <div>
@@ -44,7 +42,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-base text-gray-400 text-center">
-            <p>&copy; 2025 CDC Home Inspections by Darrell Penn. All rights reserved.</p>
+            <p>&copy; 2026 CDC Home Inspections by Darrell Penn. All rights reserved.</p>
           </div>
         </div>
       </footer>

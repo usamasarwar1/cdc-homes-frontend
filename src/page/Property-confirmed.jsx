@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import PropertyDetails from '../components/booking/PropertyDetails';
+import { Button } from '../components/ui/Button';
 
 export default function PropertyConfirmed() {
   const navigate = useNavigate();
@@ -27,13 +28,27 @@ export default function PropertyConfirmed() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="bg-white shadow-sm relative">
+          <div className="text-center md:absolute md:left-4 md:top-1/2 md:transform md:-translate-y-1/2 md:text-left p-4">
+              <Button
+                onClick={() => {
+                  navigate('/')
+                }}
+                variant="ghost"
+                className="text-blue-600 hover:bg-blue-50 text-sm cursor-pointer"
+              >
+                ← Back to Home
+                {/* Back to Home */}
+              </Button>
+            </div>
+        <div className="max-w-4xl mx-auto px-4 pb-6 pt-0 md:py-6">
+          
           <div className="text-center">
             <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">Property Details Confirmed</h1>
             <p className="text-base md:text-lg text-gray-600">Ready to continue - let's meet your inspector!</p>
           </div>
         </div>
+     
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">

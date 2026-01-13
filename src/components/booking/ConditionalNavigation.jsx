@@ -141,6 +141,7 @@ export default function ConditionalNavigation({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Continue!</h2>
         <p className="text-lg text-gray-600">

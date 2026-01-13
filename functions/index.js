@@ -1,17 +1,13 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const cors = require("cors");
-// const cors = require("cors")({ origin: true });
-// import * as functions from "firebase-functions";
-// import fetch from "node-fetch";
-// const fetch = require("node-fetch");
+const RentCastService = require("./services/rentCast");
 
 admin.initializeApp();
 const corsHandler = cors({
   origin: true,
 });
 
-const { onCall, onRequest } = require("firebase-functions/v2/https");
 
 exports.testSecureFunction = functions
   .https.onRequest((req, res) => {
@@ -64,3 +60,28 @@ exports.testSecureFunction = functions
     }
   });
 });
+
+exports.propertyValidate = functions
+  .https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      if (req.method !== "POST") {
+        return res.status(405).json({ success: false });
+      }
+
+      const { address } = req.body;
+      if (!address) {
+        return res.status(400).json({ success: false, message: "Address required" });
+      }
+
+      // ✅ SECRET IS AVAILABLE HERE
+      const rentCast = new RentCastService(process.env.RENTCAST_API_KEY);
+
+      const propertyData = await rentCast.getPropertyDetails(address);
+
+      return res.json({
+        success: true,
+        property: propertyData,
+      });
+    });
+  });
+
