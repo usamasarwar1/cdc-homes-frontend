@@ -207,7 +207,7 @@ useEffect(() => {
   // Blur when user has left email field without proper format
   const shouldBlurFormSections = hasEmailBlurred && !isPayerEmailValid;
   
-  // Debug logging for blur conditions code comment by Haider dev
+  //code comment by Haider dev Debug logging for blur conditions 
   // useEffect(() => {
   //   console.log('Blur condition check:', {
   //     hasEmailBlurred,
@@ -1049,6 +1049,7 @@ useEffect(() => {
               <div className="relative">
                 <Input
                   id="firstName"
+                  required
                   value={payeeName.firstName}
                   onChange={(e) => {
                     setPayeeName(prev => ({ ...prev, firstName: toTitleCase(e.target.value) }));
@@ -1073,6 +1074,7 @@ useEffect(() => {
               <div className="relative">
                 <Input
                   id="lastName"
+                  required
                   value={payeeName.lastName}
                   onChange={(e) => {
                     setPayeeName(prev => ({ ...prev, lastName: toTitleCase(e.target.value) }));
@@ -1143,6 +1145,7 @@ useEffect(() => {
               <Input
                 id="phoneNumber"
                 data-section="phoneNumber"
+                required
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => {
@@ -1171,6 +1174,7 @@ useEffect(() => {
               <Input
                 id="payerEmail"
                 type="email"
+                required
                 value={payerEmail}
                 onChange={(e) => {
                   setPayerEmail(e.target.value);
@@ -1179,7 +1183,6 @@ useEffect(() => {
                 onBlur={handleEmailBlur}
                 placeholder="your.email@example.com"
                 className={`pr-12 ${hasEmailBlurred && !isPayerEmailValid ? 'border-red-500 border-2' : 'border-blue-500 border-2'}`}
-                required
               />
               <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               {isPayerEmailValid && (
@@ -1321,18 +1324,22 @@ useEffect(() => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <Input
+                    required
                       placeholder="First Name"
                       value={person.firstName}
                       onChange={(e) => updateContactPerson(person.id, 'firstName', e.target.value)}
                     />
                     <Input
+                      required
                       placeholder="Last Name"
                       value={person.lastName}
                       onChange={(e) => updateContactPerson(person.id, 'lastName', e.target.value)}
                     />
                     <Input
+                      required
                       placeholder="Email Address"
                       type="email"
+                      required
                       value={person.email}
                       onChange={(e) => updateContactPerson(person.id, 'email', e.target.value)}
                     />
@@ -1628,10 +1635,7 @@ useEffect(() => {
                 <Input
                   value={editedAddress}
                   onChange={(e) => setEditedAddress(e.target.value)}
-                  // onChange={(e) => {
-                  //   hasManuallyEditedAddress.current = true;
-                  //   setEditedAddress(e.target.value);
-                  // }}
+                  required
                   placeholder="Enter correct address"
                   className="w-full"
                 />

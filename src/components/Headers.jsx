@@ -1,44 +1,36 @@
-import React, { useEffect } from 'react'
-import { testSecureFunction } from '../function/test-Secure-Function';
-function Header() {
+import React from 'react'
+import { Button } from './ui/Button';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 
-//  const baseUrl = import.meta.env.VITE_BASE_URL;
-// const baseUrl = import.meta.env.VITE_LOCAL_URL;
-
-//  const testSecureFunction = async () => {
-//   const url = `${baseUrl}/testSecureFunction`;
-  
-//   const response = await fetch(url, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({
-//       email: "test@example.com",
-//       role: "admin",
-//     }),
-//   });
-
-//   if (!response.ok) {
-//     throw new Error(`HTTP error! status: ${response.status}`);
-//   }
-
-//   const text = await response.text();
-//   console.log("text", text);
-  
-// };
+function Header({setIsModalOpen, userData, setModalType, isAuthenticated, setIsAuthenticated}) {
 
 
-//   useEffect(()=>{
-//     testSecureFunction()
-//   },[])
+
+const handleLogOut = async () => {
+  try {
+    sessionStorage.removeItem("userData");
+    sessionStorage.removeItem("confirmedProperty");
+    await signOut(auth);
+    setIsAuthenticated(false);
+    
+  } catch (error) {
+    console.error("Error logging out:", error);
+  }
+}
+
+const handleLogIn = () => {
+  setIsModalOpen(true);
+  setModalType('login');
+}
+
 
   return (
         <>
       <header className="bg-white shadow-sm border-b sticky top-0 z-50 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center min-h-[80px] py-3">
-            <div className="flex items-center space-x-4 md:space-x-6">
+          <div className="flex justify-between items-center min-h-[80px] py-3">
+            <div className="flex items-center justify-start space-x-4 md:space-x-6">
               <img 
                 src="/attached_assets/CDC Logo_1753482679929.png"
                 alt="CDC Logo" 
@@ -63,7 +55,20 @@ function Header() {
                 </div>
               </div>
             </div>
+                {isAuthenticated && userData ? (
+                <Button
+                onClick={handleLogOut}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-sm font-semibold transition-colors"
+                 >
+                Log Out
+              </Button>
+              ) : (
+                <Button onClick={handleLogIn} className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-sm font-semibold transition-colors">
+                  Log In
+                </Button>
+              )}
           </div>
+            
         </div>
       </header>
       </>

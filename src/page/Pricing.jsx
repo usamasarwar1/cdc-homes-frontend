@@ -5,6 +5,7 @@ import { Check, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Header from '../components/Headers';
+import Headers2 from '../components/Headers2';
 // import { getStripePaymentUrl } from '@/components/StripePaymentManager';
 
 export default function PricingPage() {
@@ -126,33 +127,8 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
     
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-20">
-            <div className="flex items-center space-x-6">
-              <img src="/attached_assets/CDC Logo_1753482679929.png" alt="CDC Logo" className="h-16 w-auto" />
-              <div className="text-center">
-                <div className="hidden md:block">
-                  <div className="text-2xl font-bold text-gray-900 tracking-tight">
-                    CDC Home Inspections
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Protecting Arizona Homeowners Since 2013
-                  </div>
-                </div>
-                <div className="md:hidden">
-                  <div className="text-xl font-bold text-gray-900">
-                    CDC Home Inspections
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
+        {/* <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
           <Link to="/">
             <Button variant="outline" className="w-[255px] sm:w-fit mb-4 cursor-pointer border-gray-300 bg-white">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -164,7 +140,7 @@ export default function PricingPage() {
               View Complete Pricing Schedule
             </Button>
           </Link>
-        </div>
+        </div> */}
         <div className="mb-8 max-w-4xl mx-auto">
           <details className="bg-gray-50 border border-gray-200 rounded-lg">
             <summary className="cursor-pointer p-4 font-semibold text-lg text-gray-900 hover:bg-gray-100 rounded-lg">

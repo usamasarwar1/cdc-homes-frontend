@@ -22,8 +22,8 @@ export default function PricingSchedulePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-     <header className="bg-white shadow-sm print:hidden">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     {/* <header className="bg-white shadow-sm print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
       
       <Link to="/" className="flex items-center gap-3">
@@ -65,8 +65,8 @@ export default function PricingSchedulePage() {
       </div>
 
     </div>
-  </div>
-</header>
+        </div>
+        </header> */}
 
 
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -83,13 +83,21 @@ export default function PricingSchedulePage() {
               <p><strong>Step 2:</strong> Copy each payment link URL and save them using the admin panel</p>
               <p><strong>Step 3:</strong> Test payments in Stripe's test mode before going live</p>
             </div>
-            <div className="text-center">
+            <div className="text-center flex justify-center items-center gap-4">
               <Link to="/stripe-admin">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                   Manage Payment Links
                 </Button>
               </Link>
+            
+               <Button 
+               onClick={generatePDF}
+               className="bg-[#dc2626] hover:bg-red-600 text-white">
+               <Download className="h-4 w-4 mr-2" />
+               Download PDF
+                </Button>
             </div>
+        
           </div>
         </div>
 

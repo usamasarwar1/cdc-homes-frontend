@@ -9,6 +9,11 @@ export default function MainContent({ property,
         setProperty,
         setCurrentStep,
         navigate,
+        isAuthenticated,
+        setIsAuthenticated,
+        setIsModalOpen,
+        setModalType,
+        setPendingPropertyInfo,
         }) {
 
   return (
@@ -35,6 +40,11 @@ export default function MainContent({ property,
             {currentStep === 1 && (
               <div className="w-full max-w-2xl">
                 <AddressInputNew
+                  isAuthenticated={isAuthenticated}
+                  setIsAuthenticated={setIsAuthenticated}
+                  setIsModalOpen={setIsModalOpen}
+                  setModalType={setModalType}
+                  setPendingPropertyInfo={setPendingPropertyInfo}
                   onPropertyFound={(propertyData) => {
                     const pricing = getPricingTier(propertyData);
                     

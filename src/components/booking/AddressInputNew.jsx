@@ -5,10 +5,20 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { apiRequest } from '../../lib/queryClient';
 import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebase';
 
 
 
-export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoading }) {
+export default function AddressInputNew({ 
+  onPropertyFound, 
+  isLoading, 
+  setIsLoading, 
+  isAuthenticated, 
+  setIsAuthenticated, 
+  setIsModalOpen, 
+  setModalType, 
+  setPendingPropertyInfo }) {
   
   const [address, setAddress] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -56,7 +66,6 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
       return;
     }
     
-
     setIsLoadingSuggestions(true);
     try {
        const url = `${VITE_BASE_URL}/placesAutocomplete?input=${encodeURIComponent(input)}`;
@@ -99,15 +108,7 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
     setSuggestions([]);
     setIsValidatingProperty(true);
 
-    console.log("handleSuggestionSelect", suggestion.description, suggestion.place_id );
-    
-    
     try {
-      // const response = await apiRequest('POST', '/api/property/validate', {
-      //   address: suggestion.description,
-      //   placeId: suggestion.place_id
-      // });
-
         const url = `${VITE_BASE_URL}/propertyValidate`;
     const response = await fetch(url, {
       method: 'POST',
@@ -120,9 +121,7 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
   }),
     });
       
-      const data = await response.json();
-      // console.log("data", data);
-      
+      const data = await response.json();      
       
       if (data.success && data.property) {
         setPropertyData({
@@ -175,11 +174,18 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
     });
   };
 
-  const handleConfirmAndProceed = () => {
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
+  //     setIsAuthenticated(!!user);
+  //   });
+  //   return () => unsubscribe();
+  // }, [setIsAuthenticated]);
+
+  const handleConfirmAndProceed = async () => {
     if (!propertyData || !squareFootageConfirmed) return;
     
     setIsLoading(true);
-    
+
     const propertyInfo = {
       address: propertyData.address,
       squareFootage: propertyData.squareFootage,
@@ -193,8 +199,28 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
       propertyType: 'Single Family Residence'
     };
 
+    const user = auth.currentUser;
+    // console.log("user in addressInputNew", user);
 
-    onPropertyFound(propertyInfo);
+    // console.log("isAuthenticated in addressInputNew", isAuthenticated);
+    
+    if(user){
+      setIsAuthenticated(true);
+      onPropertyFound(propertyInfo);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setIsModalOpen(true);
+      setModalType('login');
+      setPendingPropertyInfo(propertyInfo);
+      setIsLoading(false);
+      return;
+    }
+
+
+
   };
 
   const handleBackToAutocomplete = () => {
@@ -396,9 +422,12 @@ export default function AddressInputNew({ onPropertyFound, isLoading, setIsLoadi
                 type="number"
                 placeholder="2000"
                 value={manualSquareFootage}
-                onChange={(e) => setManualSquareFootage(e.target.value)}
-                min="1"
-                max="6000"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || parseInt(value) >= 1 && parseInt(value) <= 6000) {
+                    setManualSquareFootage(value);
+                  }
+                }}
                 className="text-sm md:text-base border border-gray-300 rounded-md w-full focus:ring-red-500"
               />
               <p className="text-xs md:text-sm text-gray-500 mt-1">

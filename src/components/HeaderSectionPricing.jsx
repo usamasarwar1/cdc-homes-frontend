@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 import { Download } from 'lucide-react';
-import cdcLogoPath from '@assets/CDC Logo_1753482679929.png';
+import cdcLogoPath from '../attached_assets/CDC Logo_1753482679929.png';
 import { Button } from '../components/ui/Button';
 
 const HeaderSectionPricing = () => {
@@ -9,7 +9,7 @@ const HeaderSectionPricing = () => {
       <header className="bg-white shadow-sm border-b print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <Link href="/">
+            <Link to="/">
               <div className="flex items-center space-x-4 cursor-pointer">
                 <img src={cdcLogoPath} alt="CDC Logo" className="h-16 w-auto" />
                 <div>

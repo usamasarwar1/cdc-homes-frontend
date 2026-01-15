@@ -21,8 +21,8 @@ export default function ContactVerificationPage() {
     paymentMethod: urlParams.get('paymentMethod') || 'pay_now'
   };
 
-  console.log('ContactVerificationPage - URL search params:', window.location.search);
-  console.log('ContactVerificationPage - Parsed property data:', property);
+  // console.log('ContactVerificationPage - URL search params:', window.location.search);
+  // console.log('ContactVerificationPage - Parsed property data:', property);
 
   useEffect(() => {
     setStep('contact');

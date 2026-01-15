@@ -181,12 +181,12 @@ export default function InspectorPage() {
 
                 <div className="mt-12 text-center space-y-4">
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link 
+                    {/* <Link 
                       to="/pricing" 
                       className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
                     >
                       View Pricing
-                    </Link>
+                    </Link> */}
                     <Link 
                       to="/what's-included" 
                       className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"

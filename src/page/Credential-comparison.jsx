@@ -255,7 +255,7 @@ export default function CredentialComparisonPage() {
               Compare Credentials
             </Button>
             
-            <div>
+            {/* <div>
               <Link to="/pricing">
                 <Button 
                   variant="outline" 
@@ -263,6 +263,17 @@ export default function CredentialComparisonPage() {
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back to Pricing</span>
+                </Button>
+              </Link>
+            </div> */}
+            <div>
+              <Link to="/property-confirmed">
+                <Button 
+                  variant="outline" 
+                  className="bg-transparent cursor-pointer border-gray-300 text-gray-600 hover:bg-gray-50 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base w-full md:w-auto flex items-center justify-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
                 </Button>
               </Link>
             </div>
