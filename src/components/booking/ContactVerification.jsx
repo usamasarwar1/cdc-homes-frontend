@@ -1339,7 +1339,6 @@ useEffect(() => {
                       required
                       placeholder="Email Address"
                       type="email"
-                      required
                       value={person.email}
                       onChange={(e) => updateContactPerson(person.id, 'email', e.target.value)}
                     />
