@@ -118,9 +118,9 @@ function Router() {
       {/* Users */}
       <Route path="/property-confirmed" element={<PropertyConfirm />} />
       <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
+      <Route path="/contact-verification" element={<ContactVerification />} />
       <Route path="/what's-included" element={<WhatsIncludedPage />} />
       <Route path="/inspector" element={<InspectorPage />} />
-      <Route path="/contact-verification" element={<ContactVerification />} />
       <Route path="/inspection-confirmed" element={<InspectionConfirmedPage />} />
       <Route path="/booking-summary" element={<BookingSummary />} />
       <Route path="/calendar" element={<InspectionCalendar />} />

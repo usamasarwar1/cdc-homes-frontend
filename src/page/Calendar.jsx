@@ -12,19 +12,25 @@ import { Label } from '../components/ui/Label';
 import { CalendarIcon, ClockIcon, MapPinIcon, HomeIcon, UserIcon, PhoneIcon, MailIcon, UsersIcon, Clock, AlertCircle } from 'lucide-react';
 import { format, addDays, isWeekend, isSaturday, isToday } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
+import { doc, setDoc, serverTimestamp, collection, addDoc, updateDoc, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 import { ProgressSteps, GuidanceCard } from '../components/ui/Progress-steps';
+import { Loader2 } from 'lucide-react';
 
 
 
 export default function InspectionCalendar() {
 const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState();
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedTime, setSelectedTime] = useState('');
   const [property, setProperty] = useState({});
   const [contact, setContact] = useState({});
   const [showWaitingListDialog, setShowWaitingListDialog] = useState(false);
   const [waitingListEmail, setWaitingListEmail] = useState('');
   const [waitingListPhone, setWaitingListPhone] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [loginUser, setLoginUser] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,7 +38,13 @@ const navigate = useNavigate();
     
     // Parse URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    console.log('InspectionCalendar - URL search params:', window.location.search);
+    // console.log('InspectionCalendar - URL search params:', window.location.search);
+    
+    setPaymentMethod(sessionStorage.getItem('paymentMethod'));
+    setLoginUser(JSON.parse(sessionStorage.getItem('userData')));
+
+    // console.log('InspectionCalendar - Payment method:', sessionStorage.getItem('paymentMethod'));
+    // console.log('InspectionCalendar - User data:', JSON.parse(sessionStorage.getItem('userData')));
 
     const propertyData = {
       address: urlParams.get('address') || '',
@@ -49,7 +61,7 @@ const navigate = useNavigate();
     };
 
     setProperty(propertyData);
-    console.log('InspectionCalendar - Property data:', propertyData);
+    // console.log('InspectionCalendar - Property data:', propertyData);
 
     const contactData = {
       firstName: urlParams.get('firstName') || '',
@@ -67,7 +79,7 @@ const navigate = useNavigate();
     };
 
     setContact(contactData);
-    console.log('InspectionCalendar - Contact data:', contactData);
+    // console.log('InspectionCalendar - Contact data:', contactData);
   }, []);
 
   // Calculate pricing - STANDARD INSPECTION FEE (Pay Now)
@@ -178,6 +190,14 @@ const navigate = useNavigate();
     ) || null;
   };
 
+  const isWeekendDate = (dateString) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const dayOfWeek = date.getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
+  };
+
+
   // Disable dates that are not available
   const isDateDisabled = (date) => {
     const today = new Date();
@@ -270,57 +290,45 @@ const navigate = useNavigate();
     }
   };
 
-  const handleDateSelect = (date) => {
-    if (!date) {
-      setSelectedDate(undefined);
-      setSelectedTime('');
-      return;
-    }
-    
-    const availability = getDateAvailability(date);
-    if (availability?.status === 'unavailable') {
-      setSelectedDate(date);
-      setSelectedTime('');
-      setWaitingListEmail(contact.payerEmail || '');
-      setWaitingListPhone(contact.phoneNumber || '');
-      setShowWaitingListDialog(true);
-    } else {
-      setSelectedDate(date);
-      setSelectedTime('');
-    }
-  };
-
   const handleContinueToPayment = async () => {
-    if (!selectedDate || !selectedTime) {
-      console.log('Calendar - Missing date or time selection');
-      return;
-    }
-
-    const availability = getDateAvailability(selectedDate);
-    if (availability?.status === 'unavailable') {
-      setShowWaitingListDialog(true);
-      return;
-    }
-
-    console.log('Calendar - Continue to payment clicked');
-    console.log('Calendar - Selected date:', selectedDate);
-    console.log('Calendar - Selected time:', selectedTime);
-    console.log('Calendar - Full price:', fullPrice);
-
-    const appointmentData = {
-      date: selectedDate,
-      time: selectedTime,
-      formattedDateTime: `${format(selectedDate, 'EEEE, MMMM do, yyyy')} at ${selectedTime}`,
-      property,
-      contact,
-      fullPrice
-    };
-
-    console.log("appointmentData", appointmentData);
-    
+      // Continue with payment flow (existing code)
+      // localStorage.setItem('appointment-details', JSON.stringify(appointmentData));
+      
     // localStorage.setItem('appointment-details', JSON.stringify(appointmentData));
 
     try {
+      setIsLoading(true);
+      if (!selectedDate || !selectedTime) {
+        console.log('Calendar - Missing date or time selection');
+        return;
+      }
+  
+      const appointmentData = {
+        date: selectedDate,
+        time: selectedTime,
+        formattedDateTime: `${format(selectedDate, 'EEEE, MMMM do, yyyy')} at ${selectedTime}`,
+        property: property,
+        verifiedContact: contact,
+        fullPrice,
+        userId: loginUser.userId,
+        isDiscount: paymentMethod === 'pay_now' ? false : true,
+      };
+  
+        const bookingsRef = collection(db, 'bookings');
+        const newBookingData = {
+          ...appointmentData,
+          createdAt: serverTimestamp() 
+        };
+        const docRef = await addDoc(bookingsRef, newBookingData);
+          
+        toast({
+          title: "Booking Created",
+          description: "Your appointment has been scheduled successfully!",
+        });
+        alert("Appointment created successfully with appointment details");
+        navigate("/");
+    
+
       // Get the Stripe payment URL for the calculated price
     //   const { getStripePaymentUrl } = await import('@/components/StripePaymentManager');
     //   const stripeUrl = getStripePaymentUrl(fullPrice, 'paynow');
@@ -359,6 +367,8 @@ const navigate = useNavigate();
         appointmentTime: selectedTime
       });
       navigate(`/payment-redirect?${params.toString()}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -408,94 +418,33 @@ const navigate = useNavigate();
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Calendar */}
-                {/* <div className="space-y-4">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    disabled={isDateDisabled}
-                    fromDate={minDate}
-                    toDate={maxDate}
-                    defaultMonth={minDate}
-                    className="rounded-md border"
-                    classNames={{
-                      day_today: "!bg-blue-100 !text-blue-700 !border-2 !border-blue-500 font-semibold aspect-square w-12 h-12 flex items-center justify-center",
-                      day: "hover:bg-gray-100 focus:bg-gray-100 aspect-square w-12 h-12 flex items-center justify-center transition-colors",
-                      day_selected: "!bg-blue-600 !text-white !border-2 !border-blue-700 aspect-square w-12 h-12 flex items-center justify-center",
-                      day_disabled: "!bg-gray-200 !text-gray-400 aspect-square w-12 h-12 flex items-center justify-center cursor-not-allowed",
-                    }}
-                    modifiers={{
-                      available: (date) => !isToday(date) && !isDateDisabled(date) && getDateAvailability(date)?.status === 'available',
-                      limited: (date) => !isToday(date) && !isDateDisabled(date) && getDateAvailability(date)?.status === 'limited', 
-                      unavailable: (date) => !isToday(date) && !isDateDisabled(date) && getDateAvailability(date)?.status === 'unavailable',
-                    }}
-                    modifiersClassNames={{
-                      available: '!bg-green-100 hover:!bg-green-200 !text-green-800 !border !border-green-300 aspect-square w-12 h-12 flex items-center justify-center',
-                      limited: '!bg-yellow-100 hover:!bg-yellow-200 !text-yellow-800 !border !border-yellow-300 aspect-square w-12 h-12 flex items-center justify-center',
-                      unavailable: '!bg-red-100 hover:!bg-red-200 !text-red-800 !border !border-red-300 aspect-square w-12 h-12 flex items-center justify-center',
-                    }}
-                  />
-                  
-                  <div className="flex flex-wrap gap-3 text-sm">
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                      <span className="text-gray-600">Available</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded"></div>
-                      <span className="text-gray-600">Limited</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div>
-                      <span className="text-gray-600">Full</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-blue-50 border-2 border-blue-500 rounded"></div>
-                      <span className="text-gray-600">Today</span>
-                    </div>
-                  </div>
-                  
-                  {selectedDate && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      <div className="flex items-center gap-2 text-blue-800">
-                        <CalendarIcon className="w-4 h-4" />
-                        <span className="font-medium">
-                          Selected: {format(selectedDate, 'EEEE, MMMM do, yyyy')}
-                        </span>
-                      </div>
-                      {isSaturday(selectedDate) && (
-                        <div className="flex items-center gap-2 text-blue-700 mt-1">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-sm">Saturday hours: 7:30 AM - 2:00 PM</span>
-                        </div>
-                      )}
-                      
-                      {(() => {
-                        const availability = getDateAvailability(selectedDate);
-                        if (availability) {
-                          return (
-                            <div className="mt-2 pt-2 border-t border-blue-200">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-blue-700">Availability:</span>
-                                <span className={`font-medium px-2 py-1 rounded text-xs ${
-                                  availability.status === 'available' ? 'bg-green-100 text-green-800' :
-                                  availability.status === 'limited' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
-                                }`}>
-                                  {availability.status === 'available' ? `${availability.availableSlots} of ${availability.totalSlots} slots available` :
-                                   availability.status === 'limited' ? `${availability.availableSlots} of ${availability.totalSlots} slots remaining` :
-                                   'Fully booked - Join waiting list'}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                    </div>
-                  )}
-                </div> */}
+
+
+                      <Input 
+                        type="date"
+                        value={selectedDate} 
+                        min={new Date().toISOString().split("T")[0]}
+                        max={maxDate}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:border-primary focus:border-primary focus:ring-primary"
+                        onChange={(e) => {
+                          const dateValue = e.target.value;
+                          if (isWeekendDate(dateValue)) {
+                            toast({
+                              title: "Weekend Not Available",
+                              description: "Please select a weekday (Monday-Friday) for your inspection.",
+                              variant: "destructive",
+                            });
+                            alert("Weekend Not Available");
+                            setSelectedDate('');  
+                            setSelectedTime('');
+                          } 
+                          else {
+                            setSelectedDate(dateValue);
+                            setSelectedTime('');
+                          }
+                        }} 
+                      />
+             
 
                 {selectedDate && (
                   <div className="space-y-4">
@@ -665,6 +614,10 @@ const navigate = useNavigate();
           </div>
 
           <div className="flex justify-center">
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+             
+            ) : (
             <Button
               onClick={handleContinueToPayment}
               disabled={!selectedDate || !selectedTime}
@@ -673,6 +626,7 @@ const navigate = useNavigate();
             >
               Confirm Booking Summary
             </Button>
+            )}
           </div>
         </div>
       </div>

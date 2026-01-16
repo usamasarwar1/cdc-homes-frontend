@@ -3,3 +3,9 @@
 body{
     font-family: 'Inter', sans-serif;
 }
+input:invalid {
+    box-shadow: red;
+    outline: none;
+    border-color: inherit;
+  }
+  

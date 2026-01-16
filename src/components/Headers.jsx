@@ -58,19 +58,19 @@ const handleLogIn = (params) => {
               </div>
             </div>
                 {isAuthenticated && userData ? (
-                                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                                   {userData?.photoURL ? (
-                                     <img 
-                                       src={userData.photoURL} 
-                                       alt="Profile" 
-                                       className="w-8 h-8 rounded-full object-cover"
-                                     />
-                                   ) : (
-                                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                       <User className="w-4 h-4 text-red-600" />
-                                     </div>
-                                   )}
-                                   <span className="hidden md:inline font-medium">{userData?.name || 'User'}</span>
+                   <div className="flex items-center gap-2 text-sm text-gray-600">
+                    {userData?.photoURL ? (
+                        <img 
+                          src={userData.photoURL} 
+                          alt="Profile" 
+                          className="w-8 h-8 rounded-full object-cover"
+                            />
+                       ) : (
+                          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                            <User className="w-4 h-4 text-red-600" />
+                          </div>
+                      )}
+                   <span className="hidden md:inline font-medium">{userData?.name || 'User'}</span>
                             
                <Button
                     variant="outline"

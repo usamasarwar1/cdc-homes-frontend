@@ -18,7 +18,6 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
   const [isEditingSquareFootage, setIsEditingSquareFootage] = useState(false);
 
   
-  // Progress tracking
   const { currentStep, completedSteps, completeStep, setStep } = useProgress();
   
   useEffect(() => {
@@ -131,6 +130,7 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
                   if (property.unitLabels) params.set('unitLabels', JSON.stringify(property.unitLabels));
                   if (property.unitSquareFootages) params.set('unitSquareFootages', JSON.stringify(property.unitSquareFootages));
                 }
+                sessionStorage.setItem('paymentMethod', 'pay_now');
                 navigate(`/contact-verification?${params.toString()}`);
               }}
               className="text-center md:text-left p-4 rounded-lg border-2 border-green-300 bg-green-50 hover:border-green-400 hover:shadow-lg hover:bg-green-100 transition-all cursor-pointer group h-[120px] flex flex-col justify-between"
@@ -164,6 +164,7 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
                   if (property.unitLabels) challengeParams.set('unitLabels', JSON.stringify(property.unitLabels));
                   if (property.unitSquareFootages) challengeParams.set('unitSquareFootages', JSON.stringify(property.unitSquareFootages));
                 }
+                sessionStorage.setItem('paymentMethod', 'challenge');
                 navigate(`/credential-comparison?${challengeParams.toString()}`);
               }}
               className="cursor-pointer text-center md:text-left p-4 rounded-lg border-2 transition-all relative overflow-hidden border-blue-300 bg-blue-600 hover:bg-blue-700 hover:border-blue-400 hover:shadow-md challenge-button-pulse h-[120px] flex flex-col justify-between"

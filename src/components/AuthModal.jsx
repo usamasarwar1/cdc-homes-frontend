@@ -50,10 +50,13 @@ const AuthModal = ({ isOpen, onClose, modalType, setModalType, onAuthSuccess, se
     try {
     const authUser =  await signInWithEmailAndPassword(auth, email, password);
    const userData = await getDoc(doc(db, 'users', authUser.user.uid));
-    sessionStorage.setItem(
-    "userData",
-       JSON.stringify(userData.data()),
-    );
+  //  console.log("-----", userData.data(), authUser.user.uid);
+
+   const data = {
+    ...userData.data(),
+    userId: authUser.user.uid,
+    };
+    sessionStorage.setItem("userData", JSON.stringify(data));
 
     setIsAuthenticated(true);
       onAuthSuccess();

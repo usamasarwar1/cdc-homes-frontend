@@ -13,9 +13,7 @@ import { ProgressSteps, GuidanceCard } from '../ui/progress-steps';
 import { useFormGuidance } from '../../hooks/useGormGuideance';
 
 
-export default function ContactVerification({ property, onVerified, onBack }) {
-  console.log("init property", property);
-  
+export default function ContactVerification({ property, onVerified, onBack }) {  
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,7 +23,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [payerEmail, setPayerEmail] = useState('');
   const [reportEmail, setReportEmail] = useState('');
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  // const [isEditingPhone, setIsEditingPhone] = useState(false);
   const hasManuallyEditedAddress = useRef(false);
 
   const formatPhoneNumber = (digits) => {
@@ -50,12 +48,6 @@ export default function ContactVerification({ property, onVerified, onBack }) {
     setPhoneNumber(formatted);
   };
   const [isAddressCorrect, setIsAddressCorrect] = useState(true);
-  // const [editedAddress, setEditedAddress] = useState(
-  //   property.address || 
-  //   (property.street && property.city && property.state && property.zip 
-  //     ? `${property.street}, ${property.city}, ${property.state} ${property.zip}`
-  //     : '')
-  // );
   const [editedAddress, setEditedAddress] = useState('');
   const [isSquareFootageCorrect, setIsSquareFootageCorrect] = useState(null);
   const [editedSquareFootage, setEditedSquareFootage] = useState(property.squareFootage?.toString() || '');
@@ -361,6 +353,7 @@ useEffect(() => {
     }
   };
 
+  // both code comment by Haider dev
   // Calculate pricing based on property type and square footage
   const calculatePrice = (propertyType, squareFootage, units) => {
     // Multi-family pricing based on units
@@ -426,101 +419,208 @@ useEffect(() => {
     }
   };
 
-  const handleSubmit = () => {
-    const contactData = {
-      payeeName,
-      payerEmail,
-      reportEmail,
-      relationshipToBuyer,
-      buyerExplanation: relationshipToBuyer !== 'buyer' ? buyerExplanation : '',
-      phoneNumber,
-      address: isAddressCorrect ? 
-        (property.address || 
-         (property.street && property.city && property.state && property.zip 
-          ? `${property.street}, ${property.city}, ${property.state} ${property.zip}`
-          : property.address)) 
-        : editedAddress,
-      squareFootage: property.squareFootage,
-      occupancyStatus,
-      wantsRealtorNotification,
-      realtorName: wantsRealtorNotification ? realtorName : '',
-      realtorEmail: wantsRealtorNotification ? realtorEmail : '',
-      realtorPhone: wantsRealtorNotification ? realtorPhone : '',
-      contactPersons,
-      verificationMethod,
-      verificationCode,
-      isVerified,
-      // Enhanced property details
-      propertyType: property.propertyType,
-      paymentMethod: property.paymentMethod,
-      // Confirmation flags
-      isAddressCorrect
-    };
-    
-    // Save verified contact data to localStorage
-    localStorage.setItem('verified-contact-data', JSON.stringify(contactData));
-    
-    // Navigate to booking summary with all collected data
-    const params = new URLSearchParams({
-      // Property data
-      address: contactData.address,
-      squareFootage: (contactData.squareFootage || 0).toString(),
-      propertyType: contactData.propertyType,
-      occupancyStatus: contactData.occupancyStatus,
-      
-      // Contact information
-      firstName: contactData.payeeName.firstName,
-      lastName: contactData.payeeName.lastName,
-      payerEmail: contactData.payerEmail,
-      reportEmail: contactData.reportEmail || '',
-      phoneNumber: contactData.phoneNumber,
-      relationshipToBuyer: contactData.relationshipToBuyer,
-      buyerExplanation: contactData.buyerExplanation || '',
-      
-      // Realtor information
-      wantsRealtorNotification: (contactData.wantsRealtorNotification ?? false).toString(),
-      realtorName: contactData.realtorName || '',
-      realtorEmail: contactData.realtorEmail || '',
-      realtorPhone: contactData.realtorPhone || '',
-      
-      // Payment method
-      paymentMethod: contactData.paymentMethod
-    });
+const validateAndScrollToFirstError = () => {
+  const validations = [
+    {
+      isValid: isFirstNameValid,
+      elementId: 'firstName',
+      message: 'Please enter your first name'
+    },
+    {
+      isValid: isLastNameValid,
+      elementId: 'lastName',
+      message: 'Please enter your last name'
+    },
+    {
+      isValid: isRelationshipValid,
+      elementId: 'relationship-info',
+      message: 'Please select your relationship to the buyer'
+    },
+    {
+      isValid: isPhoneNumberValid,
+      elementId: 'phoneNumber',
+      message: 'Please enter a valid phone number'
+    },
+    {
+      isValid: isEmailValid,
+      elementId: 'payerEmail',
+      message: 'Please enter a valid email address'
+    },
+    {
+      isValid: isAddressConfirmed,
+      elementId: 'property-confirmation',
+      message: 'Please confirm your property address'
+    },
+    {
+      isValid: isOccupancyStatusValid,
+      elementId: 'occupancy-status',
+      message: 'Please select the occupancy status'
+    },
+    {
+      isValid: isRealtorNotificationValid,
+      elementId: 'realtor-notification',
+      message: 'Please indicate if you want realtor notification'
+    },
+    {
+      isValid: isRealtorDetailsValid,
+      elementId: 'realtor-notification',
+      message: 'Please complete realtor details',
+      condition: wantsRealtorNotification === true
+    }
+  ];
 
-    // Add Additional Recipients data if available
-    if (contactPersons && contactPersons.length > 0) {
-      params.set('contactPersons', JSON.stringify(contactPersons));
+  for (const validation of validations) {
+    if (validation.condition !== undefined && !validation.condition) {
+      continue;
     }
 
-    // Add Multi-Family specific data if available
-    if (property.multiFamilyUnits) {
-      params.set('multiFamilyUnits', property.multiFamilyUnits);
+    if (!validation.isValid) {
+      let element = null;
+      
+      element = document.getElementById(validation.elementId);
+      
+      if (!element) {
+        element = document.querySelector(`[data-section="${validation.elementId}"]`);
+      }
+      
+      if (!element) {
+        element = document.querySelector(`input[name="${validation.elementId}"], select[name="${validation.elementId}"]`);
+      }
+
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        
+        setTimeout(() => {
+          const input = element.querySelector('input, select, textarea') || element;
+          if (input && typeof input.focus === 'function') {
+            input.focus();
+            input.style.transition = 'box-shadow 0.3s ease';
+            input.style.boxShadow = '0 0 0 3px rgba(255, 0, 0, 0.3)';
+            setTimeout(() => {
+              input.style.boxShadow = '';
+            }, 2000);
+          }
+        }, 300);
+      }
+
+      toast({
+        title: "Required Field Missing",
+        description: validation.message,
+        variant: "destructive",
+      });
+
+      return false;
     }
-    if (property.unitLabels) {
-      params.set('unitLabels', JSON.stringify(property.unitLabels));
-    }
-    if (property.unitSquareFootages) {
-      params.set('unitSquareFootages', JSON.stringify(property.unitSquareFootages));
-    }
-    
-    // Add Mobile Home specific data if available
-    if (property.mobileHomeType) {
-      params.set('mobileHomeType', property.mobileHomeType);
-    }
-    
-    // Add Commercial specific data if available
-    if (property.commercialType) {
-      params.set('commercialType', property.commercialType);
-    }
-    
-    // Scroll to top before navigation
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    navigate(`/booking-summary?${params.toString()}`);
-    
-    // For 50% Challenge or other payment methods, continue with normal flow
-    onVerified(contactData);
+  }
+
+  return true;
+};
+
+const handleSubmit = () => {
+  if (!validateAndScrollToFirstError()) {
+    return;
+  }
+
+  const contactData = {
+    payeeName,
+    payerEmail,
+    reportEmail,
+    relationshipToBuyer,
+    buyerExplanation: relationshipToBuyer !== 'buyer' ? buyerExplanation : '',
+    phoneNumber,
+    address: isAddressCorrect ? 
+      (property.address || 
+       (property.street && property.city && property.state && property.zip 
+        ? `${property.street}, ${property.city}, ${property.state} ${property.zip}`
+        : property.address)) 
+      : editedAddress,
+    squareFootage: property.squareFootage,
+    occupancyStatus,
+    wantsRealtorNotification,
+    realtorName: wantsRealtorNotification ? realtorName : '',
+    realtorEmail: wantsRealtorNotification ? realtorEmail : '',
+    realtorPhone: wantsRealtorNotification ? realtorPhone : '',
+    contactPersons,
+    verificationMethod,
+    verificationCode,
+    isVerified,
+    // Enhanced property details
+    propertyType: property.propertyType,
+    paymentMethod: property.paymentMethod,
+    // Confirmation flags
+    isAddressCorrect
   };
+
+  console.log("contactData", contactData);
+  
+  // Save verified contact data to localStorage
+  localStorage.setItem('verified-contact-data', JSON.stringify(contactData));
+  sessionStorage.setItem('verified-contact-data', JSON.stringify(contactData));
+  
+  // Navigate to booking summary with all collected data
+  const params = new URLSearchParams({
+    // Property data
+    address: contactData.address,
+    squareFootage: (contactData.squareFootage || 0).toString(),
+    propertyType: contactData.propertyType,
+    occupancyStatus: contactData.occupancyStatus,
+    
+    // Contact information
+    firstName: contactData.payeeName.firstName,
+    lastName: contactData.payeeName.lastName,
+    payerEmail: contactData.payerEmail,
+    reportEmail: contactData.reportEmail || '',
+    phoneNumber: contactData.phoneNumber,
+    relationshipToBuyer: contactData.relationshipToBuyer,
+    buyerExplanation: contactData.buyerExplanation || '',
+    
+    // Realtor information
+    wantsRealtorNotification: (contactData.wantsRealtorNotification ?? false).toString(),
+    realtorName: contactData.realtorName || '',
+    realtorEmail: contactData.realtorEmail || '',
+    realtorPhone: contactData.realtorPhone || '',
+    
+    // Payment method
+    paymentMethod: contactData.paymentMethod
+  });
+
+  // Add Additional Recipients data if available
+  if (contactPersons && contactPersons.length > 0) {
+    params.set('contactPersons', JSON.stringify(contactPersons));
+  }
+
+  // Add Multi-Family specific data if available
+  if (property.multiFamilyUnits) {
+    params.set('multiFamilyUnits', property.multiFamilyUnits);
+  }
+  if (property.unitLabels) {
+    params.set('unitLabels', JSON.stringify(property.unitLabels));
+  }
+  if (property.unitSquareFootages) {
+    params.set('unitSquareFootages', JSON.stringify(property.unitSquareFootages));
+  }
+  
+  // Add Mobile Home specific data if available
+  if (property.mobileHomeType) {
+    params.set('mobileHomeType', property.mobileHomeType);
+  }
+  
+  // Add Commercial specific data if available
+  if (property.commercialType) {
+    params.set('commercialType', property.commercialType);
+  }
+  
+  // Scroll to top before navigation
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  navigate(`/booking-summary?${params.toString()}`);
+  
+  // // For 50% Challenge or other payment methods, continue with normal flow
+  onVerified(contactData);
+};
 
   // Helper function to capitalize each word (title case)
   const toTitleCase = (str) => {
@@ -1035,17 +1135,17 @@ useEffect(() => {
         </Card>
       )}
 
-      <Card className={!hasInteracted && !hasClosedModal ? "opacity-50 blur-sm pointer-events-none" : ""} data-section="payer-info">
+      <Card className={!hasInteracted && !hasClosedModal ? "opacity-50 blur-sm  pointer-events-none" : ""} data-section="payer-info">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-blue-600" />
-            <span className="animate-pulse">Whose Paying?</span>
+            <span className="animate-pulse">Whose Paying? *</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div data-section="firstName">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">First Name *</Label>
               <div className="relative">
                 <Input
                   id="firstName"
@@ -1070,7 +1170,7 @@ useEffect(() => {
               </div>
             </div>
             <div data-section="lastName">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">Last Name *</Label>
               <div className="relative">
                 <Input
                   id="lastName"
@@ -1097,7 +1197,7 @@ useEffect(() => {
           </div>
 
           <div className="space-y-3" data-section="relationship-info">
-            <Label>What is your relationship to the buyer?</Label>
+            <Label>What is your relationship to the buyer? *</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
               {['Buyer', 'Realtor', 'Family', 'Friend', 'Attorney'].map((relationship) => (
                 <Button
@@ -1138,11 +1238,11 @@ useEffect(() => {
 
           <div data-section="contact-info">
             <div className="flex items-center justify-between mb-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Label htmlFor="phoneNumber">Phone Number *</Label>
 
             </div>
             <div className="relative">
-              <Input
+              <Input 
                 id="phoneNumber"
                 data-section="phoneNumber"
                 required
@@ -1169,7 +1269,11 @@ useEffect(() => {
           </div>
 
           <div>
-            <Label htmlFor="payerEmail">Your Email Address *</Label>
+            <Label htmlFor="payerEmail">Your Email Address *
+            {/* <span className={hasEmailBlurred && !isPayerEmailValid ? 'text-red-500 font-bold' : ''}>
+      *
+    </span> */}
+            </Label>
             <div className="relative">
               <Input
                 id="payerEmail"
@@ -1358,7 +1462,7 @@ useEffect(() => {
 
       <Card className={shouldBlurFormSections ? "opacity-50 blur-sm pointer-events-none" : ""} data-section="realtor-notification">
         <CardHeader>
-          <CardTitle>Realtor Notification</CardTitle>
+          <CardTitle>Realtor Notification *</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
@@ -1481,7 +1585,7 @@ useEffect(() => {
 
       <Card className={shouldBlurFormSections ? "opacity-50 blur-sm pointer-events-none" : ""} data-section="property-confirmation">
         <CardHeader>
-          <CardTitle>Property Details Confirmation</CardTitle>
+          <CardTitle>Property Details Confirmation *</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
@@ -1668,7 +1772,7 @@ useEffect(() => {
           </div>
 
           <div className="space-y-3 p-4 border-2 border-blue-500 rounded-lg" data-section="occupancy-status">
-            <Label className="text-base font-semibold">Occupancy Status</Label>
+            <Label className="text-base font-semibold">Occupancy Status *</Label>
             <div className="grid grid-cols-3 gap-3">
               {['Occupied', 'Vacant', 'Unknown'].map((status) => (
                 <Button
@@ -1694,14 +1798,12 @@ useEffect(() => {
       </Card>
 
 
-      {/* Action Buttons */}
       <div className={`flex flex-col sm:flex-row gap-4 ${shouldBlurFormSections ? "opacity-50 blur-sm pointer-events-none" : ""}`}>
         <Button variant="outline" onClick={onBack} className="flex-1">
           Back to Property Details
         </Button>
         <Button 
           onClick={handleSubmit}
-          disabled={!isFormComplete}
           className="flex-1 bg-red-600 hover:bg-red-700 text-white"
         >
           View Booking Summary

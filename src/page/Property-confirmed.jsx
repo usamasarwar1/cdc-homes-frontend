@@ -38,7 +38,6 @@ export default function PropertyConfirmed() {
                 className="text-blue-600 hover:bg-blue-50 text-sm cursor-pointer"
               >
                 ← Back to Home
-                {/* Back to Home */}
               </Button>
             </div>
         <div className="max-w-4xl mx-auto px-4 pb-6 pt-0 md:py-6">

@@ -5,12 +5,13 @@ import { Button } from '../components/ui/Button';
 import { Checkbox } from '../components/ui/Checkbox';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/Label';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { useProgress } from '../components/gamification/ProgressProvider';
 import { MiniProgressTracker } from '../components/gamification/MiniProgressTracker';
 import { AchievementBadges } from '../components/gamification/AchievementBadges';
-
-
+import { doc, setDoc, getDoc, query, where, serverTimestamp, collection, addDoc, updateDoc, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useNavigate } from 'react-router-dom';
 
 const inspectorCredentials = [
   { label: "Home Inspector", value: "home_inspector" },
@@ -35,6 +36,8 @@ const customerCredentials = [
 ];
 
 export default function CredentialComparisonPage() {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedCredentials, setSelectedCredentials] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showDetailForm, setShowDetailForm] = useState(false);
@@ -45,9 +48,6 @@ export default function CredentialComparisonPage() {
   });
   
   const { currentStep, completedSteps, completeStep, setStep } = useProgress();
-
-  // console.log("currentStep", currentStep);
-  // console.log("completedSteps", completedSteps);
   
   useEffect(() => {
     setStep('credentials');
@@ -79,8 +79,6 @@ export default function CredentialComparisonPage() {
     if (!text || typeof text !== 'string') return "";
     return text.replace(/\b\w/g, (char) => char.toUpperCase());
   };
-
-
 
   const handleInputChange = (field, value) => {
     let newValue = value;
@@ -131,11 +129,61 @@ export default function CredentialComparisonPage() {
     }, 100);
   };
 
-  const handleFinalSubmit = () => {
-    completeStep('credentials');
-    setStep('contact');
-    
-    alert("Thank you! We will verify the provided information within 2 hours. If the credentials are confirmed, we will honor the discounted price.");
+  const handleFinalSubmit = async () => {
+    try {
+      setIsLoading(true);
+      completeStep('credentials');
+      setStep('contact');
+      const paymentMethod = sessionStorage.getItem('paymentMethod');
+      const propertyData = JSON.parse(sessionStorage.getItem('confirmedProperty'));
+      const userData = JSON.parse(sessionStorage.getItem('userData'));
+  
+  
+      const data = {
+        isDiscount: paymentMethod === 'challenge' ? true : false,
+        property: propertyData,
+        userId: userData.userId,
+        inspector: inspectorDetails,
+        status: 'pending_verification',
+        updatedAt: serverTimestamp()
+      };
+  
+      // const q = query(
+      //   collection(db, "bookings"),
+      //   where("userId", "==", userData.userId)
+      // );
+  
+      // const snapshot = await getDocs(q);
+  
+      // if (snapshot.docs.length > 0) {
+      //   // update data 
+      //   const existingDocId = snapshot.docs[0].id;        
+      //   await updateDoc(doc(db, 'bookings', existingDocId), data);
+      // } else {
+      //   // create new data
+      //   const bookingsRef = collection(db, 'bookings');
+      //   const newData = {
+      //     ...data,
+      //     createdAt: serverTimestamp()
+      //   };
+      //    await addDoc(bookingsRef, newData);
+      // }
+
+      const bookingsRef = collection(db, 'bookings');
+        const newData = {
+          ...data,
+          createdAt: serverTimestamp()
+        };
+         await addDoc(bookingsRef, newData);
+  
+      alert("Thank you! We will verify the provided information within 2 hours. If the credentials are confirmed, we will honor the discounted price.");
+      navigate("/");
+    } catch (error) {
+      console.error("Error saving data to database", error);
+      alert(`Error: ${error.message || 'Failed to save booking. Please try again.'}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const { matches, total } = calculateMatch();
@@ -476,7 +524,7 @@ export default function CredentialComparisonPage() {
                     className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
                     disabled={!inspectorDetails.fullName || !inspectorDetails.licenseNumbers}
                   >
-                    Submit for Verification
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
                   </Button>
                 </div>
               </div>
