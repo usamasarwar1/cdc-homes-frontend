@@ -2,6 +2,8 @@ import React from 'react'
 import { Button } from './ui/Button';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { User, LogOut, LogIn } from 'lucide-react';
+
 
 function Header({setIsModalOpen, userData, setModalType, isAuthenticated, setIsAuthenticated}) {
 
@@ -19,9 +21,9 @@ const handleLogOut = async () => {
   }
 }
 
-const handleLogIn = () => {
+const handleLogIn = (params) => {
   setIsModalOpen(true);
-  setModalType('login');
+  setModalType(params);
 }
 
 
@@ -56,16 +58,52 @@ const handleLogIn = () => {
               </div>
             </div>
                 {isAuthenticated && userData ? (
-                <Button
-                onClick={handleLogOut}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-sm font-semibold transition-colors"
-                 >
-                Log Out
-              </Button>
+                                   <div className="flex items-center gap-2 text-sm text-gray-600">
+                                   {userData?.photoURL ? (
+                                     <img 
+                                       src={userData.photoURL} 
+                                       alt="Profile" 
+                                       className="w-8 h-8 rounded-full object-cover"
+                                     />
+                                   ) : (
+                                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                       <User className="w-4 h-4 text-red-600" />
+                                     </div>
+                                   )}
+                                   <span className="hidden md:inline font-medium">{userData?.name || 'User'}</span>
+                            
+               <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogOut}
+                    className="hidden md:flex text-gray-600 hover:text-red-600 border-gray-300 hover:border-red-300"
+                  >
+                    <LogOut className="w-4 h-4 md:mr-2" />
+                    <span className="hidden md:inline">Log Out</span>
+                  </Button>
+                                 </div>
+              
               ) : (
-                <Button onClick={handleLogIn} className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-sm font-semibold transition-colors">
-                  Log In
-                </Button>
+            
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleLogIn('login')}
+              className="text-gray-600 hover:text-red-600"
+            >
+              <LogIn className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Log In</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleLogIn('signup')}
+              className="hidden md:flex bg-red-700 hover:bg-red-800 text-white"
+            >
+              <span className="hidden md:inline">Sign Up</span>
+              <span className="md:hidden">Sign Up</span>
+            </Button>
+            </div>
               )}
           </div>
             
