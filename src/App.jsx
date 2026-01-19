@@ -133,9 +133,7 @@ function Router() {
         } />
   
         <Route path="/property-confirmed" element={<PropertyConfirm />} />
-        <Route path="/pricing" element={
-            <Pricing />
-        } />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
         <Route path="/contact-verification" element={<ContactVerification />} />
         <Route path="/what's-included" element={<WhatsIncludedPage />} />
