@@ -315,7 +315,7 @@ const AuthModal = ({ isOpen, onClose, modalType, setModalType, onAuthSuccess, se
                       setModalType('signup');
                       resetForm();
                     }}
-                    className="text-red-600 font-semibold hover:text-red-700 hover:underline transition-colors"
+                    className="text-red-600 cursor-pointer font-semibold hover:text-red-700 hover:underline transition-colors"
                   >
                     Sign up here
                   </button>
@@ -329,7 +329,7 @@ const AuthModal = ({ isOpen, onClose, modalType, setModalType, onAuthSuccess, se
                       setModalType('login');
                       resetForm();
                     }}
-                    className="text-red-600 font-semibold hover:text-red-700 hover:underline transition-colors"
+                    className="text-red-600 cursor-pointer font-semibold hover:text-red-700 hover:underline transition-colors"
                   >
                     Sign in here
                   </button>

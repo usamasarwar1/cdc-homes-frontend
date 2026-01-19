@@ -138,7 +138,6 @@ export default function CredentialComparisonPage() {
       const propertyData = JSON.parse(sessionStorage.getItem('confirmedProperty'));
       const userData = JSON.parse(sessionStorage.getItem('userData'));
   
-  
       const data = {
         isDiscount: paymentMethod === 'challenge' ? true : false,
         property: propertyData,
@@ -148,26 +147,6 @@ export default function CredentialComparisonPage() {
         updatedAt: serverTimestamp()
       };
   
-      // const q = query(
-      //   collection(db, "bookings"),
-      //   where("userId", "==", userData.userId)
-      // );
-  
-      // const snapshot = await getDocs(q);
-  
-      // if (snapshot.docs.length > 0) {
-      //   // update data 
-      //   const existingDocId = snapshot.docs[0].id;        
-      //   await updateDoc(doc(db, 'bookings', existingDocId), data);
-      // } else {
-      //   // create new data
-      //   const bookingsRef = collection(db, 'bookings');
-      //   const newData = {
-      //     ...data,
-      //     createdAt: serverTimestamp()
-      //   };
-      //    await addDoc(bookingsRef, newData);
-      // }
 
       const bookingsRef = collection(db, 'bookings');
         const newData = {
@@ -303,25 +282,15 @@ export default function CredentialComparisonPage() {
               Compare Credentials
             </Button>
             
-            {/* <div>
+         
+            <div>
               <Link to="/pricing">
                 <Button 
                   variant="outline" 
                   className="bg-transparent cursor-pointer border-gray-300 text-gray-600 hover:bg-gray-50 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base w-full md:w-auto flex items-center justify-center space-x-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Back to Pricing</span>
-                </Button>
-              </Link>
-            </div> */}
-            <div>
-              <Link to="/property-confirmed">
-                <Button 
-                  variant="outline" 
-                  className="bg-transparent cursor-pointer border-gray-300 text-gray-600 hover:bg-gray-50 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base w-full md:w-auto flex items-center justify-center space-x-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Back</span>
+                  <span>Pricing</span>
                 </Button>
               </Link>
             </div>

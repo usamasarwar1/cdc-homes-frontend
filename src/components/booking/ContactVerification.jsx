@@ -1335,7 +1335,7 @@ const handleSubmit = () => {
               <>
                 {!showVerificationInput ? (
                   <div className="space-y-3">
-                    <Button onClick={sendVerificationCode} disabled={isLoading} className="w-full">
+                    <Button  onClick={sendVerificationCode} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white w-full">
                       {isLoading ? "Sending..." : "Send Verification Code via SMS"}
                     </Button>
                   </div>

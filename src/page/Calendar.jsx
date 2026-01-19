@@ -312,6 +312,7 @@ const navigate = useNavigate();
         fullPrice,
         userId: loginUser.userId,
         isDiscount: paymentMethod === 'pay_now' ? false : true,
+        status: 'SUCCESS',
       };
   
         const bookingsRef = collection(db, 'bookings');
@@ -425,7 +426,7 @@ const navigate = useNavigate();
                         value={selectedDate} 
                         min={new Date().toISOString().split("T")[0]}
                         max={maxDate}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:border-primary focus:border-primary focus:ring-primary"
+                        // className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:border-primary focus:border-primary focus:ring-primary"
                         onChange={(e) => {
                           const dateValue = e.target.value;
                           if (isWeekendDate(dateValue)) {
@@ -468,8 +469,8 @@ const navigate = useNavigate();
                     </div>
 
                     {selectedTime && (
-                      <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p className="text-green-800 dark:text-green-200 font-medium">
+                      <div className="p-4 rounded-lg border border-green-800 dark:border-green-800">
+                        <p className="text-green-800 font-medium">
                           📅 {format(selectedDate, 'EEEE, MMMM do, yyyy')} at {selectedTime}
                         </p>
                       </div>

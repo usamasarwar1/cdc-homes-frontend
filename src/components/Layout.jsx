@@ -9,7 +9,8 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarProvider,
-    SidebarInset
+    SidebarInset,
+    useSidebar
 } from './ui/sidebar'
 import { Link } from 'react-router-dom'
 import { 
@@ -23,12 +24,62 @@ import { cn } from '../utils/Cn'
 const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/users', label: 'Users', icon: Users },
-    { to: '/pricing', label: 'Pricing', icon: CreditCard },
-    { to: '/pricing-schedule', label: 'Pricing Schedule', icon: CreditCard }
+    // { to: '/pricing', label: 'Pricing', icon: CreditCard },
+    { to: '/pricing-schedule', label: 'Pricing Schedule', icon: CreditCard },
+    { to: '/property-confirmed', label: 'Property Confirmed', icon: CreditCard }
 ]
-const Layout = ({ children }) => {
-    const location = useLocation()
 
+const SidebarMenuItems = () => {
+    const location = useLocation()
+    const { isMobile, setOpenMobile } = useSidebar()
+
+    const handleLinkClick = () => {
+        if (isMobile) {
+            setOpenMobile(false)
+        }
+    }
+
+    return (
+        <SidebarMenu>
+            {links.map((link) => {
+                const Icon = link.icon
+                const isActive = location.pathname === link.to
+                
+                return (
+                    <SidebarMenuItem key={link.to}>
+                        <SidebarMenuButton 
+                            asChild 
+                            isActive={isActive}
+                            className={cn(
+                                "w-full rounded-lg transition-all",
+                                isActive 
+                                    ? "bg-blue-500 text-white shadow-sm" 
+                                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 bg-transparent"
+                            )}
+                            aria-current={isActive ? 'page' : undefined}
+                        >
+                            <Link 
+                                to={link.to}
+                                className="flex items-center gap-3 px-3 py-2.5 w-full"
+                                aria-label={`Navigate to ${link.label}`}
+                                onClick={handleLinkClick}
+                            >
+                                <span className={cn(
+                                    "font-medium",
+                                    isActive ? "text-white" : "text-gray-700"
+                                )}>
+                                    {link.label}
+                                </span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                )
+            })}
+        </SidebarMenu>
+    )
+}
+
+const Layout = ({ children }) => {
     return (
         <SidebarProvider defaultOpen={true}>
             <div className="flex w-full h-screen bg-background overflow-hidden">
@@ -59,46 +110,7 @@ const Layout = ({ children }) => {
                     </SidebarHeader>
 
                     <SidebarContent className="px-3 py-4">
-                        <SidebarMenu>
-                            {links.map((link) => {
-                                const Icon = link.icon
-                                const isActive = location.pathname === link.to
-                                
-                                return (
-                                    <SidebarMenuItem key={link.to}>
-                                        <SidebarMenuButton 
-                                            asChild 
-                                            isActive={isActive}
-                                            className={cn(
-                                                "w-full rounded-lg transition-all",
-                                                isActive 
-                                                    ? "bg-blue-500 text-white shadow-sm" 
-                                                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 bg-transparent"
-                                            )}
-                                            aria-current={isActive ? 'page' : undefined}
-                                        >
-                                            <Link 
-                                                to={link.to}
-                                                className="flex items-center gap-3 px-3 py-2.5 w-full"
-                                                aria-label={`Navigate to ${link.label}`}
-                                            >
-                                                {/* Bullet point indicator */}
-                                                <div className={cn(
-                                                    "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                                                    isActive ? "bg-white" : "bg-gray-400"
-                                                )} />
-                                                <span className={cn(
-                                                    "font-medium",
-                                                    isActive ? "text-white" : "text-gray-700"
-                                                )}>
-                                                    {link.label}
-                                                </span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                )
-                            })}
-                        </SidebarMenu>
+                        <SidebarMenuItems />
                     </SidebarContent>
                 </Sidebar>
 

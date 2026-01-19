@@ -49,8 +49,6 @@ const Users = () => {
 
     const getAllUsers = await getDocs(usersQuery);
 
-    // console.log("getAllUsers", getAllUsers);
-
     const usersList = getAllUsers.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -92,17 +90,13 @@ const Users = () => {
   );
 
   return (
-    // <div className="min-h-screen bg-gray-50">
     // </div>
     <div className=" ">
-    {/* <h3 className="text-3xl font-semibold mb-10">All Users</h3> */}
     <h1 className="text-2xl font-bold mb-4">Users</h1>
 
     {error && <p className="text-red-500">{error}</p>}
-    {/* List */}
     <Card>
         <CardContent>
-            {/* Search Input */}
             <div className="mb-6 mt-6">
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

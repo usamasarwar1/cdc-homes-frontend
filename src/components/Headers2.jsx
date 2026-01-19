@@ -23,6 +23,7 @@ const [isLoading, setIsLoading] = useState(false);
         }
         
     }
+
     return (
         <header className="bg-white shadow-sm sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,12 +47,12 @@ const [isLoading, setIsLoading] = useState(false);
                                     <div className="text-2xl font-bold text-gray-900 tracking-tight">
                                         CDC Home Inspections
                                     </div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="hidden lg:block text-sm text-gray-600">
                                         Protecting Arizona Homeowners Since 2013
                                     </div>
                                 </div>
                                 <div className="md:hidden">
-                                    <div className="text-xl font-bold text-gray-900">
+                                    <div className="hidden sm:block text-sm md:text-xl font-bold text-gray-900">
                                         CDC Home Inspections
                                     </div>
                                 </div>

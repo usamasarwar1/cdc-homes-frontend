@@ -1,0 +1,647 @@
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
+import { Badge } from '../components/ui/Badge'
+import { Button } from '../components/ui/Button'
+import { Separator } from '../components/ui/separator'
+import { useToast } from '../hooks/use-toast'
+import { db } from '../firebase'
+import { useParams } from 'react-router-dom'
+import { 
+  Home, 
+  Calendar, 
+  DollarSign, 
+  User, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Clock,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  Globe,
+  Award,
+  Users as UsersIcon,
+  Loader2
+} from 'lucide-react'
+import {
+    getDoc,
+    doc,
+    updateDoc,
+  } from "firebase/firestore";
+
+const PropertyDetails = () => {
+  const { bookingId } = useParams()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const [booking, setBooking] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getBooking();
+  }, [bookingId, toast]);
+
+  const formatDate = (date) => {
+    if (!date) return 'N/A'
+    if (date.toDate) {
+      return date.toDate().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    }
+    if (typeof date === 'string') {
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    }
+    return 'N/A'
+  }
+
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return 'N/A'
+    return dateTime
+  }
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'pending_verification':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pending Verification</Badge>
+      case 'SUCCESS':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Success</Badge>
+      case 'approved':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Approved</Badge>
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Rejected</Badge>
+      case 'fulfilled':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">Fulfilled</Badge>
+      default:
+        return <Badge variant="outline">{status || 'N/A'}</Badge>
+    }
+  }
+
+  const getCustomerName = (booking) => {
+    if (booking.verifiedContact) {
+      const firstName = booking.verifiedContact.firstName || ''
+      const lastName = booking.verifiedContact.lastName || ''
+      return `${firstName} ${lastName}`.trim() || 'N/A'
+    }
+    if (booking.user?.name) {
+      return booking.user.name
+    }
+    return 'N/A'
+  }
+
+  const getCustomerEmail = (booking) => {
+    return booking.verifiedContact?.payerEmail || 
+           booking.verifiedContact?.reportEmail || 
+           booking.user?.email || 
+           'N/A'
+  }
+
+  const getBooking = async () => {
+    try {
+      setLoading(true);
+  
+      const bookingRef = doc(db, "bookings", bookingId);
+      const bookingSnap = await getDoc(bookingRef);
+  
+      if (!bookingSnap.exists()) {
+        console.error('Booking not found');
+        setLoading(false);
+        return;
+      }
+  
+      const bookingData = bookingSnap.data();
+  
+      const userRef = doc(db, "users", bookingData.userId);
+      const userSnap = await getDoc(userRef);
+  
+      if (!userSnap.exists()) {
+        console.error('User not found');
+        setLoading(false);
+        return;
+      }
+  
+      const userData = userSnap.data();
+  
+      const combinedBooking = {
+        id: bookingSnap.id,
+        userId: bookingData.userId,
+        isDiscount: bookingData.isDiscount,
+        updatedAt: bookingData.updatedAt,
+        createdAt: bookingData.createdAt,
+        property: bookingData.property,
+        inspector: bookingData.inspector,
+        status: bookingData.status,
+        user: userData,
+        ...(bookingData.verifiedContact && { verifiedContact: bookingData.verifiedContact }),
+        ...(bookingData.fullPrice && { fullPrice: bookingData.fullPrice }),
+        ...(bookingData.date && { date: bookingData.date }),
+        ...(bookingData.time && { time: bookingData.time }),
+        ...(bookingData.formattedDateTime && { formattedDateTime: bookingData.formattedDateTime }),
+      };
+  
+      setBooking(combinedBooking);
+  
+    } catch (error) {
+      console.error('Error getting booking:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load booking details.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleApprove = async (bookingId) => {
+    setLoading(true);
+    try {
+      const bookingRef = doc(db, "bookings", bookingId);
+      await updateDoc(bookingRef, {
+        status: "approved",
+        updatedAt: new Date(),
+        
+      });
+      
+      toast({
+        title: "Booking Approved",
+        description: "The booking has been approved successfully.",
+      });
+      
+      getBooking();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async (bookingId) => {
+    setLoading(true);
+    try {
+      const bookingRef = doc(db, "bookings", bookingId);
+      await updateDoc(bookingRef, {
+        status: "rejected",
+        updatedAt: new Date(),
+      });
+      
+      toast({
+        title: "Booking Rejected",
+        description: "The booking has been rejected.",
+      });
+
+      toast({
+        title: "Booking Rejected",
+        description: "The booking has been rejected.",
+      });
+      
+      getBooking();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading booking details...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!booking) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Booking Not Found</h2>
+            <p className="text-gray-600 mb-6">Unable to load booking details.</p>
+            <Button onClick={() => navigate('/property-confirmated')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Bookings
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const isDiscount = booking.isDiscount
+  const isPendingVerification = booking.status === 'pending_verification'
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-6">
+    
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Booking Details</h1>
+          {getStatusBadge(booking.status)}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="w-5 h-5 text-blue-600" />
+                Property Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-lg">
+                    {booking.property?.address || 'N/A'}
+                  </p>
+                  {booking.property?.street && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      {booking.property.street}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Property Type</p>
+                  <p className="font-medium text-gray-900">
+                    {booking.property?.propertyType || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Square Footage</p>
+                  <p className="font-medium text-gray-900">
+                    {booking.property?.squareFootage?.toLocaleString() || 'N/A'} ft²
+                  </p>
+                </div>
+                {booking.property?.pricingTier && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Pricing Tier</p>
+                    <p className="font-medium text-gray-900">
+                      {booking.property.pricingTier}
+                    </p>
+                  </div>
+                )}
+                {booking.property?.isValidated !== undefined && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Validation Status</p>
+                    {booking.property.isValidated ? (
+                      <Badge className="bg-green-100 text-green-800">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Validated
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        Not Validated
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Payment & Pricing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isDiscount ? (
+                <div className="space-y-4">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle className="w-5 h-5 text-yellow-600" />
+                      <p className="font-semibold text-yellow-900">Challenge Payment (50% Discount)</p>
+                    </div>
+                    <p className="text-sm text-yellow-800">
+                      This booking is using the challenge payment method and requires verification.
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-500 mb-1">Base Price</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        ${booking.property?.basePrice?.toLocaleString() || 'N/A'}
+                      </p>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <p className="text-sm text-blue-600 mb-1">Challenge Price (50%)</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        ${booking.property?.challengePrice?.toLocaleString() || 'N/A'}
+                      </p>
+                    </div>
+                    {booking.property?.payNowPrice && (
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <p className="text-sm text-green-600 mb-1">Pay Now Price</p>
+                        <p className="text-2xl font-bold text-green-700">
+                          ${booking.property.payNowPrice.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <p className="font-semibold text-green-900">Pay Now Payment</p>
+                    </div>
+                    <p className="text-sm text-green-800">
+                      Full payment has been processed successfully.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-500 mb-1">Total Amount Paid</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      ${booking.fullPrice?.toLocaleString() || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {isDiscount && booking.inspector && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  Inspector Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                    <p className="font-medium text-gray-900">
+                      {booking.inspector.fullName || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">License Numbers</p>
+                    <p className="font-medium text-gray-900">
+                      {booking.inspector.licenseNumbers || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-gray-500 mb-1">Website URL</p>
+                    <a
+                      href={booking.inspector.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      <Globe className="w-4 h-4" />
+                      {booking.inspector.websiteUrl || 'N/A'}
+                    </a>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isDiscount && booking.verifiedContact && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Appointment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Scheduled Date & Time</p>
+                    <p className="font-medium text-gray-900 text-lg">
+                      {formatDateTime(booking.formattedDateTime) || formatDate(booking.date)}
+                    </p>
+                    {booking.time && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Time: {booking.time}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isDiscount && booking.verifiedContact && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UsersIcon className="w-5 h-5 text-indigo-600" />
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                    <p className="font-medium text-gray-900">
+                      {getCustomerName(booking)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Email</p>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <p className="font-medium text-gray-900">
+                        {getCustomerEmail(booking)}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Phone Number</p>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <p className="font-medium text-gray-900">
+                        {booking.verifiedContact.phoneNumber || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Relationship to Buyer</p>
+                    <Badge variant="secondary" className="capitalize">
+                      {booking.verifiedContact.relationshipToBuyer || 'N/A'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Occupancy Status</p>
+                    <Badge variant="secondary" className="capitalize">
+                      {booking.verifiedContact.occupancyStatus || 'N/A'}
+                    </Badge>
+                  </div>
+                  {booking.verifiedContact.reportEmail && (
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Report Email</p>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <p className="font-medium text-gray-900">
+                          {booking.verifiedContact.reportEmail}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {booking.verifiedContact.wantsRealtorNotification && booking.verifiedContact.realtorName && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700 mb-3">Realtor Information</p>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Realtor Name</p>
+                          <p className="font-medium text-gray-900">
+                            {booking.verifiedContact.realtorName}
+                          </p>
+                        </div>
+                        {booking.verifiedContact.realtorEmail && (
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Realtor Email</p>
+                            <p className="font-medium text-gray-900">
+                              {booking.verifiedContact.realtorEmail}
+                            </p>
+                          </div>
+                        )}
+                        {booking.verifiedContact.realtorPhone && (
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Realtor Phone</p>
+                            <p className="font-medium text-gray-900">
+                              {booking.verifiedContact.realtorPhone}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Booking Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Booking ID</p>
+                <p className="font-mono text-xs text-gray-700 break-all">
+                  {booking.id}
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Payment Method</p>
+                <Badge variant={isDiscount ? "outline" : "default"} className={isDiscount ? "bg-yellow-50 text-yellow-700" : "bg-green-100 text-green-700"}>
+                  {isDiscount ? 'Challenge (50%)' : 'Pay Now'}
+                </Badge>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Created At</p>
+                <p className="font-medium text-gray-900">
+                  {formatDate(booking.createdAt)}
+                </p>
+              </div>
+              {booking.updatedAt && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Last Updated</p>
+                    <p className="font-medium text-gray-900">
+                      {formatDate(booking.updatedAt)}
+                    </p>
+                  </div>
+                </>
+              )}
+              {booking.user && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">User Account</p>
+                    <div className="space-y-1">
+                      <p className="font-medium text-gray-900">
+                        {booking.user.name || booking.user.email}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {booking.user.email}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {isPendingVerification && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardHeader>
+                <CardTitle className="text-lg text-yellow-900">Action Required</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-yellow-800 mb-4">
+                  This booking requires verification before it can be approved.
+                </p>
+                <div className="space-y-2">
+                  <Button onClick={() => handleApprove(booking.id)} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                    Approve Booking
+                  </Button>
+                  <Button onClick={() => handleReject(booking.id)} variant="destructive" className="w-full text-white bg-[#dc2626] hover:bg-[#dc2626]/90">
+                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <AlertCircle className="w-4 h-4 mr-2" />}
+                    Reject Booking
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default PropertyDetails
