@@ -22,6 +22,8 @@ import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import PropertyConfirmation from './page/Property-confirmation.jsx'
 import PropertyDetails from './page/Property-details.jsx'
+import Profile from './page/Profile.jsx'
+import PricingScheduleAdminPage from './page/Pricing_schduleAdmin.jsx'
 
 
 
@@ -48,10 +50,6 @@ function ProtectedRoute({ children, allowedRoles = "admin" }) {
        if(userByRole.data().role === "admin") {
         navigate("/dashboard");
         setUserRole("admin");
-       }
-       else{
-        navigate("/");
-        setUserRole("user");
        }
       } catch (err) {
         console.error("Error fetching user role", err);
@@ -80,6 +78,7 @@ function ProtectedRoute({ children, allowedRoles = "admin" }) {
   return children;
 }
 
+
 function Router() {
 
 
@@ -103,21 +102,23 @@ function Router() {
           </Layout>
           </ProtectedRoute>
         } />
-         {/* <Route path="/pricing" element={
-          <ProtectedRoute>
-          <Layout>
-            <Pricing />
-          </Layout>
-          </ProtectedRoute>
-        } /> */}
-        <Route path="/pricing-schedule" element={
+      
+        {/* <Route path="/pricing-schedule" element={
           <ProtectedRoute>
           <Layout>
             <PricingSchedulePage />
           </Layout>
           </ProtectedRoute>
+        } /> */}
+
+<Route path="/pricing-schedule-admin" element={
+          <ProtectedRoute>
+          <Layout>
+            <PricingScheduleAdminPage />
+          </Layout>
+          </ProtectedRoute>
         } />
-        <Route path="/admin/property-confirmed" element={
+        <Route path="/property-confirm" element={
           <ProtectedRoute>
           <Layout>
             <PropertyConfirmation />
@@ -132,15 +133,17 @@ function Router() {
           </ProtectedRoute>
         } />
   
-        <Route path="/property-confirmed" element={<PropertyConfirm />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
-        <Route path="/contact-verification" element={<ContactVerification />} />
-        <Route path="/what's-included" element={<WhatsIncludedPage />} />
-        <Route path="/inspector" element={<InspectorPage />} />
-        <Route path="/inspection-confirmed" element={<InspectionConfirmedPage />} />
-        <Route path="/booking-summary" element={<BookingSummary />} />
-        <Route path="/calendar" element={<InspectionCalendar />} />
+          <Route path="/property-confirmed" element={<PropertyConfirm />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
+          <Route path="/contact-verification" element={<ContactVerification />} />
+          <Route path="/what's-included" element={<WhatsIncludedPage />} />
+          <Route path="/inspector" element={<InspectorPage />} />
+          <Route path="/pricing-schedule" element={<PricingSchedulePage />} />
+          <Route path="/inspection-confirmed" element={<InspectionConfirmedPage />} />
+          <Route path="/booking-summary" element={<BookingSummary />} />
+          <Route path="/calendar" element={<InspectionCalendar />} />
         </Routes>
     );
   }

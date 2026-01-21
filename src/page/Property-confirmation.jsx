@@ -43,6 +43,8 @@ const PropertyConfirmation = () => {
         console.warn("Not authorized");
         return;
       }
+
+      console.log("currentUser", currentUser);
   
       const bookingsSnap = await getDocs(collection(db, "bookings"));
   
@@ -112,7 +114,7 @@ const PropertyConfirmation = () => {
       return booking.date;
     }
 
-    console.log(booking.isDiscount);
+    // console.log(booking.isDiscount);
     
     if(!booking.date && !booking.time && booking.isDiscount) {
       return '50% Discount';
@@ -121,13 +123,12 @@ const PropertyConfirmation = () => {
   };
 
   const getBookingPrice = (booking) => {
-    if (booking.fullPrice) {
+    // console.log("booking", booking);
+    if(booking.isDiscount) {
+      return `$${booking.property.challengePrice}`;
+    } else {
       return `$${booking.fullPrice}`;
     }
-    if (booking.property?.payNowPrice) {
-      return `$${booking.property.payNowPrice}`;
-    }
-    return 'N/A';
   };
 
   const getStatusBadge = (status) => {
@@ -136,8 +137,10 @@ const PropertyConfirmation = () => {
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pending</Badge>;
       case 'SUCCESS':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Success</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Approved</Badge>;
+      case 'approval_pending':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">Approval Pending</Badge>;
+        case 'Approved':
+          return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Approved</Badge>;
       case 'rejected':
         return <Badge variant="outline" className=" bg-red-50 text-red-700 border-red-300">Rejected</Badge>;
       case 'fulfilled':

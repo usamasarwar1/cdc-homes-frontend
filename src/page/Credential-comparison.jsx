@@ -79,11 +79,42 @@ export default function CredentialComparisonPage() {
     if (!text || typeof text !== 'string') return "";
     return text.replace(/\b\w/g, (char) => char.toUpperCase());
   };
+  
+  function getWebsiteUrl(input) {
+    if (!input) return '';
+    
+    let value = input.trim();
+    
+    if (value.startsWith('www')) {
+      // If there's content after "www"
+      if (value.length > 3) {
+        const afterWww = value.substring(3);
+        
+        // If first character after "www" is not a dot, it's invalid
+        // Remove any characters that come before the first dot
+        if (afterWww[0] !== '.') {
+          // Find the first dot position
+          const firstDotIndex = afterWww.indexOf('.');
+          if (firstDotIndex === -1) {
+            // No dot found, return just "www" (allows backspace to work)
+            return 'www';
+          } else {
+            // Dot exists later, return "www" + everything from the dot onwards
+            return 'www' + afterWww.substring(firstDotIndex);
+          }
+        }
+      }
+    }
+    
+    return value;
+  }
+  
 
   const handleInputChange = (field, value) => {
     let newValue = value;
     if(field === 'websiteUrl') {
-      newValue = value.trim()
+      // newValue = value.trim()
+      newValue = getWebsiteUrl(value);
     } else {
       newValue = capitalizeWords(value);
     }

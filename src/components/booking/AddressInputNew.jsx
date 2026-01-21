@@ -69,9 +69,9 @@ export default function AddressInputNew({
     setIsLoadingSuggestions(true);
     try {
        const url = `${VITE_BASE_URL}/placesAutocomplete?input=${encodeURIComponent(input)}`;
-    const response = await fetch(url, {
-      method: 'GET',
-    });
+        const response = await fetch(url, {
+          method: 'GET',
+        });
     
     const data = await response.json();
       setSuggestions(data.predictions || []);

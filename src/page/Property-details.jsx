@@ -27,10 +27,11 @@ import {
   Loader2
 } from 'lucide-react'
 import {
-    getDoc,
-    doc,
-    updateDoc,
-  } from "firebase/firestore";
+  getDoc,
+  doc,
+  updateDoc,
+  serverTimestamp, 
+} from "firebase/firestore";
 
 const PropertyDetails = () => {
   const { bookingId } = useParams()
@@ -75,6 +76,8 @@ const PropertyDetails = () => {
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Success</Badge>
       case 'approved':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Approved</Badge>
+      case 'approval_pending':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">Approval Pending</Badge>
       case 'rejected':
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Rejected</Badge>
       case 'fulfilled':
@@ -120,6 +123,9 @@ const PropertyDetails = () => {
   
       const userRef = doc(db, "users", bookingData.userId);
       const userSnap = await getDoc(userRef);
+
+      console.log("userSnap", userSnap.data());
+      
   
       if (!userSnap.exists()) {
         console.error('User not found');
@@ -145,6 +151,8 @@ const PropertyDetails = () => {
         ...(bookingData.time && { time: bookingData.time }),
         ...(bookingData.formattedDateTime && { formattedDateTime: bookingData.formattedDateTime }),
       };
+
+      console.log("combinedBooking", combinedBooking);
   
       setBooking(combinedBooking);
   
@@ -163,19 +171,68 @@ const PropertyDetails = () => {
 
   const handleApprove = async (bookingId) => {
     setLoading(true);
+  
     try {
       const bookingRef = doc(db, "bookings", bookingId);
+  
+      const token = crypto.randomUUID();
+  
       await updateDoc(bookingRef, {
-        status: "approved",
-        updatedAt: new Date(),
-        
+        status: "approval_pending",
+        approvalToken: token,
+        approvalTokenUsed: false,
+        approvalTokenExpiresAt: Date.now() + 1000 * 60 * 60 * 24, 
+        updatedAt: serverTimestamp(),
       });
-      
+  
+      const bookingSnap = await getDoc(bookingRef);
+  
+      if (!bookingSnap.exists()) return;
+  
+      const bookingData = bookingSnap.data();
+  
+      const userSnap = await getDoc(
+        doc(db, "users", bookingData.userId)
+      );
+  
+      if (!userSnap.exists()) return;
+  
+      const userData = userSnap.data();
+  
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+      const url = `${baseUrl}/contact-verification?token=${token}`;
+
+      console.log({
+        url,
+        email: userData.email,
+        name: userData.name,
+      });
+
+
+      const response = await fetch(`${VITE_BASE_URL}/propertyVerificationApproval`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          name: userData.name,
+          token,
+          url,
+        }),
+      });
+  
+  const data = await response.json();
+
+  // console.log("data------ after function", data);
+  
+  
       toast({
-        title: "Booking Approved",
-        description: "The booking has been approved successfully.",
+        title: "Approval Email Sent",
+        description: "User has been notified.",
       });
-      
+  
       getBooking();
     } catch (error) {
       toast({
@@ -353,12 +410,14 @@ const PropertyDetails = () => {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-500 mb-1">Base Price</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${booking.property?.basePrice?.toLocaleString() || 'N/A'}
-                      </p>
-                    </div>
+                   {!booking.isDiscount && (
+                     <div className="bg-gray-50 rounded-lg p-4">
+                     <p className="text-sm text-gray-500 mb-1">Base Price</p>
+                     <p className="text-2xl font-bold text-gray-900">
+                       ${booking.property?.basePrice?.toLocaleString() || 'N/A'}
+                     </p>
+                   </div>
+                   )}
                     <div className="bg-blue-50 rounded-lg p-4">
                       <p className="text-sm text-blue-600 mb-1">Challenge Price (50%)</p>
                       <p className="text-2xl font-bold text-blue-700">
@@ -423,7 +482,14 @@ const PropertyDetails = () => {
                   <div className="md:col-span-2">
                     <p className="text-sm text-gray-500 mb-1">Website URL</p>
                     <a
-                      href={booking.inspector.websiteUrl}
+                      href={
+                        booking.inspector.websiteUrl?.startsWith('http://') || 
+                        booking.inspector.websiteUrl?.startsWith('https://')
+                          ? booking.inspector.websiteUrl
+                          : booking.inspector.websiteUrl
+                          ? `https://${booking.inspector.websiteUrl}`
+                          : '#'
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1"

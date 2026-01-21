@@ -12,11 +12,11 @@ import { Label } from '../components/ui/Label';
 import { CalendarIcon, ClockIcon, MapPinIcon, HomeIcon, UserIcon, PhoneIcon, MailIcon, UsersIcon, Clock, AlertCircle } from 'lucide-react';
 import { format, addDays, isWeekend, isSaturday, isToday } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
-import { doc, setDoc, serverTimestamp, collection, addDoc, updateDoc, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, setDoc, getDoc, deleteField, serverTimestamp, collection, addDoc, updateDoc, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import { ProgressSteps, GuidanceCard } from '../components/ui/Progress-steps';
 import { Loader2 } from 'lucide-react';
-
+import { onAuthStateChanged } from 'firebase/auth';
 
 
 export default function InspectionCalendar() {
@@ -31,37 +31,222 @@ const navigate = useNavigate();
   const [waitingListPhone, setWaitingListPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [loginUser, setLoginUser] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [user, setUser] = useState(null);
   const { toast } = useToast();
+
+  const parseAddress = (addressString) => {
+    if (!addressString || typeof addressString !== 'string') {
+      return {
+        address: addressString || '',
+        street: '',
+        streetNumber: '',
+        direction: '',
+        streetName: '',
+        city: '',
+        state: '',
+        zip: ''
+      };
+    }
+  
+    const cleanedAddress = addressString.trim();
+    
+    const zipMatch = cleanedAddress.match(/\b(\d{5}(-\d{4})?)\b/);
+    const zip = zipMatch ? zipMatch[1].substring(0, 5) : '';
+    
+    const addressWithoutZip = cleanedAddress.replace(/\b\d{5}(-\d{4})?\b/, '').trim();
+    
+    const cleanedWithoutZip = addressWithoutZip.replace(/,\s*$/, '').trim();
+    
+    const parts = cleanedWithoutZip.split(',').map(part => part.trim()).filter(Boolean);
+    
+    const streetPart = parts[0] || '';
+    
+    const streetWords = streetPart.split(/\s+/).filter(Boolean);
+    
+    let streetNumber = '';
+    let direction = '';
+    let streetName = '';
+    let street = streetPart;
+    
+    if (streetWords.length > 0) {
+      const firstWord = streetWords[0];
+      if (/^\d+$/.test(firstWord)) {
+        streetNumber = firstWord;
+        
+        const directionPattern = /^(North|South|East|West|Northeast|Northwest|Southeast|Southwest|N|S|E|W|NE|NW|SE|SW)$/i;
+        if (streetWords.length > 1 && directionPattern.test(streetWords[1])) {
+          direction = streetWords[1];
+          streetName = streetWords.slice(2).join(' ');
+        } else {
+          streetName = streetWords.slice(1).join(' ');
+        }
+      } else {
+        const directionPattern = /^(North|South|East|West|Northeast|Northwest|Southeast|Southwest|N|S|E|W|NE|NW|SE|SW)$/i;
+        if (directionPattern.test(firstWord)) {
+          direction = firstWord;
+          streetName = streetWords.slice(1).join(' ');
+        } else {
+          // No number or direction, entire string is street name
+          streetName = streetPart;
+        }
+      }
+      
+      // Reconstruct full street address
+      const streetParts = [streetNumber, direction, streetName].filter(Boolean);
+      street = streetParts.join(' ');
+    }
+    
+    // Parse city and state from remaining parts
+    let city = '';
+    let state = '';
+    
+    if (parts.length === 2) {
+      // "Street, City" or "Street, State"
+      // Check if second part looks like a state (2 uppercase letters) or city
+      if (/^[A-Z]{2}$/.test(parts[1])) {
+        state = parts[1];
+      } else {
+        city = parts[1];
+      }
+    } else if (parts.length >= 3) {
+      // "Street, City, State" format
+      city = parts[1];
+      // Last part might be state (2 uppercase letters)
+      const lastPart = parts[parts.length - 1];
+      if (/^[A-Z]{2}$/.test(lastPart)) {
+        state = lastPart;
+      } else {
+        city = parts.slice(1, -1).join(', ');
+        state = lastPart;
+      }
+    }
+    
+    return {
+      address: cleanedAddress,
+      street: street || cleanedAddress,
+      streetNumber: streetNumber || '',
+      direction: direction || '',
+      streetName: streetName || street || '',
+      city: city || '',
+      state: state || '',
+      zip: zip || ''
+    };
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        setUser(null);
+        return;
+      }
+
+      try {
+        // console.log("currentUser", currentUser.uid);
+
+        const token = localStorage.getItem('approvalToken') || sessionStorage.getItem('approvalToken');
+        console.log("token", token);
+        let userIdToUse = currentUser.uid; 
+  
+        if(token){
+          const bookingsRef = collection(db, "bookings");
+          const q = query(bookingsRef, where("approvalToken", "==", token));
+          const querySnapshot = await getDocs(q);
+      
+          
+            const bookingDoc = querySnapshot.docs[0]; 
+            // console.log("booking", bookingDoc.data(), bookingDoc.id);
+            const bookingDocData = bookingDoc.data();
+
+            console.log("bookingDocData", bookingDocData.userId);
+            userIdToUse = bookingDocData.userId;
+        } else {
+          userIdToUse = currentUser.uid;
+        }
+        setCurrentUserId(userIdToUse);
+      } catch (err) {
+        console.error("Error fetching user role", err);
+        setCurrentUserId(currentUser.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // Parse URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    // console.log('InspectionCalendar - URL search params:', window.location.search);
+    // console.log('InspectionCalendar - URL search params in calendar page:', urlParams);
     
     setPaymentMethod(sessionStorage.getItem('paymentMethod'));
     setLoginUser(JSON.parse(sessionStorage.getItem('userData')));
+    console.log("loginUser", loginUser);
 
-    // console.log('InspectionCalendar - Payment method:', sessionStorage.getItem('paymentMethod'));
-    // console.log('InspectionCalendar - User data:', JSON.parse(sessionStorage.getItem('userData')));
+    const urlAddress = urlParams.get('address') || '';
+    
+    const parsedAddress = urlAddress ? parseAddress(urlAddress) : {
+      address: '',
+      street: '',
+      streetNumber: '',
+      direction: '',
+      streetName: '',
+      city: '',
+      state: '',
+      zip: ''
+    };
 
     const propertyData = {
-      address: urlParams.get('address') || '',
-      street: urlParams.get('street') || '',
-      city: urlParams.get('city') || '',
-      state: urlParams.get('state') || '',
-      zip: urlParams.get('zip') || '',
+      address: urlAddress || parsedAddress.address,
+      street: urlParams.get('street') || parsedAddress.street,
+      streetNumber: urlParams.get('streetNumber') || parsedAddress.streetNumber,
+      direction: urlParams.get('direction') || parsedAddress.direction,
+      streetName: urlParams.get('streetName') || parsedAddress.streetName,
+      city: urlParams.get('city') || parsedAddress.city,
+      state: urlParams.get('state') || parsedAddress.state,
+      zip: urlParams.get('zip') || parsedAddress.zip,
       propertyType: urlParams.get('propertyType') || '',
       squareFootage: Number(urlParams.get('squareFootage')) || 0,
       paymentMethod: urlParams.get('paymentMethod') || '',
       multiFamilyUnits: urlParams.get('multiFamilyUnits') || '',
-    //   unitLabels: urlParams.get('unitLabels') ? JSON.parse(urlParams.get('unitLabels')!) : [],
-    //   unitSquareFootages: urlParams.get('unitSquareFootages') ? JSON.parse(urlParams.get('unitSquareFootages')!) : []
     };
 
-    setProperty(propertyData);
-    // console.log('InspectionCalendar - Property data:', propertyData);
+    const bookingData = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
+
+    // console.log("propertyData from url params", propertyData);
+    // console.log("bookingData in session storage", bookingData);
+    
+    if(bookingData && bookingData.paymentMethod === "challenge"){
+      const mergedProperty = {
+        ...propertyData,
+        paymentMethod: 'challenge',
+        challengePrice: bookingData.property?.challengePrice || bookingData.challengePrice,
+        city: propertyData.city || bookingData.property?.city || bookingData.city || '',
+        state: propertyData.state || bookingData.property?.state || bookingData.state || '',
+        street: propertyData.street || bookingData.property?.street || bookingData.street || '',
+        streetNumber: propertyData.streetNumber || bookingData.property?.streetNumber || bookingData.streetNumber || '',
+        direction: propertyData.direction || bookingData.property?.direction || bookingData.direction || '',
+        streetName: propertyData.streetName || bookingData.property?.streetName || bookingData.streetName || '',
+        zip: propertyData.zip || bookingData.property?.zip || bookingData.zip || '',
+        address: propertyData.address || bookingData.property?.address || bookingData.address || '',
+      };
+
+      if (mergedProperty.address && (!mergedProperty.street || !mergedProperty.zip || !mergedProperty.streetNumber)) {
+        const parsed = parseAddress(mergedProperty.address);
+        mergedProperty.street = mergedProperty.street || parsed.street;
+        mergedProperty.streetNumber = mergedProperty.streetNumber || parsed.streetNumber;
+        mergedProperty.direction = mergedProperty.direction || parsed.direction;
+        mergedProperty.streetName = mergedProperty.streetName || parsed.streetName;
+        mergedProperty.city = mergedProperty.city || parsed.city;
+        mergedProperty.state = mergedProperty.state || parsed.state;
+        mergedProperty.zip = mergedProperty.zip || parsed.zip;
+      }
+
+      // console.log("updatedProperty", mergedProperty);
+      setProperty(mergedProperty);
+    } else {
+      setProperty(propertyData);
+    }
 
     const contactData = {
       firstName: urlParams.get('firstName') || '',
@@ -79,7 +264,6 @@ const navigate = useNavigate();
     };
 
     setContact(contactData);
-    // console.log('InspectionCalendar - Contact data:', contactData);
   }, []);
 
   // Calculate pricing - STANDARD INSPECTION FEE (Pay Now)
@@ -138,7 +322,6 @@ const navigate = useNavigate();
 
   const timeSlots = getTimeSlots(selectedDate);
 
-  // Generate available dates with availability status (next 14 days)
   const getAvailableDatesWithStatus = () => {
     const dates = [];
     const today = new Date();
@@ -147,23 +330,18 @@ const navigate = useNavigate();
     for (let i = 1; i <= 14; i++) {
       const date = addDays(today, i);
       
-      // Include weekends but mark them as unavailable
       let totalSlots;
       let availableSlots;
         
       if (date.getDay() === 0 || date.getDay() === 6) {
-        // Sunday (0) and Saturday (6) - always unavailable
         totalSlots = 0;
         availableSlots = 0;
       
       } else {
-        // Weekdays: Regular schedule (8am - 5pm, 9 hours = 9 slots)
         totalSlots = 9;
-        // All weekdays show as available by default - real availability will be managed in dashboard
         availableSlots = totalSlots;
       }
       
-      // Determine status based on available slots
       let status;
       if (availableSlots === 0) {
         status = 'unavailable';
@@ -183,7 +361,6 @@ const navigate = useNavigate();
 
   const availableDatesWithStatus = getAvailableDatesWithStatus();
 
-  // Get availability status for a specific date
   const getDateAvailability = (date) => {
     return availableDatesWithStatus.find(d => 
       d.date.toDateString() === date.toDateString()
@@ -198,7 +375,6 @@ const navigate = useNavigate();
   };
 
 
-  // Disable dates that are not available
   const isDateDisabled = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -219,7 +395,6 @@ const navigate = useNavigate();
     return false;
   };
 
-  // Custom day renderer for availability colors (clean, no text overlay)
   const customDayRenderer = (day, modifiers) => {
     const availability = getDateAvailability(day);
     const isPastDate = day < new Date();
@@ -299,10 +474,9 @@ const navigate = useNavigate();
     try {
       setIsLoading(true);
       if (!selectedDate || !selectedTime) {
-        console.log('Calendar - Missing date or time selection');
+        setIsLoading(false);
         return;
       }
-  
       const appointmentData = {
         date: selectedDate,
         time: selectedTime,
@@ -310,24 +484,92 @@ const navigate = useNavigate();
         property: property,
         verifiedContact: contact,
         fullPrice,
-        userId: loginUser.userId,
-        isDiscount: paymentMethod === 'pay_now' ? false : true,
+        userId: currentUserId,
+        isDiscount: false,
         status: 'SUCCESS',
       };
-  
+
+
+      console.log("property in handleContinueToPayment", property);
+      
+
+      if(property.paymentMethod === 'pay_now'){
+        // console.log("appointmentData", appointmentData);
         const bookingsRef = collection(db, 'bookings');
-        const newBookingData = {
-          ...appointmentData,
-          createdAt: serverTimestamp() 
-        };
-        const docRef = await addDoc(bookingsRef, newBookingData);
+          const newBookingData = {
+            ...appointmentData,
+            createdAt: serverTimestamp() 
+          };
+
+          // console.log("----in pay_now", newBookingData);
           
-        toast({
-          title: "Booking Created",
-          description: "Your appointment has been scheduled successfully!",
-        });
-        alert("Appointment created successfully with appointment details");
+           await addDoc(bookingsRef, newBookingData);
+           alert("Appointment created successfully with Skip Challenge details");
+           toast({
+             title: "Appointment Created",
+             description: "Appointment created successfully with Skip Challenge details",
+           });
+           navigate("/");
+        
+      } 
+
+
+      if (property.paymentMethod === 'challenge') {
+        setIsLoading(true);
+
+        const approvalToken = sessionStorage.getItem('approvalToken');
+
+        const bookingsQuery = query(
+          collection(db, 'bookings'),
+          where('approvalToken', '==', approvalToken)
+        );
+
+        const querySnapshot = await getDocs(bookingsQuery);
+
+        if (querySnapshot.empty) {
+          throw new Error('Booking not found for approval token');
+        }
+
+        const bookingDoc = querySnapshot.docs[0];
+        const bookingId = bookingDoc.id;
+        const bookingData = bookingDoc.data();
+
+        const bookingRef = doc(db, 'bookings', bookingId);
+
+        const updatedProperty = {
+          ...property,
+          challengePrice: bookingData.property.challengePrice,
+        };
+
+        
+
+        const updateData = {
+          property: updatedProperty,
+          isDiscount: true,
+          status: 'Approved',
+          updatedAt: serverTimestamp(),
+          approvalTokenUsed: true,
+          approvalToken: deleteField(),
+          approvalTokenExpiresAt: deleteField(),
+          date: selectedDate,
+          time: selectedTime,
+          formattedDateTime: `${format(selectedDate, 'EEEE, MMMM do, yyyy')} at ${selectedTime}`,
+          verifiedContact: contact,
+          userId: currentUserId,
+        };
+
+        console.log("updateData", updateData);
+        
+
+        await updateDoc(bookingRef, updateData);
+
+        alert("Appointment update successfully with challenge details");
         navigate("/");
+        toast({
+          title: "Booking Updated",
+          description: "Appointment created successfully with challenge details",
+        });
+      }
     
 
       // Get the Stripe payment URL for the calculated price
@@ -362,12 +604,12 @@ const navigate = useNavigate();
     //   }
     } catch (error) {
       console.error('Calendar - Error loading StripePaymentManager:', error);
-      const params = new URLSearchParams({
-        ...Object.fromEntries(Object.entries(property).map(([k, v]) => [k, String(v)])),
-        appointmentDate: selectedDate.toISOString(),
-        appointmentTime: selectedTime
-      });
-      navigate(`/payment-redirect?${params.toString()}`);
+      // const params = new URLSearchParams({
+      //   ...Object.fromEntries(Object.entries(property).map(([k, v]) => [k, String(v)])),
+      //   appointmentDate: selectedDate.toISOString(),
+      //   appointmentTime: selectedTime
+      // });
+      // navigate(`/payment-redirect?${params.toString()}`);
     } finally {
       setIsLoading(false);
     }

@@ -18,6 +18,7 @@ function Home() {
   const [pendingPropertyInfo, setPendingPropertyInfo] = useState(null);
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
+  
   useEffect(() => {
     const userData = sessionStorage.getItem("userData");
     if(userData){
@@ -50,7 +51,9 @@ function Home() {
     setIsModalOpen(false);
     
     const storedUserData = sessionStorage.getItem("userData");
-    const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
+    const storedUserDataLocal = localStorage.getItem("userData");
+    const parsedUserData = storedUserData ? JSON.parse(storedUserData) : storedUserDataLocal ? JSON.parse(storedUserDataLocal) : null;
+
     
     if (parsedUserData) {
       setUserData(parsedUserData);
@@ -61,8 +64,8 @@ function Home() {
       setPendingPropertyInfo(null);
     } else if (pendingPropertyInfo === null && parsedUserData?.role === "admin"){
       navigate("/dashboard");
-      console.log("userData in home", parsedUserData);
-      console.log("pendingPropertyInfo in home", pendingPropertyInfo);
+      // console.log("userData in home", parsedUserData);
+      // console.log("pendingPropertyInfo in home", pendingPropertyInfo);
     } else {
       navigate("/");
     }

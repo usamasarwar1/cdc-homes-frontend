@@ -14,6 +14,8 @@ import { useFormGuidance } from '../../hooks/useGormGuideance';
 
 
 export default function ContactVerification({ property, onVerified, onBack }) {  
+
+  
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -1635,16 +1637,16 @@ const handleSubmit = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => setShowUnitNumber(!showUnitNumber)}
-                      className="text-xs border-blue-300 text-blue-600 hover:bg-blue-50"
+                      className="text-xs border-blue-300 text-blue-600 cursor-pointer hover:bg-blue-50"
                     >
                       {showUnitNumber ? 'Remove Unit #' : 'Add Unit Number'}
                     </Button>
-                    <button
+                    {/* <button
                       onClick={() => setIsEditingAddress(true)}
-                      className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm underline"
+                      className="text-blue-600 cursor-pointer hover:text-blue-700 text-xs sm:text-sm underline"
                     >
                       Edit
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               )}

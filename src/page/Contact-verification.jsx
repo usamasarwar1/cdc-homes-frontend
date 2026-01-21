@@ -4,51 +4,177 @@ import { MiniProgressTracker } from '../components/gamification/MiniProgressTrac
 import { useProgress } from '../components/gamification/ProgressProvider';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { db } from '../firebase';
+import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function ContactVerificationPage() {
   const navigate = useNavigate();
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
   const { currentStep, completedSteps, completeStep, setStep } = useProgress();
   
-  const urlParams = new URLSearchParams(window.location.search);
-  const property = {
-    address: urlParams.get('address') || '',
-    street: urlParams.get('street') || '',
-    city: urlParams.get('city') || '',
-    state: urlParams.get('state') || '',
-    zip: urlParams.get('zip') || '',
-    propertyType: urlParams.get('propertyType') || '',
-    squareFootage: parseInt(urlParams.get('squareFootage') || '0') || undefined,
-    paymentMethod: urlParams.get('paymentMethod') || 'pay_now'
-  };
-
-  // console.log('ContactVerificationPage - URL search params:', window.location.search);
-  // console.log('ContactVerificationPage - Parsed property data:', property);
+  const [property, setProperty] = useState(null);
+  const [isLoadingBooking, setIsLoadingBooking] = useState(true); 
+  const [tokenError, setTokenError] = useState(null);
 
   useEffect(() => {
-    setStep('contact');
-    completeStep('details'); 
-  }, []);
+    const initializeProperty = async () => {
+      if (token) {
+        try {
+          setIsLoadingBooking(true);
+          setTokenError(null);
+
+
+
+          const bookingsQuery = query(
+            collection(db, 'bookings'),
+            where('approvalToken', '==', token)
+          );
+
+          sessionStorage.setItem('approvalToken', token);
+          localStorage.setItem('approvalToken', token);
+
+          const querySnapshot = await getDocs(bookingsQuery);
+
+          // console.log("querySnapshot", querySnapshot.docs[0]?.data());
+
+          if (querySnapshot.empty) {
+            setTokenError('Invalid approval token. Please check your email link.');
+            setIsLoadingBooking(false);
+            return;
+          }
+
+          const bookingData = querySnapshot.docs[0].data();
+          sessionStorage.setItem('bookingDataUsingToken', JSON.stringify(bookingData));
+
+          // console.log("bookingData", bookingData);
+
+          if (bookingData.approvalTokenUsed) {
+            setTokenError('This approval link has already been used.');
+            setIsLoadingBooking(false);
+            return;
+          }
+
+          const expirationTime = bookingData.approvalTokenExpiresAt;
+          if (expirationTime && Date.now() > expirationTime) {
+            setTokenError('This approval link has expired. Please contact support.');
+            setIsLoadingBooking(false);
+            return;
+          }
+
+          if (bookingData.status !== 'approval_pending') {
+            setTokenError('This booking is not in approval pending status.');
+            setIsLoadingBooking(false);
+            return;
+          }
+
+          if (!bookingData.property) {
+            setTokenError('Booking property data not found.');
+            setIsLoadingBooking(false);
+            return;
+          }
+
+          setProperty({
+            address: bookingData.property.address || '',
+            street: bookingData.property.street || '',
+            city: bookingData.property.city || '',
+            state: bookingData.property.state || '',
+            zip: bookingData.property.zip || '',
+            propertyType: bookingData.property.propertyType || '',
+            squareFootage: bookingData.property.squareFootage || undefined,
+            paymentMethod: bookingData.isDiscount ? "challenge" : "pay_now",
+          });
+
+          // const bookingRef = doc(db, 'bookings', bookingDoc.id);
+          // await updateDoc(bookingRef, {
+          //   approvalTokenUsed: true,
+          // });
+
+        } catch (error) {
+          console.error('Error fetching booking by token:', error);
+          setTokenError('Failed to validate approval token. Please try again.');
+        } finally {
+          setIsLoadingBooking(false);
+        }
+      } 
+      else {
+        const hasPropertyParams = urlParams.get('address') || 
+                                  urlParams.get('street') || 
+                                  urlParams.get('city');
+
+        if (hasPropertyParams) {
+          const propertyFromUrl = {
+            address: urlParams.get('address') || '',
+            street: urlParams.get('street') || '',
+            city: urlParams.get('city') || '',
+            state: urlParams.get('state') || '',
+            zip: urlParams.get('zip') || '',
+            propertyType: urlParams.get('propertyType') || '',
+            squareFootage: parseInt(urlParams.get('squareFootage') || '0') || undefined,
+            paymentMethod: urlParams.get('paymentMethod') || 'pay_now'
+          };
+
+          console.log("property from url params", propertyFromUrl);
+          setProperty(propertyFromUrl);
+        } else {
+          setTokenError('No property information or approval token provided.');
+        }
+        setIsLoadingBooking(false);
+      }
+    };
+
+    initializeProperty();
+  }, [token]);
+
+  useEffect(() => {
+    if (property) {
+      setStep('contact');
+      completeStep('details');
+    }
+  }, [property, setStep, completeStep]);
 
   const handleVerified = (contactData) => {
-    console.log('Contact verification completed:', contactData);
-    
     completeStep('contact');
     setStep('scheduling');
-    
   };
 
   const handleBack = () => {
-    const params = new URLSearchParams();
-    Object.entries(property).forEach(([key, value]) => {
-      if (value && key !== 'paymentMethod') params.set(key, value.toString());
-    });
-    
-    navigate(`/inspection-confirmed?${params.toString()}`);
+    if (property) {
+      const params = new URLSearchParams();
+      
+      if (property.address) params.set('address', property.address);
+      if (property.street) params.set('street', property.street);
+      if (property.city) params.set('city', property.city);
+      if (property.state) params.set('state', property.state);
+      if (property.zip) params.set('zip', property.zip);
+      if (property.propertyType) params.set('propertyType', property.propertyType);
+      if (property.squareFootage) params.set('squareFootage', property.squareFootage.toString());
+      if (property.paymentMethod) params.set('paymentMethod', property.paymentMethod);
+      
+      navigate(`/inspection-confirmed?${params.toString()}`);
+    } else {
+      navigate('/property-confirmed');
+    }
   };
+
+  if (isLoadingBooking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">
+            {token ? 'Validating approval token...' : 'Loading property information...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Progress Tracker */}
       <div className="max-w-7xl mx-auto px-4 pt-4">
         <MiniProgressTracker 
           currentStep={currentStep}
@@ -59,20 +185,16 @@ export default function ContactVerificationPage() {
       
       <header className="bg-white shadow-sm">
         <div className="text-center md:absolute md:left-4 md:top-40 md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
-                        <Button
-                          onClick={() => {
-                            navigate('/property-confirmed')
-                          }}
-                          variant="ghost"
-                          className="text-blue-600 hover:bg-blue-50 text-sm cursor-pointer"
-                        >
-                          ← Back to Home
-                        </Button>
-                      </div>
+          <Button
+            onClick={() => navigate('/property-confirmed')}
+            variant="ghost"
+            className="text-blue-600 hover:bg-blue-50 text-sm cursor-pointer"
+          >
+            ← Back to Home
+          </Button>
+        </div>
         <div className="max-w-7xl mx-auto px-4 py-4">
-           
           <div className="text-center">
-            
             <h1 className="text-2xl font-bold text-gray-900">Contact Verification</h1>
             <p className="text-gray-600 mt-2">Verify your contact information to continue with booking</p>
           </div>
@@ -80,11 +202,13 @@ export default function ContactVerificationPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <ContactVerification
-          property={property}
-          onVerified={handleVerified}
-          onBack={handleBack}
-        />
+        {property && (
+          <ContactVerification
+            property={property}
+            onVerified={handleVerified}
+            onBack={handleBack}
+          />
+        )}
       </div>
     </div>
   );

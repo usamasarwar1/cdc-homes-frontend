@@ -24,9 +24,8 @@ import { cn } from '../utils/Cn'
 const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/users', label: 'Users', icon: Users },
-    // { to: '/pricing', label: 'Pricing', icon: CreditCard },
-    { to: '/pricing-schedule', label: 'Pricing Schedule', icon: CreditCard },
-    { to: '/property-confirmed', label: 'Property Confirmed', icon: CreditCard }
+    { to: '/pricing-schedule-admin', label: 'Pricing Schedule', icon: CreditCard },
+    { to: '/property-confirm', label: 'Property Confirm', icon: CreditCard }
 ]
 
 const SidebarMenuItems = () => {

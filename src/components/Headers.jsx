@@ -3,19 +3,21 @@ import { Button } from './ui/Button';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { User, LogOut, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 
 function Header({setIsModalOpen, userData, setModalType, isAuthenticated, setIsAuthenticated}) {
 
-
+const navigate = useNavigate();
 
 const handleLogOut = async () => {
   try {
     sessionStorage.removeItem("userData");
+    localStorage.removeItem("userData");
     sessionStorage.removeItem("confirmedProperty");
     await signOut(auth);
     setIsAuthenticated(false);
-    
+    localStorage.removeItem("userData");
   } catch (error) {
     console.error("Error logging out:", error);
   }
@@ -58,7 +60,7 @@ const handleLogIn = (params) => {
               </div>
             </div>
                 {isAuthenticated && userData ? (
-                   <div className="flex items-center gap-2 text-sm text-gray-600">
+                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     {userData?.photoURL ? (
                         <img 
                           src={userData.photoURL} 
@@ -70,7 +72,12 @@ const handleLogIn = (params) => {
                             <User className="w-4 h-4 text-red-600" />
                           </div>
                       )}
+                   <div className='flex flex-col mr-2'>
                    <span className="hidden md:inline font-medium">{userData?.name || 'User'}</span>
+                   {/* <span className="hidden sm:inline font-[10px] text-red-600 hover:text-red-700 hover:underline cursor-pointer" 
+                   onClick={() => navigate('/profile')}
+                    >View Profile</span> */}
+                   </div>
                             
                <Button
                     variant="outline"

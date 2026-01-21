@@ -57,6 +57,7 @@ const AuthModal = ({ isOpen, onClose, modalType, setModalType, onAuthSuccess, se
     userId: authUser.user.uid,
     };
     sessionStorage.setItem("userData", JSON.stringify(data));
+    localStorage.setItem("userData", JSON.stringify(data));
 
     setIsAuthenticated(true);
       onAuthSuccess();

@@ -5,7 +5,7 @@ import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialoag';
 import { useToast } from '../hooks/use-toast';
 
-export function PaymentButton({ amount, type, description, buttonText, className = "" }) {
+export function PaymentEditButton({ amount, type, description, buttonText, className = "" }) {
   const isPayLater = type === 'pay-later';
   const uniqueId = description.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const defaultUrl = isPayLater ? `https://your-invoice-platform.com/invoice-${uniqueId}` : `https://buy.stripe.com/payment-${uniqueId}`;
@@ -71,14 +71,14 @@ export function PaymentButton({ amount, type, description, buttonText, className
 
   return (
     <div className="space-y-2">
-      <button
+      {/* <button
         onClick={handlePayment}
         className={`w-full px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${getButtonStyle()} ${className}`}
       >
         {displayText}
-      </button>
+      </button> */}
       
-      {/* <div className="flex gap-1">
+      <div className="flex gap-1">
         <Dialog open={isEditing} onOpenChange={setIsEditing}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="flex-1 border-gray-300">
@@ -129,7 +129,7 @@ export function PaymentButton({ amount, type, description, buttonText, className
         <Button variant="outline" className="border-gray-300" size="sm" onClick={handlePayment}>
           <ExternalLink className="w-3 h-3" />
         </Button>
-      </div> */}
+      </div>
     </div>
   );
 }

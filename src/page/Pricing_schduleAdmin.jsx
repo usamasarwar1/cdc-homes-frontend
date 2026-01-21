@@ -1,15 +1,16 @@
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { PaymentButton } from '../components/PaymentButton';
+// import { PaymentEditButton } from '../components/PaymentEditButton';
+import { PaymentEditButton } from '../components/PaymentEditButton';
 // import { getStripePaymentUrl } from '@/components/StripePaymentManager';
 // import { MultiFamilyPricing } from '/MultiFamilyPricing';
-import { MultiFamilyPricing } from '../components/MultiFamilyPricing';
+import { MultiFamilyPricingAdmin } from '../components/MultiFamilyPricingAdmin';
 import { Download, DollarSign, Star, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
-export default function PricingSchedulePage() {
+export default function PricingScheduleAdminPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
@@ -71,7 +72,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
                   <div className="text-green-800 font-semibold mb-1">Book Now</div>
                   <div className="text-2xl font-bold text-green-600 mb-3">$575</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$575"
                     type="pay-now"
                     description="Single Family ≤1,200 sq ft - Pay Now"
@@ -80,7 +81,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
                   <div className="text-purple-800 font-semibold mb-1">50% Off Challenge</div>
                   <div className="text-2xl font-bold text-purple-600 mb-3">$287.50</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$287.50"
                     type="challenge"
                     description="Single Family ≤1,200 sq ft - 50% Challenge"
@@ -94,7 +95,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
                   <div className="text-green-800 font-semibold mb-1">Book Now</div>
                   <div className="text-2xl font-bold text-green-600 mb-3">$650</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$650"
                     type="pay-now"
                     description="Single Family 1,201-3,000 sq ft - Pay Now"
@@ -103,7 +104,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
                   <div className="text-purple-800 font-semibold mb-1">50% Off Challenge</div>
                   <div className="text-2xl font-bold text-purple-600 mb-3">$325</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$325"
                     type="challenge"
                     description="Single Family 1,201-3,000 sq ft - 50% Challenge"
@@ -117,7 +118,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
                   <div className="text-green-800 font-semibold mb-1">Book Now</div>
                   <div className="text-2xl font-bold text-green-600 mb-3">$725</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$725"
                     type="pay-now"
                     description="Single Family 3,001-5,000 sq ft - Pay Now"
@@ -126,7 +127,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
                   <div className="text-purple-800 font-semibold mb-1">50% Off Challenge</div>
                   <div className="text-2xl font-bold text-purple-600 mb-3">$362.50</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$362.50"
                     type="challenge"
                     description="Single Family 3,001-5,000 sq ft - 50% Challenge"
@@ -140,7 +141,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
                   <div className="text-green-800 font-semibold mb-1">Book Now</div>
                   <div className="text-2xl font-bold text-green-600 mb-3">$800</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$800"
                     type="pay-now"
                     description="Single Family 5,001-6,000 sq ft - Pay Now"
@@ -149,7 +150,7 @@ export default function PricingSchedulePage() {
                 <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
                   <div className="text-purple-800 font-semibold mb-1">50% Off Challenge</div>
                   <div className="text-2xl font-bold text-purple-600 mb-3">$400</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$400"
                     type="challenge"
                     description="Single Family 5,001-6,000 sq ft - 50% Challenge"
@@ -175,7 +176,7 @@ export default function PricingSchedulePage() {
             <p className="text-gray-600">Complete pricing options for all multi-unit scenarios with edit/copy payment links</p>
           </CardHeader>
           <CardContent>
-            <MultiFamilyPricing />
+            <MultiFamilyPricingAdmin />
           </CardContent>
         </Card>
 
@@ -193,7 +194,7 @@ export default function PricingSchedulePage() {
                 <div className="text-purple-800 font-semibold mb-2">Single Wide</div>
                 <div className="text-3xl font-bold text-purple-600 mb-3">$625</div>
                 <div className="text-sm text-purple-700 mb-4">Updated pricing</div>
-                <PaymentButton
+                <PaymentEditButton
                   amount="$625"
                   type="pay-now"
                   description="Single Wide Mobile Home - Pay Now"
@@ -201,7 +202,7 @@ export default function PricingSchedulePage() {
                 <div className="mt-4 pt-4 border-t border-purple-200">
                   <div className="text-purple-800 font-medium text-sm mb-2">50% Challenge</div>
                   <div className="text-xl font-bold text-purple-600 mb-2">$312.50</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$312.50"
                     type="challenge"
                     description="Single Wide Mobile Home - 50% Challenge"
@@ -213,7 +214,7 @@ export default function PricingSchedulePage() {
                 <div className="text-purple-800 font-semibold mb-2">Double Wide</div>
                 <div className="text-3xl font-bold text-purple-600 mb-3">$750</div>
                 <div className="text-sm text-purple-700 mb-4">Updated pricing</div>
-                <PaymentButton
+                <PaymentEditButton
                   amount="$750"
                   type="pay-now"
                   description="Double Wide Mobile Home - Pay Now"
@@ -221,7 +222,7 @@ export default function PricingSchedulePage() {
                 <div className="mt-4 pt-4 border-t border-purple-200">
                   <div className="text-purple-800 font-medium text-sm mb-2">50% Challenge</div>
                   <div className="text-xl font-bold text-purple-600 mb-2">$375</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$375"
                     type="challenge"
                     description="Double Wide Mobile Home - 50% Challenge"
@@ -233,7 +234,7 @@ export default function PricingSchedulePage() {
                 <div className="text-purple-800 font-semibold mb-2">Triple Wide</div>
                 <div className="text-3xl font-bold text-purple-600 mb-3">$800</div>
                 <div className="text-sm text-purple-700 mb-4">Updated pricing</div>
-                <PaymentButton
+                <PaymentEditButton
                   amount="$800"
                   type="pay-now"
                   description="Triple Wide Mobile Home - Pay Now"
@@ -241,7 +242,7 @@ export default function PricingSchedulePage() {
                 <div className="mt-4 pt-4 border-t border-purple-200">
                   <div className="text-purple-800 font-medium text-sm mb-2">50% Challenge</div>
                   <div className="text-xl font-bold text-purple-600 mb-2">$400</div>
-                  <PaymentButton
+                  <PaymentEditButton
                     amount="$400"
                     type="challenge"
                     description="Triple Wide Mobile Home - 50% Challenge"
@@ -267,7 +268,7 @@ export default function PricingSchedulePage() {
                 <div className="text-green-800 font-semibold mb-2">Pay Now</div>
                 <div className="text-3xl font-bold text-green-600 mb-3">$1,100</div>
                 <div className="text-sm text-green-700 mb-4">Commercial Property</div>
-                <PaymentButton
+                <PaymentEditButton
                   amount="$1,100"
                   type="pay-now"
                   description="Commercial Property - Pay Now"
@@ -278,7 +279,7 @@ export default function PricingSchedulePage() {
                 <div className="text-purple-800 font-semibold mb-2">50% Off Challenge</div>
                 <div className="text-3xl font-bold text-purple-600 mb-3">$550</div>
                 <div className="text-sm text-purple-700 mb-4">Commercial Property</div>
-                <PaymentButton
+                <PaymentEditButton
                   amount="$550"
                   type="challenge"
                   description="Commercial Property - 50% Challenge"
@@ -369,7 +370,7 @@ export default function PricingSchedulePage() {
         </Card>
 
         {/* Stripe Integration */}
-        {/* <Card className="mb-8">
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-2xl text-purple-600 flex items-center">
               <DollarSign className="h-6 w-6 mr-2" />
@@ -377,7 +378,7 @@ export default function PricingSchedulePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-           
+            {/* Step 1 */}
             <div className="p-4 bg-gray-50 rounded-lg">
               <h4 className="font-semibold text-gray-800 mb-2">Step 1: Create Payment Links in Stripe Dashboard</h4>
               <div className="text-sm text-gray-700 space-y-2">
@@ -392,7 +393,7 @@ export default function PricingSchedulePage() {
               <h4 className="font-semibold text-blue-800 mb-2">Step 2: Replace Placeholder URLs in Code</h4>
               <div className="text-sm text-blue-700 space-y-2">
                 <p>Replace <code className="bg-blue-100 px-1 rounded">YOUR_PAYMENT_LINK_HERE</code> with your actual Stripe payment links:</p>
-                
+                {/* <div className="bg-blue-100 p-3 rounded font-mono text-xs"> */}
                 <div className="bg-blue-100 p-3 rounded font-mono text-xs break-words">
                   <p>{"onClick={() => window.open('https://buy.stripe.com/test_4gwXXX123abc', '_blank')}"}</p>
                 </div>
@@ -442,7 +443,7 @@ export default function PricingSchedulePage() {
               </div>
             </div>
           </CardContent>
-        </Card> */}
+        </Card>
 
         <Card className="mb-8 bg-blue-50 border-blue-200">
           <CardContent className="p-6">
