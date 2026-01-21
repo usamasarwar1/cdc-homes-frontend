@@ -558,7 +558,7 @@ const navigate = useNavigate();
           userId: currentUserId,
         };
 
-        console.log("updateData", updateData);
+        // console.log("updateData", updateData);
         
 
         await updateDoc(bookingRef, updateData);
@@ -848,7 +848,7 @@ const navigate = useNavigate();
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total Amount</span>
                     <Badge variant="secondary" className="text-lg font-bold px-3 py-1">
-                      ${fullPrice}
+                      {property.isDiscount ? `$${property.challengePrice}` : `$${fullPrice}`}
                     </Badge>
                   </div>
                 </div>
