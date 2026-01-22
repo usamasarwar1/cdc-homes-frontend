@@ -25,9 +25,9 @@
         switch (multiFamilyUnits) {
           case '2 Units': return { payNow: 825, challenge: 412.50, tier: "2-Unit Multi-Family" };
           case '3 Units': return { payNow: 900, challenge: 450, tier: "3-Unit Multi-Family" };
-          case '4 Units': return { payNow: 925, challenge: 462, tier: "4-Unit Multi-Family" };
+          case '4 Units': return { payNow: 925, challenge: 462.50, tier: "4-Unit Multi-Family" };
           case '5 Units': return { payNow: 1050, challenge: 525, tier: "5-Unit Multi-Family" };
-          case '6 Units': return { payNow: 1325, challenge: 662.50, tier: "5-Unit Multi-Family" };
+          case '6 Units': return { payNow: 1325, challenge: 662.50, tier: "6-Unit Multi-Family" };
           default: return { payNow: 825, challenge: 412, tier: "Multi-Family Residence" };
         }
       } else {
@@ -75,10 +75,11 @@
     
     // Fallback to new fixed pricing if no unit square footages
     switch (multiFamilyUnits) {
-      case '2 Units': return { payNow: 825, challenge: 412, tier: "2-Unit Multi-Family" };
+      case '2 Units': return { payNow: 825, challenge: 412.50, tier: "2-Unit Multi-Family" };
       case '3 Units': return { payNow: 900, challenge: 450, tier: "3-Unit Multi-Family" };
-      case '4 Units': return { payNow: 950, challenge: 475, tier: "4-Unit Multi-Family" };
+      case '4 Units': return { payNow: 925, challenge: 462.50, tier: "4-Unit Multi-Family" };
       case '5 Units': return { payNow: 1050, challenge: 525, tier: "5-Unit Multi-Family" };
+      case '6 Units': return { payNow: 1325, challenge: 662.50, tier: "6-Unit Multi-Family" };
       default: return { payNow: 825, challenge: 412, tier: "Multi-Family Residence" };
     }
   }
