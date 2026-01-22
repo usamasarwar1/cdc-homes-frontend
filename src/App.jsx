@@ -24,6 +24,8 @@ import PropertyConfirmation from './page/Property-confirmation.jsx'
 import PropertyDetails from './page/Property-details.jsx'
 import Profile from './page/Profile.jsx'
 import PricingScheduleAdminPage from './page/Pricing_schduleAdmin.jsx'
+import PaymentSuccess from './page/PaymentSuccess.jsx'
+import PaymentCancel from './page/PaymentCancel.jsx'
 
 
 
@@ -144,6 +146,8 @@ function Router() {
           <Route path="/inspection-confirmed" element={<InspectionConfirmedPage />} />
           <Route path="/booking-summary" element={<BookingSummary />} />
           <Route path="/calendar" element={<InspectionCalendar />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
         </Routes>
     );
   }

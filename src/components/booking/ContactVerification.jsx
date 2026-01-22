@@ -54,8 +54,6 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   const [isSquareFootageCorrect, setIsSquareFootageCorrect] = useState(null);
   const [editedSquareFootage, setEditedSquareFootage] = useState(property.squareFootage?.toString() || '');
 
-  // code comment by Haider dev
-  // Dynamic address and square footage with fallback to prevent "Not specified"
   const getDisplayAddress = () => {
     if (property.street && property.city && property.state && property.zip) {
       return `${property.street}, ${property.city}, ${property.state} ${property.zip}`;

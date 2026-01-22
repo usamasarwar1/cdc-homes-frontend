@@ -19,25 +19,27 @@ export default function ContactVerificationPage() {
   const [tokenError, setTokenError] = useState(null);
 
   useEffect(() => {
+    console.log(token);
+    
     const initializeProperty = async () => {
       if (token) {
         try {
           setIsLoadingBooking(true);
           setTokenError(null);
 
-
+          const cleanToken = token.trim();
 
           const bookingsQuery = query(
             collection(db, 'bookings'),
-            where('approvalToken', '==', token)
+            where('approvalToken', '==', cleanToken)
           );
 
-          sessionStorage.setItem('approvalToken', token);
-          localStorage.setItem('approvalToken', token);
+          sessionStorage.setItem('approvalToken', cleanToken);
+          localStorage.setItem('approvalToken', cleanToken);
 
           const querySnapshot = await getDocs(bookingsQuery);
 
-          // console.log("querySnapshot", querySnapshot.docs[0]?.data());
+          console.log("querySnapshot", querySnapshot.docs[0]?.data());
 
           if (querySnapshot.empty) {
             setTokenError('Invalid approval token. Please check your email link.');
@@ -46,9 +48,11 @@ export default function ContactVerificationPage() {
           }
 
           const bookingData = querySnapshot.docs[0].data();
+          console.log(bookingData);
+          
           sessionStorage.setItem('bookingDataUsingToken', JSON.stringify(bookingData));
 
-          // console.log("bookingData", bookingData);
+          console.log("bookingData", bookingData);
 
           if (bookingData.approvalTokenUsed) {
             setTokenError('This approval link has already been used.');
@@ -84,12 +88,8 @@ export default function ContactVerificationPage() {
             propertyType: bookingData.property.propertyType || '',
             squareFootage: bookingData.property.squareFootage || undefined,
             paymentMethod: bookingData.isDiscount ? "challenge" : "pay_now",
+            challangePrice: bookingData.property.challengePrice,
           });
-
-          // const bookingRef = doc(db, 'bookings', bookingDoc.id);
-          // await updateDoc(bookingRef, {
-          //   approvalTokenUsed: true,
-          // });
 
         } catch (error) {
           console.error('Error fetching booking by token:', error);

@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const cors = require("cors");
 const RentCastService = require("./services/rentCast");
 const sgMail = require('@sendgrid/mail');
+const Stripe = require("stripe")
 
 admin.initializeApp();
 
@@ -149,6 +150,155 @@ exports.propertyValidate = functions
       }
     });
   });
+
+
+
+  exports.createPaymentIntent = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        // Get secret from environment variable
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        
+        if (!stripeSecretKey) {
+          return res.status(500).json({ 
+            error: "Stripe secret key not configured" 
+          });
+        }
+  
+        const stripeInstance = Stripe(stripeSecretKey);
+        const { amount, currency = "usd", metadata = {} } = req.body;
+  
+        if (!amount || amount < 50) {
+          return res.status(400).json({ 
+            error: "Invalid amount. Minimum is $0.50" 
+          });
+        }
+  
+        // Create Payment Intent - convert dollars to cents
+        const paymentIntent = await stripeInstance.paymentIntents.create({
+          amount: Math.round(amount * 100), 
+          currency: currency,
+          metadata: metadata,
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+  
+        return res.status(200).json({
+          clientSecret: paymentIntent.client_secret,
+          paymentIntentId: paymentIntent.id,
+        });
+      } catch (error) {
+        console.error("Error creating payment intent:", error);
+        return res.status(500).json({ 
+          error: error.message 
+        });
+      }
+    });
+  });
+
+  exports.createCheckoutSession = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        
+        if (!stripeSecretKey) {
+          return res.status(500).json({ 
+            error: "Stripe secret key not configured" 
+          });
+        }
+  
+        const stripeInstance = Stripe(stripeSecretKey);
+        const { 
+          amount, 
+          currency = "usd", 
+          metadata = {},
+          successUrl,
+          cancelUrl,
+          customerEmail,
+          customerName
+        } = req.body;
+  
+        if (!amount || amount < 0.50) {
+          return res.status(400).json({ 
+            error: "Invalid amount. Minimum is $0.50" 
+          });
+        }
+  
+        // Create Checkout Session
+        const session = await stripeInstance.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: currency,
+                product_data: {
+                  name: 'Home Inspection',
+                  description: metadata.description || 'Home inspection service',
+                },
+                unit_amount: Math.round(amount * 100),
+              },
+              quantity: 1,
+            },
+          ],
+          mode: 'payment',
+          success_url: successUrl || `${req.headers.origin || 'http://localhost:5173'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: cancelUrl || `${req.headers.origin || 'http://localhost:5173'}/payment-cancel`,
+          customer_email: customerEmail,
+          metadata: metadata,
+        });
+  
+        return res.status(200).json({
+          checkoutUrl: session.url,
+          sessionId: session.id,
+        });
+      } catch (error) {
+        console.error("Error creating checkout session:", error);
+        return res.status(500).json({ 
+          error: error.message 
+        });
+      }
+    });
+  });
+
+  // Webhook handler for payment confirmations
+exports.stripeWebhook = functions.https.onRequest((req, res) => {
+  const sig = req.headers["stripe-signature"];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object;
+      console.log("Payment succeeded:", paymentIntent.id);
+      
+      // Update your Firestore database here
+      // Example:
+      // await admin.firestore().collection('payments').doc(paymentIntent.id).set({
+      //   status: 'succeeded',
+      //   amount: paymentIntent.amount / 100,
+      //   createdAt: admin.firestore.FieldValue.serverTimestamp()
+      // });
+      
+      break;
+    case "payment_intent.payment_failed":
+      console.log("Payment failed:", event.data.object.id);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({ received: true });
+});
 
 
 

@@ -17,10 +17,19 @@ import { auth, db } from '../firebase';
 import { ProgressSteps, GuidanceCard } from '../components/ui/Progress-steps';
 import { Loader2 } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+
 
 
 export default function InspectionCalendar() {
-const navigate = useNavigate();
+  const functionUrl = import.meta.env.VITE_BASE_URL;
+  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  const stripe = useStripe();
+const elements = useElements();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTime, setSelectedTime] = useState('');
@@ -33,7 +42,10 @@ const navigate = useNavigate();
   const [loginUser, setLoginUser] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [user, setUser] = useState(null);
-  const { toast } = useToast();
+  const [showPaymentIntent, setShowPaymentIntent] = useState(false);
+const [pendingBookingData, setPendingBookingData] = useState(null);
+
+
 
   const parseAddress = (addressString) => {
     if (!addressString || typeof addressString !== 'string') {
@@ -178,8 +190,6 @@ const navigate = useNavigate();
     
     const urlParams = new URLSearchParams(window.location.search);
     // console.log('InspectionCalendar - URL search params in calendar page:', urlParams);
-    
-    setPaymentMethod(sessionStorage.getItem('paymentMethod'));
     setLoginUser(JSON.parse(sessionStorage.getItem('userData')));
     console.log("loginUser", loginUser);
 
@@ -207,16 +217,18 @@ const navigate = useNavigate();
       zip: urlParams.get('zip') || parsedAddress.zip,
       propertyType: urlParams.get('propertyType') || '',
       squareFootage: Number(urlParams.get('squareFootage')) || 0,
-      paymentMethod: urlParams.get('paymentMethod') || '',
+      paymentMethod: urlParams.get('paymentMethod'),
       multiFamilyUnits: urlParams.get('multiFamilyUnits') || '',
     };
 
     const bookingData = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
 
     // console.log("propertyData from url params", propertyData);
-    // console.log("bookingData in session storage", bookingData);
+    console.log("bookingData in session storage", bookingData);
     
-    if(bookingData && bookingData.paymentMethod === "challenge"){
+    if(bookingData && bookingData.isDiscount){
+      console.log("bookingData ", bookingData);
+      
       const mergedProperty = {
         ...propertyData,
         paymentMethod: 'challenge',
@@ -266,11 +278,24 @@ const navigate = useNavigate();
     setContact(contactData);
   }, []);
 
-  // Calculate pricing - STANDARD INSPECTION FEE (Pay Now)
   const calculatePrice = (propertyData) => {
-    const { propertyType, squareFootage = 0, multiFamilyUnits } = propertyData;
+    if (!propertyData) return 0;
     
-    // Multi-Family pricing - based on number of units
+    const { propertyType, squareFootage = 0, multiFamilyUnits, mobileHomeType } = propertyData;
+    
+    const bookingData = JSON.parse(sessionStorage.getItem('bookingDataUsingToken') || 'null');
+    
+    if (bookingData && bookingData.property) {
+      if (bookingData.isDiscount === true && bookingData.property.challengePrice) {
+        return bookingData.property.challengePrice;
+      } 
+      else if (bookingData.property.payNowPrice) {
+        return bookingData.property.payNowPrice;
+      }
+    }
+    
+    let basePrice = 0;
+    
     if (propertyType === 'Multi-Family Residence') {
       switch (multiFamilyUnits) {
         case '2 Units': return 825;
@@ -278,11 +303,23 @@ const navigate = useNavigate();
         case '4 Units': return 950;
         case '5 Units': return 1050;
         case '6 Units': return 1500;
-        default: return 825; // Default to 2-unit pricing
+        default: return 825;
       }
     }
     
-    // Standard property pricing based on square footage
+    if (propertyType === 'Mobile/Manufactured Home') {
+      switch (mobileHomeType) {
+        case 'Single Wide': return 625;
+        case 'Double Wide': return 750;
+        case 'Triple Wide': return 800;
+        default: return 625;
+      }
+    }
+    
+    if (propertyType === 'Commercial') {
+      return 1100;
+    }
+    
     if (squareFootage <= 1200) {
       return 575;
     } else if (squareFootage <= 3000) {
@@ -292,10 +329,9 @@ const navigate = useNavigate();
     } else if (squareFootage <= 6000) {
       return 800;
     } else {
-      // Over 6000 sq ft - should not happen due to validation
       return 800;
     }
-  };
+  }
 
   const fullPrice = calculatePrice(property);
 
@@ -490,118 +526,143 @@ const navigate = useNavigate();
       };
 
 
-      console.log("property in handleContinueToPayment", property);
+      // console.log("property in handleContinueToPayment", property);
       
 
       if(property.paymentMethod === 'pay_now'){
-        // console.log("appointmentData", appointmentData);
-        const bookingsRef = collection(db, 'bookings');
-          const newBookingData = {
-            ...appointmentData,
-            createdAt: serverTimestamp() 
-          };
+
+         // Save booking data to localStorage for retrieval after payment
+    const bookingData = {
+      ...appointmentData,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
+    sessionStorage.setItem('checkoutUrlMethod', 'pay_now');
+    localStorage.setItem('checkoutUrlMethod', 'pay_now');
+
+    // ------------------
+    // Ensure selectedDate is a Date object and convert to ISO string
+    const appointmentDateISO = selectedDate instanceof Date 
+      ? selectedDate.toISOString() 
+      : new Date(selectedDate).toISOString();
+
+    // Create Checkout Session dynamically
+    const createCheckoutResponse = await fetch(`${functionUrl}/createCheckoutSession`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: fullPrice,
+        currency: 'usd',
+        customerEmail: contact.payerEmail,
+        customerName: `${contact.firstName} ${contact.lastName}`,
+        // successUrl: `${window.location.origin}/payment-success`,
+        successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/payment-cancel`,
+        metadata: {
+          enabled: true,
+          userId: currentUserId,
+          status: "PAYMENT_PENDING",
+          paymentType: "pay_now",
+          appointmentDate: appointmentDateISO,
+          appointmentTime: selectedTime,
+          propertyAddress: property.address || '',
+        },
+      }),
+    });
+
+    const { checkoutUrl, error: checkoutError } = await createCheckoutResponse.json();
+
+    if (checkoutError || !checkoutUrl) {
+      throw new Error(checkoutError || 'Failed to create checkout session');
+    }
+
+    console.log('Calendar - Redirecting to Stripe Checkout:', checkoutUrl);
+    window.location.href = checkoutUrl;
+
+    // ---------------------
+    
+   
+          // const newBookingData = {
+          //   ...appointmentData,
+          //   createdAt: serverTimestamp() 
+          // };
+
+          
+
+
 
           // console.log("----in pay_now", newBookingData);
           
-           await addDoc(bookingsRef, newBookingData);
-           alert("Appointment created successfully with Skip Challenge details");
-           toast({
-             title: "Appointment Created",
-             description: "Appointment created successfully with Skip Challenge details",
-           });
-           navigate("/");
+          //  await addDoc(bookingsRef, newBookingData);
+          //  alert("Appointment created successfully with Skip Challenge details");
+          //  toast({
+          //    title: "Appointment Created",
+          //    description: "Appointment created successfully with Skip Challenge details",
+          //  });
+          //  navigate("/");
         
       } 
 
-
-      if (property.paymentMethod === 'challenge') {
-        setIsLoading(true);
-
-        const approvalToken = sessionStorage.getItem('approvalToken');
-
-        const bookingsQuery = query(
-          collection(db, 'bookings'),
-          where('approvalToken', '==', approvalToken)
-        );
-
-        const querySnapshot = await getDocs(bookingsQuery);
-
-        if (querySnapshot.empty) {
-          throw new Error('Booking not found for approval token');
-        }
-
-        const bookingDoc = querySnapshot.docs[0];
-        const bookingId = bookingDoc.id;
-        const bookingData = bookingDoc.data();
-
-        const bookingRef = doc(db, 'bookings', bookingId);
-
-        const updatedProperty = {
-          ...property,
-          challengePrice: bookingData.property.challengePrice,
-        };
-
+      if(property.paymentMethod === 'challenge'){
+        console.log("property.paymentMethod in challenge", property.paymentMethod);
         
+// -----------------------------------------
+        // Save booking data to localStorage for retrieval after payment
+   const bookingData = {
+     ...appointmentData,
+     timestamp: new Date().toISOString()
+   };
+   console.log("bookingData in handleContinueToPayment", bookingData);
+  
+   localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
+   localStorage.setItem('property', JSON.stringify(property))
+   sessionStorage.setItem('checkoutUrlMethod', 'challenge');
+   localStorage.setItem('checkoutUrlMethod', 'challenge')
 
-        const updateData = {
-          property: updatedProperty,
-          isDiscount: true,
-          status: 'Approved',
-          updatedAt: serverTimestamp(),
-          approvalTokenUsed: true,
-          approvalToken: deleteField(),
-          approvalTokenExpiresAt: deleteField(),
-          date: selectedDate,
-          time: selectedTime,
-          formattedDateTime: `${format(selectedDate, 'EEEE, MMMM do, yyyy')} at ${selectedTime}`,
-          verifiedContact: contact,
-          userId: currentUserId,
-        };
+  //  // Ensure selectedDate is a Date object and convert to ISO string
+   const appointmentDateISO = selectedDate instanceof Date 
+     ? selectedDate.toISOString() 
+     : new Date(selectedDate).toISOString();
 
-        // console.log("updateData", updateData);
-        
+  //  // Create Checkout Session dynamically
+   const createCheckoutResponse = await fetch(`${functionUrl}/createCheckoutSession`, {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({
+       amount: fullPrice,
+       currency: 'usd',
+       customerEmail: contact.payerEmail,
+       customerName: `${contact.firstName} ${contact.lastName}`,
+       // successUrl: `${window.location.origin}/payment-success`,
+       successUrl: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+       cancelUrl: `${window.location.origin}/payment-cancel`,
+       metadata: {
+         enabled: true,
+         userId: currentUserId,
+         status: "PAYMENT_PENDING",
+         paymentType: "challenge",
+         appointmentDate: appointmentDateISO,
+         appointmentTime: selectedTime,
+         propertyAddress: property.address || '',
+       },
+     }),
+   });
 
-        await updateDoc(bookingRef, updateData);
+   const { checkoutUrl, error: checkoutError } = await createCheckoutResponse.json();
 
-        alert("Appointment update successfully with challenge details");
-        navigate("/");
-        toast({
-          title: "Booking Updated",
-          description: "Appointment created successfully with challenge details",
-        });
-      }
-    
+   if (checkoutError || !checkoutUrl) {
+     throw new Error(checkoutError || 'Failed to create checkout session');
+   }
 
-      // Get the Stripe payment URL for the calculated price
-    //   const { getStripePaymentUrl } = await import('@/components/StripePaymentManager');
-    //   const stripeUrl = getStripePaymentUrl(fullPrice, 'paynow');
-    //   console.log('Calendar - Retrieved Stripe URL for amount', fullPrice, ':', stripeUrl);
-      
-    //   if (stripeUrl && stripeUrl !== '#payment-not-configured') {
-    //     // Save all booking data to localStorage for retrieval after payment
-    //     const bookingData = {
-    //       property,
-    //       contact,
-    //       appointmentDate: selectedDate.toISOString(),
-    //       appointmentTime: selectedTime,
-    //       fullPrice,
-    //       timestamp: new Date().toISOString()
-    //     };
-    //     localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
-    //     console.log('Calendar - Booking data saved, opening Stripe in new tab...');
-        
-    //     // Open Stripe payment link in new tab to avoid Replit iframe issues
-    //     window.open(stripeUrl, '_blank');
-    //   } else {
-    //     console.log('Calendar - No valid Stripe URL found, falling back to payment redirect');
-    //     // Fallback to payment redirect page
-    //     const params = new URLSearchParams({
-    //       ...Object.fromEntries(Object.entries(property).map(([k, v]) => [k, String(v)])),
-    //       appointmentDate: selectedDate.toISOString(),
-    //       appointmentTime: selectedTime
-    //     });
-    //     setLocation(`/payment-redirect?${params.toString()}`);
-    //   }
+   sessionStorage.setItem('checkoutUrlMethod', 'challenge');
+  //  // Redirect to Stripe Checkout
+   window.location.href = checkoutUrl;
+   
+  
+       
+     } 
+
+     
     } catch (error) {
       console.error('Calendar - Error loading StripePaymentManager:', error);
       // const params = new URLSearchParams({
@@ -614,6 +675,7 @@ const navigate = useNavigate();
       setIsLoading(false);
     }
   };
+
 
   const progressSteps = [
     { id: 'address', title: 'Address', description: 'Enter location', completed: true },

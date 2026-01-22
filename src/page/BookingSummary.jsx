@@ -11,6 +11,10 @@ import { ProgressSteps, GuidanceCard } from '../components/ui/Progress-steps';
 export default function BookingSummary() {
     const navigate = useNavigate();
   const [bookingData, setBookingData] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pay_now');
+  const [price, setPrice] = useState(0);
+  const [booking, setBooking] = useState(null);
+
 
   useEffect(() => {
     // Parse booking data from URL parameters
@@ -45,7 +49,14 @@ export default function BookingSummary() {
       realtorPhone: urlParams.get('realtorPhone') || '',
       paymentMethod: urlParams.get('paymentMethod') || 'pay_now'
     };
-    
+
+    const paymentMethod = urlParams.get('paymentMethod') || 'pay_now';
+    const booking = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
+    setBooking(booking);
+    if(booking && booking.property.challengePrice && booking.isDiscount){
+      setSelectedPaymentMethod('challenge');
+      setPrice(booking.property.challengePrice);
+    } 
     console.log('BookingSummary - Parsed booking data:', data);
     setBookingData(data);
     
@@ -54,6 +65,8 @@ export default function BookingSummary() {
 
   // Calculate pricing - STANDARD INSPECTION FEE (Pay Now)
   const calculatePrice = () => {
+
+
     if (!bookingData) return { basePrice: 0, total: 0 };
     
     // Multi-Family pricing logic - always use fixed unit-based pricing
@@ -106,6 +119,10 @@ export default function BookingSummary() {
       basePrice = 800;
     } else {
       basePrice = 800;
+    }
+
+    if(selectedPaymentMethod === 'challenge'){
+      basePrice = booking.property.challengePrice;
     }
 
     return {
