@@ -23,10 +23,11 @@
       if (allSameSize) {
         // Use standard unit-based pricing
         switch (multiFamilyUnits) {
-          case '2 Units': return { payNow: 825, challenge: 412, tier: "2-Unit Multi-Family" };
+          case '2 Units': return { payNow: 825, challenge: 412.50, tier: "2-Unit Multi-Family" };
           case '3 Units': return { payNow: 900, challenge: 450, tier: "3-Unit Multi-Family" };
-          case '4 Units': return { payNow: 950, challenge: 475, tier: "4-Unit Multi-Family" };
+          case '4 Units': return { payNow: 925, challenge: 462, tier: "4-Unit Multi-Family" };
           case '5 Units': return { payNow: 1050, challenge: 525, tier: "5-Unit Multi-Family" };
+          case '6 Units': return { payNow: 1325, challenge: 662.50, tier: "5-Unit Multi-Family" };
           default: return { payNow: 825, challenge: 412, tier: "Multi-Family Residence" };
         }
       } else {
@@ -83,17 +84,49 @@
   }
   
   // Commercial pricing - flat rate
-  if (propertyType === 'Commercial') {
-    return { payNow: 1100, challenge: 550, tier: `Commercial - ${commercialType || 'Property'}` };
+  // if (propertyType === 'Commercial') {
+  //   return { payNow: 1100, challenge: 550, tier: `Commercial - ${commercialType || 'Property'}` };
+  // }
+  // Commercial Property - square footage based pricing
+if (propertyType === 'Commercial') {
+  if (squareFootage <= 1200) {
+    return { 
+      payNow: 1916.67, 
+      challenge: 958.33, 
+      tier: "Commercial 700–1,200 SF" 
+    };
+  } 
+  else if (squareFootage <= 3000) {
+    return { 
+      payNow: 2166.67, 
+      challenge: 1083.33, 
+      tier: "Commercial 1,201–3,000 SF" 
+    };
+  } 
+  else if (squareFootage <= 5000) {
+    return { 
+      payNow: 2416.67, 
+      challenge: 1208.33, 
+      tier: "Commercial 3,001–5,000 SF" 
+    };
+  } 
+  else {
+    return { 
+      payNow: 2666.67, 
+      challenge: 1333.33, 
+      tier: "Commercial 5,001–6,000 SF" 
+    };
   }
+}
+
   
   // Single Family Residence - square footage based pricing
   if (squareFootage <= 1200) {
-    return { payNow: 575, challenge: 287, tier: "Up to 1,200 SF" };
+    return { payNow: 575, challenge: 287.50, tier: "Up to 1,200 SF" };
   } else if (squareFootage <= 3000) {
     return { payNow: 650, challenge: 325, tier: "1,201 SF to 3,000 SF" };
   } else if (squareFootage <= 5000) {
-    return { payNow: 725, challenge: 362, tier: "3,001 SF to 5,000 SF" };
+    return { payNow: 725, challenge: 362.50, tier: "3,001 SF to 5,000 SF" };
   } else {
     return { payNow: 800, challenge: 400, tier: "5,001 SF to 6,000 SF" };
   }
