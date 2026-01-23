@@ -431,14 +431,21 @@ export default function AddressInputNew({
                 className="text-sm md:text-base border border-gray-300 rounded-md w-full focus:ring-red-500"
               />
               <p className="text-xs md:text-sm text-gray-500 mt-1">
-                Maximum 6,000 square feet
+                Maximum 6,000 square feet & Minimum 700 Square feet
               </p>
             </div>
 
             <div className="flex flex-col space-y-2">
               <Button
                 onClick={handleManualSubmit}
-                disabled={!manualAddress.streetNumber || !manualAddress.streetName || !manualAddress.zipCode || !manualSquareFootage}
+                // disabled={!manualAddress.streetNumber || !manualAddress.streetName || !manualAddress.zipCode || !manualSquareFootage}
+                disabled={
+                  !manualAddress.streetNumber ||
+                  !manualAddress.streetName ||
+                  !manualAddress.zipCode ||
+                  Number(manualSquareFootage) < 700 ||
+                  Number(manualSquareFootage) > 6000
+                }
                 className="w-full text-sm md:text-base bg-red-600 hover:bg-red-700 text-white py-2 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
               >
                 Continue with Manual Entry

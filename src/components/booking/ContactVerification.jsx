@@ -66,14 +66,14 @@ export default function ContactVerification({ property, onVerified, onBack }) {
 
 useEffect(() => {
 
-  console.log('useEffect running', {
-    hasManuallyEdited: hasManuallyEditedAddress.current,
-    propertyAddress: property?.address,
-    propertyStreet: property?.street,
-    propertyCity: property?.city,
-    propertyState: property?.state,
-    propertyZip: property?.zip
-  });
+  // console.log('useEffect running', {
+  //   hasManuallyEdited: hasManuallyEditedAddress.current,
+  //   propertyAddress: property?.address,
+  //   propertyStreet: property?.street,
+  //   propertyCity: property?.city,
+  //   propertyState: property?.state,
+  //   propertyZip: property?.zip
+  // });
 
   if (!hasManuallyEditedAddress.current) {
     if (property?.address) {

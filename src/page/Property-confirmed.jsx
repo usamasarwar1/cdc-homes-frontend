@@ -12,6 +12,7 @@ export default function PropertyConfirmed() {
     if (savedProperty) {
         window.scrollTo(0, 0);
       setProperty(JSON.parse(savedProperty));
+      // console.log("property", property);
       
     } else {
       navigate('/');

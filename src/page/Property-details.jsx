@@ -39,6 +39,10 @@ const PropertyDetails = () => {
   const { toast } = useToast()
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showMessageBox, setShowMessageBox] = useState(false)
+  const [message, setMessage] = useState('')
+  const [messageError, setMessageError] = useState("")
+  const [messageLoading, setMessageLoading] = useState(false) 
 
   useEffect(() => {
     getBooking();
@@ -120,6 +124,8 @@ const PropertyDetails = () => {
       }
   
       const bookingData = bookingSnap.data();
+      // console.log("bookingData", bookingData);
+      
   
       const userRef = doc(db, "users", bookingData.userId);
       const userSnap = await getDoc(userRef);
@@ -145,6 +151,7 @@ const PropertyDetails = () => {
         inspector: bookingData.inspector,
         status: bookingData.status,
         user: userData,
+        additionalContact: bookingData.property.additionalContact,
         ...(bookingData.verifiedContact && { verifiedContact: bookingData.verifiedContact }),
         ...(bookingData.fullPrice && { fullPrice: bookingData.fullPrice }),
         ...(bookingData.date && { date: bookingData.date }),
@@ -295,12 +302,12 @@ const PropertyDetails = () => {
 
   // console.log("response",response);
 
-  // if(response.ok){
-  //     await updateDoc(bookingRef, {
-  //       status: "rejected",
-  //       updatedAt: new Date(),
-  //     });
-  // }
+  if(response.ok){
+      await updateDoc(bookingRef, {
+        status: "rejected",
+        updatedAt: new Date(),
+      });
+  }
   
 
   console.log("after email ",data);
@@ -323,6 +330,72 @@ const PropertyDetails = () => {
       setLoading(false);
     }
   };
+
+  const handleAdditionInfo = async () => {
+    if (!message || message.trim() === "") {
+      setMessageError("Message can't be empty")
+      return
+    }
+  
+    setMessageError("")
+    setMessageLoading(true)
+  
+    try {
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+  
+      for (const contact of booking.additionalContact) {
+  
+        console.log("Sending email to:", contact.email);
+  
+        const response = await fetch(`${VITE_BASE_URL}/additionalAcknowledgementReport`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: contact.email,
+            name: `${contact.firstName} ${contact.lastName}`,
+            message,
+          }),
+        });
+  
+        await response.json();      
+      }
+      setMessage("")
+      setShowMessageBox(false)
+      alert('Acknowledgement message send successfully')
+    } catch (error) {
+      console.error("Error sending emails:", error)
+    } finally {
+      setMessageLoading(false)
+    }
+  };
+  
+  
+  // const handleAdditionInfo = () => {
+  //   if (!message || message.trim() === "") {
+  //     setMessageError("Message can't be empty")
+  //     return
+  //   }
+  
+  //   setMessageError("")
+  //   setMessageLoading(true)
+  
+  //   const payload = booking.additionalContact.map((contact) => ({
+  //     name: `${contact.firstName} ${contact.lastName}`,
+  //     email: contact.email,
+  //     textAreamessage: message,
+  //   }))
+  
+  //   setTimeout(() => {
+  //     console.log("Payload for additional contacts:", payload)
+  //     setMessageLoading(false)
+  //     setMessage("")
+  //     setShowMessageBox(false)
+  //   }, 4000);
+  // }
+  
 
 
 
@@ -417,22 +490,7 @@ const PropertyDetails = () => {
                     </p>
                   </div>
                 )}
-                {booking.property?.isValidated !== undefined && (
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Validation Status</p>
-                    {booking.property.isValidated ? (
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Validated
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-yellow-100 text-yellow-800">
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        Not Validated
-                      </Badge>
-                    )}
-                  </div>
-                )}
+            
               </div>
             </CardContent>
           </Card>
@@ -577,6 +635,119 @@ const PropertyDetails = () => {
               </CardContent>
             </Card>
           )}
+
+{booking.additionalContact?.length > 0 && (
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <UsersIcon className="w-5 h-5 text-indigo-600" />
+        Additional Contacts
+      </CardTitle>
+    </CardHeader>
+
+    <CardContent className="space-y-6">
+      {/* Table of additional contacts */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border-collapse border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">
+                First Name
+              </th>
+              <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">
+                Last Name
+              </th>
+              <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">
+                Email
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {booking.additionalContact.map((contact) => (
+              <tr key={contact.id} className="hover:bg-gray-50">
+                <td className="border border-gray-200 px-4 py-2 text-gray-900">
+                  {contact.firstName}
+                </td>
+                <td className="border border-gray-200 px-4 py-2 text-gray-900">
+                  {contact.lastName}
+                </td>
+                <td className="border border-gray-200 px-4 py-2 text-gray-900">
+                  {contact.email}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Separator />
+
+{!showMessageBox &&  (
+  <Button
+  variant="outline"
+  className="w-full text-indigo-700 hover:bg-indigo-50"
+  onClick={() => setShowMessageBox(true)}
+>
+  {/* {showMessageBox ? 'Cancel' : 'Send Message to Additional Contacts'} */}
+  Send Message to Additional Contacts
+</Button>
+
+)}
+    
+    {showMessageBox && (
+  <div className="space-y-3 mt-4">
+    <textarea
+      className="w-full rounded-md border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+      rows={3}
+      placeholder="Type your message here..."
+      value={message}
+      required
+      // onChange={(e) => setMessage(e.target.value)}
+      onChange={(e) => {
+        setMessage(e.target.value)
+        if (messageError) setMessageError("") 
+      }}
+    />
+
+    {messageError && (
+      <p className="text-sm text-red-600">{messageError}</p>
+    )}
+  </div>
+)}
+
+   {showMessageBox && (
+  !messageLoading ? (
+    <div className="flex space-x-2">
+      <Button
+        variant="outline"
+        className="w-full text-indigo-700 hover:bg-indigo-50"
+        onClick={() => handleAdditionInfo()}
+      >
+        Send
+      </Button>
+      <Button
+        variant="outline"
+        className="w-full text-red-700 hover:bg-red-50"
+        onClick={() => setShowMessageBox(false)}
+      >
+        Cancel
+      </Button>
+    </div>
+  ) : (
+    <div className="flex justify-center items-center py-4">
+      {/* Replace this with your actual animation */}
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    </div>
+  )
+)}
+
+    </CardContent>
+  </Card>
+)}
+
+
+
+
 
           {!isDiscount && booking.verifiedContact && (
             <Card>

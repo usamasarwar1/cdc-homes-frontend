@@ -11,6 +11,14 @@ const corsHandler = cors({
   origin: true,
 });
 
+// const corsHandler = cors({
+//   origin: ['http://localhost:5173', 'https://inspection-app-4c592.web.app'],
+//   credentials: true,
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+// });
+
+
 exports.testSecureFunction = functions
   .https.onRequest((req, res) => {
     corsHandler(req, res, () => {
@@ -77,6 +85,7 @@ exports.propertyValidate = functions
         return res.status(400).json({ success: false, message: "Address required" });
       }
 
+      // ✅ SECRET IS AVAILABLE HERE
       const rentCast = new RentCastService(process.env.RENTCAST_API_KEY);
 
       const propertyData = await rentCast.getPropertyDetails(address);
@@ -448,7 +457,10 @@ exports.propertyValidate = functions
           });
         }
 
-
+        console.log("=== CREATE CHECKOUT SESSION ===");
+        console.log("Amount:", amount);
+        console.log("Payment Type:", metadata.paymentType);
+        console.log("pendingBookingData exists:", !!pendingBookingData);
         if (pendingBookingData) {
           console.log("pendingBookingData keys:", Object.keys(pendingBookingData));
           if (pendingBookingData.approvalToken) {
@@ -463,6 +475,7 @@ exports.propertyValidate = functions
         }
     
   
+        // Create Checkout Session
         const session = await stripeInstance.checkout.sessions.create({
           payment_method_types: ['card'],
           line_items: [
@@ -485,12 +498,24 @@ exports.propertyValidate = functions
           metadata: metadata,
         });
 
+              // Store pending booking data in Firestore for webhook processing
+        // if (pendingBookingData) {
+        //   await admin.firestore()
+        //     .collection('pendingBookings')
+        //     .doc(session.id)
+        //     .set({
+        //       ...pendingBookingData,
+        //       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        //     });
+        // }
 
         let bookingPayload = null;
       
         if (pendingBookingData) {
+          // If sent as object, use it directly
           bookingPayload = pendingBookingData;
         } else if (metadata.bookingPayload) {
+          // If sent as JSON string in metadata, parse it
           try {
             bookingPayload = typeof metadata.bookingPayload === 'string' 
               ? JSON.parse(metadata.bookingPayload) 
@@ -505,7 +530,7 @@ exports.propertyValidate = functions
           status: "pending",
           paymentType: metadata.paymentType || "pay_now",
           userId: metadata.userId || null,
-          bookingPayload: bookingPayload,
+          bookingPayload: bookingPayload, // ← Now this will have the data!
           stripe: {
             sessionId: session.id,
             paymentIntentId: session.payment_intent || null,
@@ -542,9 +567,15 @@ exports.propertyValidate = functions
   
     try {
       event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+      console.log("Webhook event received:", event.type);
       
+      // ✅ LOG FULL STRIPE EVENT FOR DEBUGGING
+      console.log("=== FULL STRIPE EVENT ===");
+      console.log(JSON.stringify(event, null, 2));
+      console.log("=== END STRIPE EVENT ===");
       
     } catch (err) {
+      console.error("Webhook signature verification failed:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
   
@@ -554,7 +585,10 @@ exports.propertyValidate = functions
           const session = event.data.object;
           const sessionId = session.id;
   
+          console.log("=== Processing checkout.session.completed ===");
+          console.log("Session ID:", sessionId);
   
+          // 1) Find the payment doc that was created when checkout session was created
           const paymentRef = admin.firestore().collection("payments").doc(sessionId);
           const paymentSnap = await paymentRef.get();
   
@@ -565,7 +599,14 @@ exports.propertyValidate = functions
           }
   
           const paymentData = paymentSnap.data();
+          console.log("✅ Payment doc found:", sessionId);
+          console.log("Payment status:", paymentData.status);
           
+          // ✅ LOG PAYMENT DATA FROM FIRESTORE
+          console.log("=== PAYMENT DATA FROM FIRESTORE ===");
+          console.log(JSON.stringify(paymentData, null, 2));
+          console.log("=== END PAYMENT DATA ===");
+  
           // prevent double-processing
           if (paymentData.status === "paid") {
             console.log("⚠️ Payment already processed:", sessionId);
@@ -593,7 +634,9 @@ exports.propertyValidate = functions
             break;
           }
   
+          console.log("✅ bookingPayload found, keys:", Object.keys(bookingPayload));
   
+          // 3) Get userId
           const userId = paymentData.userId || bookingPayload.userId || session.metadata?.userId || null;
           
           if (!userId) {
@@ -601,12 +644,16 @@ exports.propertyValidate = functions
             break;
           }
   
+          console.log("✅ userId:", userId);
   
           const paymentType = paymentData.paymentType || session.metadata?.paymentType || "pay_now";
+          console.log("✅ paymentType:", paymentType);
   
           let bookingId = null;
   
+          // 4) Create or update booking
           if (paymentType === "pay_now") {
+            // Check if booking already exists
             const existing = await admin
               .firestore()
               .collection("bookings")
@@ -618,10 +665,11 @@ exports.propertyValidate = functions
               bookingId = existing.docs[0].id;
               console.log("⚠️ Booking already exists:", bookingId);
             } else {
+              // Create new booking
               console.log("📝 Creating new booking...");
               const bookingRef = await admin.firestore().collection("bookings").add({
                 ...bookingPayload,
-                userId: userId, 
+                userId: userId, // Foreign key to users collection
                 status: "PAID",
                 paymentStatus: "completed",
                 stripeSessionId: sessionId,
@@ -630,8 +678,10 @@ exports.propertyValidate = functions
               });
               
               bookingId = bookingRef.id;
+              console.log("✅ Booking created with ID:", bookingId);
             }
           } else if (paymentType === "challenge") {
+            // Challenge flow - find existing booking by approvalToken
             const approvalToken = bookingPayload.approvalToken || paymentData.approvalToken;
             
             if (!approvalToken) {
@@ -654,12 +704,13 @@ exports.propertyValidate = functions
             const bookingDoc = bookingsQuery.docs[0];
             bookingId = bookingDoc.id;
             
+            console.log("📝 Updating existing booking:", bookingId);
 
             const { approvalToken: _, timestamp: __, ...bookingDataWithoutToken } = bookingPayload;
 
             await admin.firestore().collection("bookings").doc(bookingId).update({
               ...bookingDataWithoutToken,
-              userId: userId, 
+              userId: userId, // Ensure userId is set
               status: "Approved",
               paymentStatus: "completed",
               stripeSessionId: sessionId,
@@ -669,6 +720,7 @@ exports.propertyValidate = functions
               approvalTokenExpiresAt: admin.firestore.FieldValue.delete(),
             });
   
+            console.log("✅ Booking updated (challenge) for session:", sessionId);
           } else {
             console.error("❌ Unknown paymentType:", paymentType);
             break;
@@ -679,11 +731,13 @@ exports.propertyValidate = functions
             break;
           }
   
+          // 5) Update payment doc with bookingId and full Stripe payload
+          console.log("📝 Updating payment doc with bookingId and Stripe payload...");
           
           const paymentUpdateData = {
             status: "paid",
-            userId: userId,
-            bookingId: bookingId,
+            userId: userId, // Foreign key to users collection
+            bookingId: bookingId, // Foreign key to bookings collection
             paidAt: admin.firestore.FieldValue.serverTimestamp(),
             stripe: {
               ...(paymentData.stripe || {}),
@@ -697,8 +751,9 @@ exports.propertyValidate = functions
                 session.customer_email ??
                 null,
             },
+            // ✅ Store full Stripe session payload
             stripePayload: {
-              session: session, 
+              session: session, // Full session object
               event: {
                 id: event.id,
                 type: event.type,
@@ -709,12 +764,15 @@ exports.propertyValidate = functions
           };
   
           await paymentRef.update(paymentUpdateData);
+          console.log("✅ Payment doc updated with bookingId:", bookingId);
+          console.log("=== END Processing checkout.session.completed ===");
   
           break;
         }
   
         case "checkout.session.async_payment_succeeded": {
           console.log("Async payment succeeded - processing same as checkout.session.completed");
+          // You can duplicate the checkout.session.completed logic here if needed
           break;
         }
   
@@ -727,6 +785,7 @@ exports.propertyValidate = functions
       console.error("❌ Webhook handler error:", err);
       console.error("Error message:", err.message);
       console.error("Error stack:", err.stack);
+      // still return 200 so Stripe doesn't keep retrying forever while you debug
       return res.json({ received: true });
     }
   });

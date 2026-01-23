@@ -29,59 +29,7 @@ const PropertyConfirmation = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const getBookings = async () => {
-    try {
-      setIsDataloading(true);
-  
-      const currentUser = auth.currentUser;
-      if (!currentUser) return;
-  
-      const userSnap = await getDoc(doc(db, "users", currentUser.uid));
-      if (!userSnap.exists()) return;
-  
-      if (userSnap.data().role !== "admin") {
-        console.warn("Not authorized");
-        return;
-      }
 
-      console.log("currentUser", currentUser);
-  
-      const bookingsSnap = await getDocs(collection(db, "bookings"));
-  
-      const bookings = bookingsSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-  
-      const userIds = [...new Set(bookings.map(b => b.userId))];
-  
-      const usersSnap = await Promise.all(
-        userIds.map(uid => getDoc(doc(db, "users", uid)))
-      );
-  
-      const usersMap = {};
-      usersSnap.forEach(snap => {
-        if (snap.exists()) {
-          usersMap[snap.id] = snap.data();
-        }
-      });
-  
-      const finalBookings = bookings.map(booking => ({
-        ...booking,
-        user: usersMap[booking.userId] || null,
-      }));
-
-      console.log(finalBookings);
-      
-  
-      setBookings(finalBookings);
-  
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsDataloading(false);
-    }
-  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -93,6 +41,68 @@ const PropertyConfirmation = () => {
         setIsDataloading(false);
       }
     });
+
+    const getBookings = async () => {
+      try {
+        setIsDataloading(true);
+    
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+    
+        const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+        if (!userSnap.exists()) return;
+    
+        if (userSnap.data().role !== "admin") {
+          console.warn("Not authorized");
+          return;
+        }
+  
+        console.log("currentUser", currentUser);
+    
+        const bookingsSnap = await getDocs(collection(db, "bookings"));
+    
+        const bookings = bookingsSnap?.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+    
+        // const userIds = [...new Set(bookings.map(b => b.userId))];
+  
+        const userIds = [
+          ...new Set(
+            bookings
+              .map(b => b.userId)
+              .filter(uid => typeof uid === 'string' && uid.trim() !== '')
+          )
+        ];
+    
+        const usersSnap = await Promise.all(
+          userIds.map(uid => getDoc(doc(db, "users", uid)))
+        );
+    
+        const usersMap = {};
+        usersSnap.forEach(snap => {
+          if (snap.exists()) {
+            usersMap[snap.id] = snap.data();
+          }
+        });
+    
+        const finalBookings = bookings.map(booking => ({
+          ...booking,
+          user: usersMap[booking.userId] || null,
+        }));
+  
+        console.log(finalBookings);
+        
+    
+        setBookings(finalBookings);
+    
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsDataloading(false);
+      }
+    };
 
     return () => unsubscribe();
   }, []);

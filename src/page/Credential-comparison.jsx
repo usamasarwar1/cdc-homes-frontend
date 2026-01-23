@@ -46,6 +46,9 @@ export default function CredentialComparisonPage() {
     licenseNumbers: '',
     websiteUrl: ''
   });
+  const [errors, setErrors] = useState({
+    websiteUrl: ''
+  });
   
   const { currentStep, completedSteps, completeStep, setStep } = useProgress();
   
@@ -117,21 +120,38 @@ export default function CredentialComparisonPage() {
   
     return value;
   }
-  
-  
-  
-  
 
+  function validateWebsiteUrl(url) {
+    if (!url) return 'Website URL is required';
+  
+    // Must start with www.
+    if (!/^www\./i.test(url)) return 'Website must start with "www."';
+  
+    // Must end with .com
+    if (!/\.com$/i.test(url)) return 'Invalid website Url';
+  
+    // Only letters, numbers, dashes, and dots in domain name
+    const domainRegex = /^www\.[a-z0-9-]+(\.[a-z0-9-]+)*\.com$/i;
+    if (!domainRegex.test(url)) return 'Invalid website format';
+  
+    return ''; // valid
+  }
+  
+  
   const handleInputChange = (field, value) => {
     let newValue = value;
-    if(field === 'websiteUrl') {
-      // newValue = value.trim()
-      newValue = getWebsiteUrl(value);
+  
+    if (field === 'websiteUrl') {
+      newValue = value.trim();
+      const errorMsg = validateWebsiteUrl(newValue);
+      setErrors(prev => ({ ...prev, websiteUrl: errorMsg }));
     } else {
       newValue = capitalizeWords(value);
     }
+  
     setInspectorDetails(prev => ({ ...prev, [field]: newValue }));
   };
+  
 
   const calculateMatch = () => {
     const normalizedSelected = selectedCredentials.map(cred => 
@@ -528,16 +548,30 @@ export default function CredentialComparisonPage() {
                     placeholder="Enter Inspector's Website URL"
                     className="mt-1"
                   />
+                   {errors.websiteUrl && (
+    <p className="text-red-600 text-sm mt-1">{errors.websiteUrl}</p>
+  )}
                 </div>
                 
                 <div className="text-center pt-4">
-                  <Button 
+                  {/* <Button 
                     onClick={handleFinalSubmit}
                     className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
                     disabled={!inspectorDetails.fullName || !inspectorDetails.licenseNumbers}
                   >
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
-                  </Button>
+                  </Button> */}
+                  <Button 
+  onClick={handleFinalSubmit}
+  className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
+  disabled={
+    !inspectorDetails.fullName || 
+    !inspectorDetails.licenseNumbers || 
+    !!errors.websiteUrl
+  }
+>
+  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
+</Button>
                 </div>
               </div>
             </div>

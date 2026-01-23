@@ -19,6 +19,9 @@ export default function BookingSummary() {
   useEffect(() => {
     // Parse booking data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
+    const contactData = JSON.parse(sessionStorage.getItem('verified-contact-data'));
+    console.log("session in verified-contact", contactData);
+    
     const data = {
       address: urlParams.get('address') || '',
       squareFootage: parseInt(urlParams.get('squareFootage') || '0'),
@@ -47,26 +50,32 @@ export default function BookingSummary() {
       realtorName: urlParams.get('realtorName') || '',
       realtorEmail: urlParams.get('realtorEmail') || '',
       realtorPhone: urlParams.get('realtorPhone') || '',
-      paymentMethod: urlParams.get('paymentMethod') || 'pay_now'
+      paymentMethod: urlParams.get('paymentMethod') || 'pay_now',
+      contactData :  contactData.contactPersons
     };
 
     const paymentMethod = urlParams.get('paymentMethod') || 'pay_now';
     const booking = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
     setBooking(booking);
-    if(booking && booking.property.challengePrice && booking.isDiscount){
+    
+    // Only set to 'challenge' if URL paymentMethod is 'challenge' AND booking has challengePrice and isDiscount
+    if(paymentMethod === 'challenge' && booking && booking.property?.challengePrice && booking.isDiscount){
       setSelectedPaymentMethod('challenge');
       setPrice(booking.property.challengePrice);
-    } 
+    } else {
+      // Explicitly set to 'pay_now' if not challenge
+      setSelectedPaymentMethod('pay_now');
+    }
+    
     console.log('BookingSummary - Parsed booking data:', data);
     setBookingData(data);
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+
   // Calculate pricing - STANDARD INSPECTION FEE (Pay Now)
   const calculatePrice = () => {
-
-
     if (!bookingData) return { basePrice: 0, total: 0 };
     
     // Multi-Family pricing logic - always use fixed unit-based pricing
@@ -81,6 +90,11 @@ export default function BookingSummary() {
         case '5 Units': basePrice = 1050; break;
         case '6 Units': basePrice = 1500; break;
         default: basePrice = 825; break; // Default to 2-unit pricing
+      }
+      
+      // Only override with challenge price if payment method is challenge
+      if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
+        basePrice = booking.property.challengePrice;
       }
       
       return { basePrice, total: basePrice };
@@ -99,11 +113,23 @@ export default function BookingSummary() {
         default: basePrice = 625; break; // Default to Single Wide
       }
       
+      // Only override with challenge price if payment method is challenge
+      if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
+        basePrice = booking.property.challengePrice;
+      }
+      
       return { basePrice, total: basePrice };
     }
 
     if (bookingData.propertyType === 'Commercial') {
-      return { basePrice: 1100, total: 1100 };
+      let basePrice = 1100;
+      
+      // Only override with challenge price if payment method is challenge
+      if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
+        basePrice = booking.property.challengePrice;
+      }
+      
+      return { basePrice, total: basePrice };
     }
     
     const sqft = bookingData.squareFootage;
@@ -121,7 +147,8 @@ export default function BookingSummary() {
       basePrice = 800;
     }
 
-    if(selectedPaymentMethod === 'challenge'){
+    // Only override with challenge price if payment method is challenge
+    if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
       basePrice = booking.property.challengePrice;
     }
 
@@ -130,6 +157,7 @@ export default function BookingSummary() {
       total: basePrice
     };
   };
+
 
   const handlePickDate = () => {
     if (!bookingData) return;
