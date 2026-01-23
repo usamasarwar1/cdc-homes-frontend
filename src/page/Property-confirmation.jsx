@@ -70,6 +70,9 @@ const PropertyConfirmation = () => {
         ...booking,
         user: usersMap[booking.userId] || null,
       }));
+
+      console.log(finalBookings);
+      
   
       setBookings(finalBookings);
   
@@ -94,12 +97,18 @@ const PropertyConfirmation = () => {
     return () => unsubscribe();
   }, []);
 
-  const filteredBookings = bookings.filter(booking => {
-    const email = booking.verifiedContact?.payerEmail || 
-                  booking.verifiedContact?.reportEmail || 
-                  '';
-    return email.toLowerCase().includes(searchEmail.toLowerCase());
+  const filteredBookings = bookings.filter((booking) => {
+    const search = searchEmail.toLowerCase();
+  
+    const userName = booking.user?.name?.toLowerCase() || '';
+    const userEmail = booking.user?.email?.toLowerCase() || '';
+  
+    return (
+      userName.includes(search) ||
+      userEmail.includes(search)
+    );
   });
+  
 
   const handleView = async (booking) => {
     sessionStorage.setItem('booking', JSON.stringify(booking));

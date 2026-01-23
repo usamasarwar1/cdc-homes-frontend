@@ -85,9 +85,20 @@ const Users = () => {
     getUsers();
   }, []);
 
-  const filteredUsers = users.filter(user => 
-    user.email?.toLowerCase().includes(searchEmail.toLowerCase())
-  );
+  const filteredUsers = users.filter((user) => {
+    const search = searchEmail.toLowerCase();
+  
+    const name = user.name?.toLowerCase() || '';
+    const email = user.email?.toLowerCase() || '';
+  
+    return (
+      name.includes(search) ||
+      email.includes(search)
+    );
+  });
+  
+
+  
 
   return (
     // </div>
