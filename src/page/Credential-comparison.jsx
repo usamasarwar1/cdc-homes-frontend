@@ -82,32 +82,44 @@ export default function CredentialComparisonPage() {
   
   function getWebsiteUrl(input) {
     if (!input) return '';
-    
-    let value = input.trim();
-    
-    if (value.startsWith('www')) {
-      // If there's content after "www"
-      if (value.length > 3) {
-        const afterWww = value.substring(3);
-        
-        // If first character after "www" is not a dot, it's invalid
-        // Remove any characters that come before the first dot
-        if (afterWww[0] !== '.') {
-          // Find the first dot position
-          const firstDotIndex = afterWww.indexOf('.');
-          if (firstDotIndex === -1) {
-            // No dot found, return just "www" (allows backspace to work)
-            return 'www';
-          } else {
-            // Dot exists later, return "www" + everything from the dot onwards
-            return 'www' + afterWww.substring(firstDotIndex);
-          }
-        }
-      }
+  
+    let value = input.toLowerCase().replace(/\s+/g, '');
+  
+    // 1️⃣ Allow natural typing of w / ww
+    if (value === 'w' || value === 'ww') {
+      return value;
     }
-    
+  
+    // 2️⃣ Normalize 3+ w's → www
+    value = value.replace(/^w{3,}/, 'www');
+  
+    // 3️⃣ Handle www prefix
+    if (value === 'www') return 'www';
+  
+    if (value.startsWith('www') && !value.startsWith('www.')) {
+      value = 'www.' + value.slice(3);
+    }
+  
+    // 4️⃣ Collapse multiple dots
+    value = value.replace(/\.{2,}/g, '.');
+  
+    // 5️⃣ Prevent www.. or www...
+    value = value.replace(/^www\.+/, 'www.');
+  
+    // 6️⃣ ENFORCE `.com` ONLY
+    // If ".com" exists, remove anything after it
+    if (value.includes('.com')) {
+      value = value.replace(/\.com.*$/, '.com');
+    }
+  
+    // 7️⃣ Prevent fake TLDs like .coma, .comx
+    value = value.replace(/\.co[^m].*$/, '.com');
+  
     return value;
   }
+  
+  
+  
   
 
   const handleInputChange = (field, value) => {

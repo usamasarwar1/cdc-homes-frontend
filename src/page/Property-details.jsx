@@ -124,7 +124,7 @@ const PropertyDetails = () => {
       const userRef = doc(db, "users", bookingData.userId);
       const userSnap = await getDoc(userRef);
 
-      console.log("userSnap", userSnap.data());
+      // console.log("userSnap", userSnap.data());
       
   
       if (!userSnap.exists()) {
@@ -249,15 +249,63 @@ const PropertyDetails = () => {
     setLoading(true);
     try {
       const bookingRef = doc(db, "bookings", bookingId);
-      await updateDoc(bookingRef, {
-        status: "rejected",
-        updatedAt: new Date(),
-      });
+
+
+    
+
+      // ------------
+        const bookingSnap = await getDoc(bookingRef);
+  
+      if (!bookingSnap.exists()) return;
+  
+      const bookingData = bookingSnap.data();
+
+      // console.log("reject, bookingData", bookingData);
       
-      toast({
-        title: "Booking Rejected",
-        description: "The booking has been rejected.",
+  
+      const userSnap = await getDoc(
+        doc(db, "users", bookingData.userId)
+      );
+  
+      if (!userSnap.exists()) return;
+
+      // console.log("reject userSnap", userSnap);
+      
+  
+      const userData = userSnap.data();
+
+      console.log("reject userData", userData);
+
+
+
+      console.log("reject", userData.email, userData.name,);
+      const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+      const response = await fetch(`${VITE_BASE_URL}/rejectPropertyVerification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          name: userData.name,
+        }),
       });
+  
+  const data = await response.json();
+
+  // console.log("response",response);
+
+  // if(response.ok){
+  //     await updateDoc(bookingRef, {
+  //       status: "rejected",
+  //       updatedAt: new Date(),
+  //     });
+  // }
+  
+
+  console.log("after email ",data);
+  
+
 
       toast({
         title: "Booking Rejected",

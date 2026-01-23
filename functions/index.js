@@ -118,21 +118,74 @@ exports.propertyValidate = functions
         const msg = {
           to: email,
           from: fromEmail,
-          subject: "CDC Inspection - Property Verification Approval",
-          text: `Hello ${name},\n\nYour property verification has been approved. Please click the link below to verify your property and get a 50% discount on the inspection:\n\n${url}\n\nOne of our inspectors will contact you to schedule the inspection.`,
+          subject: "Your Property Is Approved – Enjoy 50% Off Your Inspection",
+          text: `Hello ${name},
+        
+        Congratulations! Your property verification has been approved.
+        
+        You’re eligible for a 50% discount on your inspection. Please use the link below to verify your property and continue:
+        
+        ${url}
+        
+        After verification, one of our inspectors will contact you to schedule the inspection.
+        
+        If you have any questions, feel free to reply to this email.
+        
+        – CDC Inspection Team`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Property Verification Approved</h2>
-              <p>Hello ${name},</p>
-              <p>Your property verification has been approved. Please click the link below to verify your property and get a <strong>50% discount</strong> on the inspection.</p>
-              <p>One of our inspectors will contact you to schedule the inspection.</p>
-              <div style="margin: 30px 0;">
-                <a href="${url}" 
-                   style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                  Verify Property
-                </a>
+            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;">
+              <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        
+                <!-- Header -->
+                <div style="background-color: #FF0000; padding: 20px 30px;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 22px;">
+                    Property Verification Approved
+                  </h1>
+                </div>
+        
+                <!-- Body -->
+                <div style="padding: 30px; color: #333333;">
+                  <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
+        
+                  <p style="font-size: 15px; line-height: 1.6;">
+                    Great news! Your property verification has been successfully approved.
+                    You are now eligible for a <strong style="color:#FF0000;">50% discount</strong> on your inspection.
+                  </p>
+        
+                  <p style="font-size: 15px; line-height: 1.6;">
+                    Please click the button below to verify your property and continue.
+                  </p>
+        
+                  <!-- CTA Button -->
+                  <div style="text-align: center; margin: 35px 0;">
+                    <a href="${url}"
+                       style="background-color: #FF0000; color: #ffffff; padding: 14px 30px; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; display: inline-block;">
+                      Verify Property
+                    </a>
+                  </div>
+        
+                  <p style="font-size: 14px; line-height: 1.6;">
+                    Once verified, one of our certified inspectors will contact you to schedule your inspection.
+                  </p>
+        
+                  <p style="font-size: 14px; color: #666666;">
+                    If the button doesn’t work, copy and paste this link into your browser:
+                    <br />
+                    <a href="${url}" style="color:#FF0000; word-break: break-all;">${url}</a>
+                  </p>
+                </div>
+        
+                <!-- Footer -->
+                <div style="background-color: #f3f3f3; padding: 20px 30px; font-size: 12px; color: #777777; text-align: center;">
+                  <p style="margin: 0;">
+                    © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+                  </p>
+                  <p style="margin: 8px 0 0;">
+                    This is an automated message. If you have questions, simply reply to this email.
+                  </p>
+                </div>
+        
               </div>
-              <p style="color: #666; font-size: 12px;">Or copy this link: ${url}</p>
             </div>
           `,
         };
@@ -146,6 +199,106 @@ exports.propertyValidate = functions
         });
       } catch (error) {
         console.error("propertyVerificationApproval error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+    });
+  });
+
+  exports.rejectPropertyVerification = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        const { email, name } = req.body;
+  
+        if (!email || !name) {
+          return res.status(400).json({ error: "Missing required fields" });
+        }
+  
+        const apiKey = process.env.SENDGRID_API_KEY;
+        const fromEmail = "hello@answerlyapp.com";
+  
+        if (!apiKey) {
+          return res.status(500).json({ error: "SendGrid API key missing" });
+        }
+  
+        sgMail.setApiKey(apiKey);
+  
+        const msg = {
+          to: email,
+          from: fromEmail,
+          subject: "Property Verification Update – Action Required",
+          text: `Hello ${name},
+        
+        Thank you for submitting your property for verification.
+        
+        After reviewing the information provided, we were unable to approve your property verification at this time.
+        
+        This may be due to missing, incomplete, or unclear details in your submission.
+        
+        Please review your information and resubmit once the required updates are made. If you have questions or need assistance, feel free to reply to this email and our team will be happy to help.
+        
+        – CDC Inspection Team`,
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;">
+              <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        
+                <!-- Header -->
+                <div style="background-color: #FF0000; padding: 20px 30px;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 22px;">
+                    Property Verification Not Approved
+                  </h1>
+                </div>
+        
+                <!-- Body -->
+                <div style="padding: 30px; color: #333333;">
+                  <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
+        
+                  <p style="font-size: 15px; line-height: 1.6;">
+                    Thank you for submitting your property for verification.
+                  </p>
+        
+                  <p style="font-size: 15px; line-height: 1.6;">
+                    After reviewing the information provided, we were unable to approve your
+                    property verification at this time.
+                  </p>
+        
+                  <div style="background-color: #fff5f5; border-left: 4px solid #FF0000; padding: 15px; margin: 25px 0;">
+                    <p style="margin: 0; font-size: 14px; line-height: 1.6;">
+                      This may be due to missing, incomplete, or unclear details in your submission.
+                    </p>
+                  </div>
+        
+                  <p style="font-size: 14px; line-height: 1.6;">
+                    Please review your information and resubmit once the necessary updates are made.
+                    If you need help or clarification, simply reply to this email — our team is happy to assist.
+                  </p>
+                </div>
+        
+                <!-- Footer -->
+                <div style="background-color: #f3f3f3; padding: 20px 30px; font-size: 12px; color: #777777; text-align: center;">
+                  <p style="margin: 0;">
+                    © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+                  </p>
+                  <p style="margin: 8px 0 0;">
+                    This is an automated message. Replies are monitored.
+                  </p>
+                </div>
+        
+              </div>
+            </div>
+          `,
+        };
+        
+        
+  
+        await sgMail.send(msg);
+  
+        return res.status(200).json({
+          success: true,
+          message: "Property Rejection email sent successfully",
+          body: req.body,
+        });
+      } catch (error) {
+        console.error("rejectPropertyVerification error:", error);
         return res.status(500).json({ error: "Internal server error" });
       }
     });
