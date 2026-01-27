@@ -1,7 +1,5 @@
-import { Home, Calendar, DollarSign, ArrowRight, CheckCircle, Info, Edit3 } from 'lucide-react';
-// import { Button } from '../ui/Button';
+import { ArrowRight} from 'lucide-react';
 import { Badge } from '../ui/Badge';
-// import { Input } from '../ui/input';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../gamification/ProgressProvider';

@@ -93,7 +93,7 @@ exports.propertyValidate = functions
       try {
         const { email, name, url } = req.body;
   
-        if (!email || !name || !url) {
+        if (!email || !url) {
           return res.status(400).json({ error: "Missing required fields" });
         }
   
@@ -228,7 +228,7 @@ exports.propertyValidate = functions
       try {
         const { email, name } = req.body;
   
-        if (!email || !name) {
+        if (!email) {
           return res.status(400).json({ error: "Missing required fields" });
         }
   
@@ -578,7 +578,6 @@ exports.propertyValidate = functions
         await admin.firestore().collection("payments").doc(session.id).set({
           status: "pending",
           paymentType: metadata.paymentType || "pay_now",
-          userId: metadata.userId || null,
           bookingPayload: bookingPayload,
           stripe: {
             sessionId: session.id,
@@ -668,12 +667,8 @@ exports.propertyValidate = functions
           }
   
   
-          const userId = paymentData.userId || bookingPayload.userId || session.metadata?.userId || null;
+          // const userId = paymentData.userId || bookingPayload.userId || session.metadata?.userId || null;
           
-          if (!userId) {
-            console.error("❌ Missing userId!");
-            break;
-          }
   
   
           const paymentType = paymentData.paymentType || session.metadata?.paymentType || "pay_now";
@@ -695,7 +690,7 @@ exports.propertyValidate = functions
               console.log("📝 Creating new booking...");
               const bookingRef = await admin.firestore().collection("bookings").add({
                 ...bookingPayload,
-                userId: userId, 
+                // userId: userId, 
                 status: "PAID",
                 paymentStatus: "completed",
                 stripeSessionId: sessionId,
@@ -733,13 +728,14 @@ exports.propertyValidate = functions
 
             await admin.firestore().collection("bookings").doc(bookingId).update({
               ...bookingDataWithoutToken,
-              userId: userId, 
+              // userId: userId, 
               status: "Approved",
               paymentStatus: "completed",
               stripeSessionId: sessionId,
               updatedAt: admin.firestore.FieldValue.serverTimestamp(),
               approvalTokenUsed: true,
               isDiscount:true,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
               approvalToken: admin.firestore.FieldValue.delete(),
               approvalTokenExpiresAt: admin.firestore.FieldValue.delete(),
             });
@@ -757,7 +753,7 @@ exports.propertyValidate = functions
           
           const paymentUpdateData = {
             status: "paid",
-            userId: userId,
+            // userId: userId,
             bookingId: bookingId,
             paidAt: admin.firestore.FieldValue.serverTimestamp(),
             stripe: {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Card, } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Checkbox } from '../components/ui/Checkbox';
 import { Input } from '../components/ui/input';
@@ -72,7 +72,6 @@ export default function CredentialComparisonPage() {
     };
 
     const property = JSON.parse(sessionStorage.getItem('confirmedProperty'))
-    // console.log("property", property, property.basePrice, property.challengePrice);
     
     setPrice({
       basePrice: property.basePrice,
@@ -170,9 +169,7 @@ export default function CredentialComparisonPage() {
       completeStep('credentials');
       setStep('contact');
       const paymentMethod = sessionStorage.getItem('paymentMethod');
-      const propertyData = JSON.parse(sessionStorage.getItem('confirmedProperty'));
-      // const userData = JSON.parse(sessionStorage.getItem('userData'));
-  
+      const propertyData = JSON.parse(sessionStorage.getItem('confirmedProperty'));  
 
       const inspector = {
         ...inspectorDetails,
@@ -188,19 +185,17 @@ export default function CredentialComparisonPage() {
         updatedAt: serverTimestamp()
       };
 
-      console.log(data);
-      
-  
+      // console.log(data);
 
-      // const bookingsRef = collection(db, 'bookings');
-      //   const newData = {
-      //     ...data,
-      //     createdAt: serverTimestamp()
-      //   };
-      //    await addDoc(bookingsRef, newData);
+      const bookingsRef = collection(db, 'bookings');
+        const newData = {
+          ...data,
+          createdAt: serverTimestamp()
+        };
+         await addDoc(bookingsRef, newData);
   
       alert("Thank you! We will verify the provided information within 2 hours. If the credentials are confirmed, we will honor the discounted price.");
-      // navigate("/");
+      navigate("/");
     } catch (error) {
       console.error("Error saving data to database", error);
       alert(`Error: ${error.message || 'Failed to save booking. Please try again.'}`);
@@ -581,8 +576,7 @@ export default function CredentialComparisonPage() {
                       !!errors.websiteUrl
                     }
                   >
-                    {/* {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"} */}
-                   submit
+                   Submit
                   </Button>
 }
                 </div>

@@ -62,7 +62,9 @@ const SelectContent = React.forwardRef(
         ref={ref}
         position={position}
         className={cn(
-          "z-50  w-[var(--radix-select-trigger-width)]  overflow-hidden rounded-md bg-white text-gray-900 shadow-md",
+          "z-50 w-[var(--radix-select-trigger-width)]",
+          "max-h-60 overflow-hidden", // 👈 IMPORTANT
+          "rounded-md bg-white text-gray-900 shadow-md",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -72,13 +74,19 @@ const SelectContent = React.forwardRef(
         )}
         {...props}
       >
-        <SelectPrimitive.Viewport className="p-1">
+        {/* Optional scroll buttons */}
+        <SelectScrollUpButton />
+
+        <SelectPrimitive.Viewport className="p-1 overflow-y-auto max-h-60">
           {children}
         </SelectPrimitive.Viewport>
+
+        <SelectScrollDownButton />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )
 );
+
 
 
 

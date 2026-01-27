@@ -39,7 +39,7 @@ export default function ContactVerificationPage() {
 
           const querySnapshot = await getDocs(bookingsQuery);
 
-          console.log("querySnapshot", querySnapshot.docs[0]?.data());
+          // console.log("querySnapshot", querySnapshot.docs[0]?.data());
 
           if (querySnapshot.empty) {
             setTokenError('Invalid approval token. Please check your email link.');

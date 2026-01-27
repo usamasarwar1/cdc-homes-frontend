@@ -76,8 +76,8 @@ const PropertyDetails = () => {
     switch (status) {
       case 'pending_verification':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pending Verification</Badge>
-      case 'SUCCESS':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Success</Badge>
+      case 'PAID':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">PAID</Badge>
       case 'approved':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Approved</Badge>
       case 'approval_pending':
@@ -116,6 +116,9 @@ const PropertyDetails = () => {
   
       const bookingRef = doc(db, "bookings", bookingId);
       const bookingSnap = await getDoc(bookingRef);
+
+      console.log(bookingSnap.data());
+      
   
       if (!bookingSnap.exists()) {
         console.error('Booking not found');
@@ -124,33 +127,15 @@ const PropertyDetails = () => {
       }
   
       const bookingData = bookingSnap.data();
-      // console.log("bookingData", bookingData);
-      
-  
-      const userRef = doc(db, "users", bookingData.userId);
-      const userSnap = await getDoc(userRef);
-
-      // console.log("userSnap", userSnap.data());
-      
-  
-      if (!userSnap.exists()) {
-        console.error('User not found');
-        setLoading(false);
-        return;
-      }
-  
-      const userData = userSnap.data();
   
       const combinedBooking = {
         id: bookingSnap.id,
-        userId: bookingData.userId,
         isDiscount: bookingData.isDiscount,
         updatedAt: bookingData.updatedAt,
         createdAt: bookingData.createdAt,
         property: bookingData.property,
         inspector: bookingData.inspector,
         status: bookingData.status,
-        user: userData,
         additionalContact: bookingData.property.additionalContact,
         ...(bookingData.verifiedContact && { verifiedContact: bookingData.verifiedContact }),
         ...(bookingData.fullPrice && { fullPrice: bookingData.fullPrice }),
@@ -159,7 +144,7 @@ const PropertyDetails = () => {
         ...(bookingData.formattedDateTime && { formattedDateTime: bookingData.formattedDateTime }),
       };
 
-      console.log("combinedBooking", combinedBooking);
+      // console.log("combinedBooking", combinedBooking);
   
       setBooking(combinedBooking);
   
@@ -197,23 +182,30 @@ const PropertyDetails = () => {
       if (!bookingSnap.exists()) return;
   
       const bookingData = bookingSnap.data();
-  
-      const userSnap = await getDoc(
-        doc(db, "users", bookingData.userId)
-      );
-  
-      if (!userSnap.exists()) return;
-  
-      const userData = userSnap.data();
-  
+
+      // console.log("bookingData", bookingData);
+      
+
+      let userEmail;
+      let userName;
+      if (bookingData.user) {
+        userEmail = bookingData.user;
+        userName = bookingData.user.split("@")[0] || null;
+      }
+
+      if (bookingData.verifiedContact?.payerEmail) {
+        userEmail = booking.verifiedContact.payerEmail;
+        userName = `${booking.verifiedContact.firstName} ${booking.verifiedContact.lastName} ` ;
+      }
+      
       const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
       const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
       const url = `${baseUrl}/contact-verification?token=${token}`;
 
       console.log({
         url,
-        email: userData.email,
-        name: userData.name,
+        email: userEmail,
+        name: userName,
       });
 
 
@@ -223,8 +215,8 @@ const PropertyDetails = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: userData.email,
-          name: userData.name,
+          email: userEmail,
+          name: userName,
           token,
           url,
         }),
@@ -232,7 +224,8 @@ const PropertyDetails = () => {
   
   const data = await response.json();
 
-  // console.log("data------ after function", data);
+  console.log("---email--",data);
+  
   
   
       toast({
@@ -255,37 +248,32 @@ const PropertyDetails = () => {
   const handleReject = async (bookingId) => {
     setLoading(true);
     try {
+      
       const bookingRef = doc(db, "bookings", bookingId);
-
-
-    
-
-      // ------------
-        const bookingSnap = await getDoc(bookingRef);
+      const bookingSnap = await getDoc(bookingRef);      
   
-      if (!bookingSnap.exists()) return;
+      if (!bookingSnap.exists()) {
+        console.error('Booking not found');
+        setLoading(false);
+        return;
+      }
   
       const bookingData = bookingSnap.data();
-
-      // console.log("reject, bookingData", bookingData);
       
+      let userEmail;
+      let userName;
+      if (bookingData.user) {
+        userEmail = bookingData.user;
+        // userName = bookingData.name || "user";
+        userName = bookingData.user.split("@")[0] || null;
+      }
+
+      if (bookingData.verifiedContact?.payerEmail) {
+        userEmail = booking.verifiedContact.payerEmail;
+        userName = `${booking.verifiedContact.firstName} ${booking.verifiedContact.lastName} ` ;
+      }
   
-      const userSnap = await getDoc(
-        doc(db, "users", bookingData.userId)
-      );
-  
-      if (!userSnap.exists()) return;
 
-      // console.log("reject userSnap", userSnap);
-      
-  
-      const userData = userSnap.data();
-
-      console.log("reject userData", userData);
-
-
-
-      console.log("reject", userData.email, userData.name,);
       const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
       const response = await fetch(`${VITE_BASE_URL}/rejectPropertyVerification`, {
         method: 'POST',
@@ -293,14 +281,13 @@ const PropertyDetails = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: userData.email,
-          name: userData.name,
+          email: userEmail,
+          name: userName,
         }),
       });
   
   const data = await response.json();
 
-  // console.log("response",response);
 
   if(response.ok){
       await updateDoc(bookingRef, {
@@ -309,11 +296,6 @@ const PropertyDetails = () => {
       });
   }
   
-
-  console.log("after email ",data);
-  
-
-
       toast({
         title: "Booking Rejected",
         description: "The booking has been rejected.",
@@ -371,30 +353,6 @@ const PropertyDetails = () => {
       setMessageLoading(false)
     }
   };
-  
-  
-  // const handleAdditionInfo = () => {
-  //   if (!message || message.trim() === "") {
-  //     setMessageError("Message can't be empty")
-  //     return
-  //   }
-  
-  //   setMessageError("")
-  //   setMessageLoading(true)
-  
-  //   const payload = booking.additionalContact.map((contact) => ({
-  //     name: `${contact.firstName} ${contact.lastName}`,
-  //     email: contact.email,
-  //     textAreamessage: message,
-  //   }))
-  
-  //   setTimeout(() => {
-  //     console.log("Payload for additional contacts:", payload)
-  //     setMessageLoading(false)
-  //     setMessage("")
-  //     setShowMessageBox(false)
-  //   }, 4000);
-  // }
   
 
 
@@ -576,7 +534,7 @@ const PropertyDetails = () => {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Full Name</p>
                     <p className="font-medium text-gray-900">
-                      {booking.inspector.fullName || 'N/A'}
+                      { `${booking.inspector.firstName} ${booking.inspector.lastName}` || 'N/A'}
                     </p>
                   </div>
                   <div>
@@ -585,7 +543,11 @@ const PropertyDetails = () => {
                       {booking.inspector.licenseNumbers || 'N/A'}
                     </p>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="grid md:grid-cols-1 gap-4">
+                  <p className="text-sm text-gray-500 mb-1">License Status</p>
+                    <p className="font-medium text-gray-900">
+                      {booking.inspector.licenceStatus || 'N/A'}
+                    </p>
                     <p className="text-sm text-gray-500 mb-1">Website URL</p>
                     <a
                       href={

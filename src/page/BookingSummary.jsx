@@ -17,10 +17,8 @@ export default function BookingSummary() {
 
 
   useEffect(() => {
-    // Parse booking data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const contactData = JSON.parse(sessionStorage.getItem('verified-contact-data'));
-    console.log("session in verified-contact", contactData);
     
     const data = {
       address: urlParams.get('address') || '',
@@ -28,15 +26,11 @@ export default function BookingSummary() {
       propertyType: urlParams.get('propertyType') || '',
       occupancyStatus: urlParams.get('occupancyStatus') || '',
       
-      // Multi-Family specific data
       multiFamilyUnits: urlParams.get('multiFamilyUnits') || undefined,
       
-      // Mobile Home and Commercial specific data
       mobileHomeType: urlParams.get('mobileHomeType') || undefined,
       commercialType: urlParams.get('commercialType') || undefined,
-      
-      // Additional Recipients
-      
+            
       payeeName: {
         firstName: urlParams.get('firstName') || '',
         lastName: urlParams.get('lastName') || ''
@@ -67,14 +61,13 @@ export default function BookingSummary() {
       setSelectedPaymentMethod('pay_now');
     }
     
-    console.log('BookingSummary - Parsed booking data:', data);
+    // console.log('BookingSummary - Parsed booking data:', data);
     setBookingData(data);
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
 
-  // Calculate pricing - STANDARD INSPECTION FEE (Pay Now)
   const calculatePrice = () => {
     if (!bookingData) return { basePrice: 0, total: 0 };
     
@@ -147,6 +140,16 @@ export default function BookingSummary() {
       basePrice = 800;
     }
 
+    // if (sqft <= 1000) basePrice = 475;
+    // else if (sqft <= 1500) basePrice = 525;
+    // else if (sqft <= 2000) basePrice = 575;
+    // else if (sqft <= 2500) basePrice = 625;
+    // else if (sqft <= 3000) basePrice = 675;
+    // else if (sqft <= 3500) basePrice = 725;
+    // else if (sqft <= 4000) basePrice = 775;
+    // else if (sqft <= 5000) basePrice = 825;
+    // else basePrice = 875;
+
     // Only override with challenge price if payment method is challenge
     if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
       basePrice = booking.property.challengePrice;
@@ -161,6 +164,9 @@ export default function BookingSummary() {
 
   const handlePickDate = () => {
     if (!bookingData) return;
+
+    console.log("bookingData", bookingData);
+    
     
     const params = new URLSearchParams({
       address: bookingData.address,

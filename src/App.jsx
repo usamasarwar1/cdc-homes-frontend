@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Home from './page/Home.jsx'
 import PropertyConfirm from './page/Property-confirmed.jsx'
 import { ProgressProvider } from './components/gamification/ProgressProvider.jsx'
-import CredentialComparisonPage from './page/credential-comparison.jsx'
+import CredentialComparisonPage from './page/Credential-comparison.jsx'
 import Pricing from './page/Pricing.jsx'
 import WhatsIncludedPage from './page/Whats-includes.jsx'
 import InspectorPage from './page/Inspector.jsx'
@@ -15,19 +15,17 @@ import InspectionConfirmedPage from './page/inspection-confirmed.jsx'
 import Layout from './components/Layout.jsx'
 import Dashboard from './page/dashboard.jsx'
 import { onAuthStateChanged } from 'firebase/auth'
-import Users from './page/Users.jsx'
+
 import { auth, db } from './firebase'
 import { getDoc, doc } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import PropertyConfirmation from './page/Property-confirmation.jsx'
 import PropertyDetails from './page/Property-details.jsx'
-import Profile from './page/Profile.jsx'
 import PricingScheduleAdminPage from './page/Pricing_schduleAdmin.jsx'
 import PaymentSuccess from './page/PaymentSuccess.jsx'
 import PaymentCancel from './page/PaymentCancel.jsx'
-import ForgetPassword from './page/ForgetPassword.jsx'
-import ResetPassword from './page/ResetPassword.jsx'
+import Login from './page/Login.jsx'
 
 
 
@@ -84,55 +82,45 @@ function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
 
 function Router() {
 
-
   return (
-    <Routes>
-        <Route path="/" element={
-            <Home />
-        } />
-        
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/users" element={
-          <ProtectedRoute>
-          <Layout>
-            <Users />
-          </Layout>
-          </ProtectedRoute>
-        } />
+      <Routes>
+          <Route path="/" element={
+              <Home />
+          } />
+          
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
 
-<Route path="/admin/pricing-schedule-admin" element={
-          <ProtectedRoute>
-          <Layout>
-            <PricingScheduleAdminPage />
-          </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/property-confirm" element={
-          <ProtectedRoute>
-          <Layout>
-            <PropertyConfirmation />
-          </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/property-details/:bookingId" element={
-          <ProtectedRoute>
-          <Layout>
-            <PropertyDetails />
-          </Layout>
-          </ProtectedRoute>
-        } />
-  
+          <Route path="/admin/pricing-schedule-admin" element={
+            <ProtectedRoute>
+            <Layout>
+              <PricingScheduleAdminPage />
+            </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/property-confirm" element={
+            <ProtectedRoute>
+            <Layout>
+              <PropertyConfirmation />
+            </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/property-details/:bookingId" element={
+            <ProtectedRoute>
+            <Layout>
+              <PropertyDetails />
+            </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path='/login' element={<Login />} />
           <Route path="/property-confirmed" element={<PropertyConfirm />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/forgot-password" element={<ForgetPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/verify-password" element={<Profile />} />
+          <Route path="/property-confirmed" element={<login />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
           <Route path="/contact-verification" element={<ContactVerification />} />
@@ -148,7 +136,6 @@ function Router() {
     );
   }
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <ProgressProvider>

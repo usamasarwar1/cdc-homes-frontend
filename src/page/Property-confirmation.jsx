@@ -57,7 +57,7 @@ const PropertyConfirmation = () => {
           return;
         }
   
-        console.log("currentUser", currentUser);
+        // console.log("currentUser", currentUser);
     
         const bookingsSnap = await getDocs(collection(db, "bookings"));
     
@@ -80,19 +80,12 @@ const PropertyConfirmation = () => {
           userIds.map(uid => getDoc(doc(db, "users", uid)))
         );
     
-        const usersMap = {};
-        usersSnap.forEach(snap => {
-          if (snap.exists()) {
-            usersMap[snap.id] = snap.data();
-          }
-        });
     
         const finalBookings = bookings.map(booking => ({
           ...booking,
-          user: usersMap[booking.userId] || null,
         }));
   
-        console.log(finalBookings);
+        console.log("0000",finalBookings);
         
     
         setBookings(finalBookings);
@@ -176,6 +169,19 @@ const PropertyConfirmation = () => {
     return 'Pay Now';
   };
 
+  const getEmail = (booking) => {
+    if (booking.verifiedContact?.payerEmail) {
+      return booking.verifiedContact.payerEmail;
+    }
+  
+    if (booking.user) {
+      return booking.user;
+    }
+  
+    return 'N/A';
+  };
+  
+
   return (
     <div className=" ">
       <h1 className="text-2xl font-bold mb-4">Property Confirmation</h1>
@@ -200,8 +206,7 @@ const PropertyConfirmation = () => {
             <table className="min-w-full text-sm">
               <thead className="bg-muted/40 border-b border-gray-400">
                 <tr className="text-muted-foreground font-semibold uppercase tracking-wide">
-                   <th className="px-3 py-2 text-left min-w-[50px]">Booked By Name</th>
-                   <th className="px-3 py-2 text-left min-w-[50px]">Booked By Email</th>
+                   <th className="px-3 py-2 text-left min-w-[50px]">Email</th>
                   <th className="px-3 py-2 text-left min-w-[300px]">Property Address</th>
                   <th className="px-3 py-2 text-left min-w-[200px]">Date & Time</th>
                   <th className="px-3 py-2 text-left">Price</th>
@@ -220,12 +225,10 @@ const PropertyConfirmation = () => {
                       key={booking.id}
                       className="border-b border-gray-400 transition hover:bg-muted/20"
                     >
-                    <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">
-                        {booking.user?.name || 'N/A'}
-                      </td>
 
                     <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">
-                        {booking.user?.email || 'N/A'}
+                        {/* {booking.user?.email || 'N/A'} */}
+                        {getEmail(booking)}
                       </td>
 
                       <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">

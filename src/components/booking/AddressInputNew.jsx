@@ -3,36 +3,25 @@ import { Search, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '../ui/Button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { apiRequest } from '../../lib/queryClient';
-import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../../firebase';
-
 
 
 export default function AddressInputNew({ 
   onPropertyFound, 
   isLoading, 
-  setIsLoading, 
-  isAuthenticated, 
-  setIsAuthenticated, 
-  setIsModalOpen, 
-  setModalType, 
-  setPendingPropertyInfo }) {
+  setIsLoading
+}) {
   
   const [address, setAddress] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-    const navigate = useNavigate();
   
   const [propertyData, setPropertyData] = useState(null);
   const [isValidatingProperty, setIsValidatingProperty] = useState(false);
   const [squareFootageConfirmed, setSquareFootageConfirmed] = useState(false);
   const [squareFootageEdit, setSquareFootageEdit] = useState(false)
   const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
-  // const VITE_BASE_URL = import.meta.env.VITE_LOCAL_URL;
   
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualAddress, setManualAddress] = useState({
@@ -175,13 +164,6 @@ export default function AddressInputNew({
     });
   };
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     setIsAuthenticated(!!user);
-  //   });
-  //   return () => unsubscribe();
-  // }, [setIsAuthenticated]);
-
   const handleConfirmAndProceed = async () => {
     if (!propertyData || !squareFootageConfirmed) return;
     
@@ -199,27 +181,8 @@ export default function AddressInputNew({
       zip: propertyData.zipCode,
       propertyType: 'Single Family Residence'
     };
-
-    const user = auth.currentUser;
-    // console.log("user in addressInputNew", user);
-
-    // console.log("isAuthenticated in addressInputNew", isAuthenticated);
     
-    if(user){
-      setIsAuthenticated(true);
-      onPropertyFound(propertyInfo);
-      setIsLoading(false);
-      return;
-    }
-
-    if (!isAuthenticated) {
-      setIsModalOpen(true);
-      setModalType('login');
-      setPendingPropertyInfo(propertyInfo);
-      setIsLoading(false);
-      return;
-    }
-
+    onPropertyFound(propertyInfo)
 
 
   };
@@ -275,7 +238,6 @@ export default function AddressInputNew({
 
 
              {!showManualEntry ? (
-              // google map search ( code comment by Haider)
           <div className="space-y-6">
                 <div className="relative">
               <div className="relative">
@@ -316,7 +278,6 @@ export default function AddressInputNew({
             </div>
 
 
-            {/*Code comment by Haider-dev Address Not Found Option - ( Legacy for backwards compatibility ) */}
             {showAddressNotFound && !isLoadingSuggestions && (
               <div className="text-center py-3 md:py-4 border border-amber-200 rounded-lg bg-amber-50">
                 <AlertCircle className="h-5 w-5 md:h-6 md:w-6 text-amber-500 mx-auto mb-2" />
@@ -331,7 +292,6 @@ export default function AddressInputNew({
               </div>
             )}
 
-            {/* Property Validation Loading */}
             {isValidatingProperty && (
               <div className="text-center py-6">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-3" />
@@ -340,7 +300,6 @@ export default function AddressInputNew({
             )}
           </div>
         ) : (
-          // Manual  currently working 
           <div className="space-y-4 md:space-y-6">
             <div className="text-center">
               <Button
@@ -361,7 +320,6 @@ export default function AddressInputNew({
                   type="text"
                   placeholder="123"
                   value={manualAddress.streetNumber}
-                  // onChange={(e) => setManualAddress(prev => ({ ...prev, streetNumber: e.target.value }))}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === '' || parseInt(value) >= 1 && parseInt(value) <= 999999) {
@@ -448,7 +406,6 @@ export default function AddressInputNew({
             <div className="flex flex-col space-y-2">
               <Button
                 onClick={handleManualSubmit}
-                // disabled={!manualAddress.streetNumber || !manualAddress.streetName || !manualAddress.zipCode || !manualSquareFootage}
                 disabled={
                   !manualAddress.streetNumber ||
                   !manualAddress.streetName ||
@@ -472,15 +429,12 @@ export default function AddressInputNew({
                 <h3 className="text-sm md:text-base font-medium text-green-900 mb-2">Property Information</h3>
                 <div className="space-y-1 md:space-y-2 text-xs md:text-sm">
                   <p><span className="font-medium">Address:</span> {propertyData.address}</p>
-                  {/* <p><span className="font-medium">ZIP Code:</span> {propertyData.zipCode}</p> */}
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">Square Footage:</span>
                     <Input
                       type="number"
                       value={propertyData.squareFootage}
-                      // readOnly={propertyData.isValidated}
                       disabled={!squareFootageEdit}
-                      // onChange={(e) => setPropertyData(prev => prev ? { ...prev, squareFootage: parseInt(e.target.value) || 0 } : null)}
                       onChange={(e) => {
                         const value = e.target.value;
                         if (value === '' || parseInt(value) >= 1 && parseInt(value) <= 6000) {

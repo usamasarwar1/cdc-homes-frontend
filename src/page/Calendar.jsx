@@ -41,6 +41,7 @@ const elements = useElements();
   const [paymentMethod, setPaymentMethod] = useState('');
   const [loginUser, setLoginUser] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [token, setToken] = useState(null)
   const [user, setUser] = useState(null);
   const [showPaymentIntent, setShowPaymentIntent] = useState(false);
 const [pendingBookingData, setPendingBookingData] = useState(null);
@@ -158,24 +159,24 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
 
         const token = localStorage.getItem('approvalToken') || sessionStorage.getItem('approvalToken');
         console.log("token", token);
-        let userIdToUse = currentUser.uid; 
+        setToken(token)
+        // let userIdToUse = currentUser.uid; 
   
-        if(token){
-          const bookingsRef = collection(db, "bookings");
-          const q = query(bookingsRef, where("approvalToken", "==", token));
-          const querySnapshot = await getDocs(q);
+        // if(token){
+        //   const bookingsRef = collection(db, "bookings");
+        //   const q = query(bookingsRef, where("approvalToken", "==", token));
+        //   const querySnapshot = await getDocs(q);
       
           
-            const bookingDoc = querySnapshot.docs[0]; 
-            // console.log("booking", bookingDoc.data(), bookingDoc.id);
-            const bookingDocData = bookingDoc.data();
+        //     const bookingDoc = querySnapshot.docs[0]; 
+        //     // const bookingDocData = bookingDoc.data();
 
-            console.log("bookingDocData", bookingDocData.userId);
-            userIdToUse = bookingDocData.userId;
-        } else {
-          userIdToUse = currentUser.uid;
-        }
-        setCurrentUserId(userIdToUse);
+        //     // console.log("bookingDocData", bookingDocData.userId);
+        //     // userIdToUse = bookingDocData.userId;
+        // } else {
+        //   // userIdToUse = currentUser.uid;
+        // }
+        // setCurrentUserId(userIdToUse);
       } catch (err) {
         console.error("Error fetching user role", err);
         setCurrentUserId(currentUser.uid);
@@ -191,7 +192,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
     const urlParams = new URLSearchParams(window.location.search);
     setLoginUser(JSON.parse(sessionStorage.getItem('userData')));
     const additionalContact = JSON.parse(sessionStorage.getItem('verified-contact-data'));
-    console.log("---------additional-----------", additionalContact.contactPersons);
 
     const urlAddress = urlParams.get('address') || '';
     
@@ -217,15 +217,15 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
       zip: urlParams.get('zip') || parsedAddress.zip,
       propertyType: urlParams.get('propertyType') || '',
       squareFootage: Number(urlParams.get('squareFootage')) || 0,
-      paymentMethod: urlParams.get('paymentMethod') || 'pay_now', // Get paymentMethod from URL
+      paymentMethod: urlParams.get('paymentMethod') || 'pay_now',
       multiFamilyUnits: urlParams.get('multiFamilyUnits') || '',
       additionalContact: additionalContact.contactPersons
     };
 
     const bookingData = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
 
-    console.log("bookingData in session storage---------- after obj-", bookingData);
-    console.log("paymentMethod from URL:", propertyData.paymentMethod);
+    // console.log("bookingData in session storage---------- after obj-", bookingData);
+    // console.log("paymentMethod from URL:", propertyData.paymentMethod);
     
     // Only merge challenge data if URL paymentMethod is 'challenge' AND bookingData has isDiscount
     if(bookingData && bookingData.isDiscount && propertyData.paymentMethod === 'challenge'){
@@ -259,7 +259,14 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
 
       setProperty(mergedProperty);
     } else {
-      // Set isDiscount to false if not challenge, even if bookingData has isDiscount
+      // ----- pay_now -----
+
+      // console.log("----- pay_now -----", {
+      //   ...propertyData,
+      //   isDiscount: false,
+      //   paymentMethod: propertyData.paymentMethod || 'challenge'
+      // });
+      
       setProperty({
         ...propertyData,
         isDiscount: false,
@@ -422,7 +429,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
     return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
   };
 
-
   const isDateDisabled = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -530,38 +536,39 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
   
       // Get userId from multiple sources with fallback logic
       const bookingDataFromToken = JSON.parse(sessionStorage.getItem('bookingDataUsingToken') || 'null');
-      let userIdToUse = currentUserId;
+      setToken(bookingDataFromToken)
+      // let userIdToUse = currentUserId;
       
       // Fallback 1: Use userId from bookingDataUsingToken if currentUserId is null
-      if (!userIdToUse && bookingDataFromToken?.userId) {
-        userIdToUse = bookingDataFromToken.userId;
-        console.log('Using userId from bookingDataUsingToken:', userIdToUse);
-      }
+      // if (!userIdToUse && bookingDataFromToken?.userId) {
+      //   userIdToUse = bookingDataFromToken.userId;
+      //   console.log('Using userId from bookingDataUsingToken:', userIdToUse);
+      // }
       
       // Fallback 2: Try to get from existing userData if available
-      if (!userIdToUse) {
-        const userData = JSON.parse(sessionStorage.getItem('userData') || localStorage.getItem('userData') || 'null');
-        if (userData?.userId) {
-          userIdToUse = userData.userId;
-          console.log('Using userId from userData:', userIdToUse);
-        }
-      }
+      // if (!userIdToUse) {
+      //   const userData = JSON.parse(sessionStorage.getItem('userData') || localStorage.getItem('userData') || 'null');
+      //   if (userData?.userId) {
+      //     userIdToUse = userData.userId;
+      //     console.log('Using userId from userData:', userIdToUse);
+      //   }
+      // }
       
       // Validate userId exists before proceeding
-      if (!userIdToUse) {
-        console.error('userId is missing!', { 
-          currentUserId, 
-          bookingDataFromToken: bookingDataFromToken?.userId,
-          hasBookingData: !!bookingDataFromToken 
-        });
-        toast({
-          title: "User Identification Error",
-          description: "User identification failed. Please refresh the page and try again.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
+      // if (!userIdToUse) {
+      //   console.error('userId is missing!', { 
+      //     currentUserId, 
+      //     bookingDataFromToken: bookingDataFromToken?.userId,
+      //     hasBookingData: !!bookingDataFromToken 
+      //   });
+      //   toast({
+      //     title: "User Identification Error",
+      //     description: "User identification failed. Please refresh the page and try again.",
+      //     variant: "destructive",
+      //   });
+      //   setIsLoading(false);
+      //   return;
+      // }
   
       // Prepare appointment data with validated userId
       const appointmentData = {
@@ -571,7 +578,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         property: property,
         verifiedContact: contact,
         fullPrice,
-        userId: userIdToUse, // Use the validated userId
+        // userId: userIdToUse, // Use the validated userId
         isDiscount: false,
         status: 'SUCCESS',
       };
@@ -592,7 +599,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         };
         
         // Log for debugging
-        console.log('Pay Now Flow - Saving bookingData with userId:', userIdToUse);
+        // console.log('Pay Now Flow - Saving bookingData with userId:', userIdToUse);
         console.log('Pay Now Flow - Full bookingData:', bookingData);
         
         localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
@@ -612,7 +619,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
             cancelUrl: `${window.location.origin}/payment-cancel`,
             metadata: {
               enabled: true,
-              userId: userIdToUse, // Use validated userId
+              // userId: userIdToUse, // Use validated userId
               status: "PAYMENT_PENDING",
               paymentType: "pay_now",
               appointmentDate: appointmentDateISO,
@@ -641,7 +648,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         console.log("Challenge Flow - property.paymentMethod:", property.paymentMethod);
 
 
-          // Get approvalToken from localStorage/sessionStorage
   const approvalToken = localStorage.getItem('approvalToken') || sessionStorage.getItem('approvalToken');
   
   if (!approvalToken) {
@@ -663,7 +669,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         };
         
         // Log for debugging
-        console.log('Challenge Flow - Saving bookingData with userId:', userIdToUse);
+        // console.log('Challenge Flow - Saving bookingData with userId:', userIdToUse);
         console.log('Challenge Flow - Full bookingData:', bookingData);
         
         localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
@@ -684,13 +690,12 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
             cancelUrl: `${window.location.origin}/payment-cancel`,
             metadata: {
               enabled: true,
-              userId: userIdToUse, // Use validated userId
+              // token: userIdToUse, 
               status: "PAYMENT_PENDING",
               paymentType: "challenge",
               appointmentDate: appointmentDateISO,
               appointmentTime: selectedTime,
               propertyAddress: property.address || '',
-              // bookingPayload: JSON.stringify(bookingData),
             },
             pendingBookingData: bookingData, 
           }),
@@ -704,7 +709,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
   
         console.log('Calendar - Redirecting to Stripe Checkout (Challenge):', checkoutUrl);
         window.location.href = checkoutUrl;
-        return; // Exit after redirect
+        return; 
       }
   
       // If payment method is not recognized
@@ -805,8 +810,8 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
                         Select Time
                       </label>
                       <Select value={selectedTime} onValueChange={setSelectedTime}>
-                        <SelectTrigger className="h-12 text-lg bg-blue-50 border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                          <SelectValue placeholder="🕐 Choose a time slot" className="text-blue-800 font-medium" />
+                        <SelectTrigger className="h-12 cursor-pointer text-lg bg-blue-50 border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                          <SelectValue placeholder="🕐 Choose a time slot" className="cursor-pointer text-blue-800 font-medium" />
                         </SelectTrigger>
                         <SelectContent>
                           {timeSlots.map((time) => (

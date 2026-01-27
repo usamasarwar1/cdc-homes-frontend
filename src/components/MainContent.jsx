@@ -1,19 +1,11 @@
 import AddressInputNew from "../components/booking/AddressInputNew";
-// import ServiceSelection from "@/components/booking/ServiceSelection";
 import { getPricingTier } from "../utils/getPricingTier";
 
 export default function MainContent({ property,
-        currentStep,
         isLoading,
         setIsLoading,
         setProperty,
-        setCurrentStep,
         navigate,
-        isAuthenticated,
-        setIsAuthenticated,
-        setIsModalOpen,
-        setModalType,
-        setPendingPropertyInfo,
         }) {
 
   return (
@@ -34,20 +26,13 @@ export default function MainContent({ property,
 
     <div className="stable-grid mb-5">
           <div
-            className={`${currentStep === 1 ? "col-span-full flex justify-center" : ""}`}
+            className={"col-span-full flex justify-center"}
           >
            
-            {currentStep === 1 && (
               <div className="w-full max-w-2xl">
                 <AddressInputNew
-                  isAuthenticated={isAuthenticated}
-                  setIsAuthenticated={setIsAuthenticated}
-                  setIsModalOpen={setIsModalOpen}
-                  setModalType={setModalType}
-                  setPendingPropertyInfo={setPendingPropertyInfo}
                   onPropertyFound={(propertyData) => {
                     const pricing = getPricingTier(propertyData);
-                    
                     const propertyWithPricing = {
                       ...propertyData,
                       basePrice: pricing.payNow,
@@ -55,7 +40,7 @@ export default function MainContent({ property,
                       challengePrice: pricing.challenge,
                       pricingTier: pricing.tier,
                     };
-                   
+                    setProperty(propertyWithPricing)
                     sessionStorage.setItem(
                       "confirmedProperty",
                       JSON.stringify(propertyWithPricing),
@@ -66,17 +51,7 @@ export default function MainContent({ property,
                   setIsLoading={setIsLoading}
                 />
               </div>
-            )}
 
-            {/* {currentStep === 3 && (
-              <ServiceSelection
-                bookingState={{ property, step: currentStep }}
-                updateBookingState={(updates) => {
-                  if (updates.property) setProperty(updates.property);
-                  if (updates.step) setCurrentStep(updates.step);
-                }}
-              />
-            )} */}
           </div>
         </div>
         </main>

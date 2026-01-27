@@ -353,72 +353,6 @@ useEffect(() => {
     }
   };
 
-  // both code comment by Haider dev
-  // Calculate pricing based on property type and square footage
-  const calculatePrice = (propertyType, squareFootage, units) => {
-    // Multi-family pricing based on units
-    if (propertyType === 'Multi-Family Residence' && units) {
-      const unitCount = parseInt(units) || 1;
-      switch (unitCount) {
-        case 2: return 825;
-        case 3: return 900;
-        case 4: return 950;
-        case 5: return 1050;
-        case 6: return 1500;
-        default: return 825; // Default to 2-unit pricing
-      }
-    }
-    
-    // Mobile/Manufactured home pricing
-    if (propertyType === 'Mobile/Manufactured Home') {
-      // Assume based on square footage or default to single wide
-      if (squareFootage <= 800) return 625; // Single Wide
-      else if (squareFootage <= 1500) return 750; // Double Wide
-      else return 800; // Triple Wide
-    }
-    
-    // Commercial property pricing
-    if (propertyType === 'Commercial') {
-      return 1100;
-    }
-    
-    // Single Family tiered pricing based on square footage
-    if (squareFootage <= 1200) {
-      return 575;
-    } else if (squareFootage <= 3000) {
-      return 650;
-    } else if (squareFootage <= 5000) {
-      return 725;
-    } else {
-      return 800;
-    }
-  };
-
-  // Get Stripe payment URL for a specific amount and type
-  const getStripePaymentUrl = (amount, type) => {
-    const saved = localStorage.getItem('stripe-payment-links');
-    
-    if (!saved) {
-      console.log('No payment links found in localStorage');
-      return '#payment-not-configured';
-    }
-    
-    try {
-      const paymentLinks = JSON.parse(saved);
-      console.log('Available payment links:', paymentLinks.map((p) => `${p.amount} (${p.type})`));
-      
-      const link = paymentLinks.find((p) => 
-        Math.abs(p.amount - amount) < 0.01 && p.type === type
-      );
-      
-      console.log('Found matching link:', link);
-      return link?.stripeUrl || '#payment-not-configured';
-    } catch (error) {
-      console.error('Error loading payment links:', error);
-      return '#payment-not-configured';
-    }
-  };
-
 const validateAndScrollToFirstError = () => {
   const validations = [
     {
@@ -618,7 +552,6 @@ const handleSubmit = () => {
   
   navigate(`/booking-summary?${params.toString()}`);
   
-  // // For 50% Challenge or other payment methods, continue with normal flow
   onVerified(contactData);
 };
 
