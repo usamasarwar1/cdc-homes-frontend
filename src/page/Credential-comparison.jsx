@@ -477,12 +477,37 @@ export default function CredentialComparisonPage() {
               <div className="mb-6">
                 <h4 className="font-semibold mb-3 text-center">Matched Credentials</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  {inspectorCredentials.map((credential) => (
-                    <div key={credential.value} className="flex items-center space-x-2 p-2 bg-white rounded">
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="text-gray-900">{credential.label}</span>
-                    </div>
-                  ))}
+                {inspectorCredentials.map((credential) => {
+  const isSelected = licenceValue === credential.value;
+
+  return (
+    <div
+      key={credential.value}
+      className={`flex items-center space-x-2 p-2 rounded cursor-pointer ${
+        isSelected ? "bg-green-100" : "bg-white"
+      }`}
+      onClick={() =>
+        setLicenceValue(isSelected ? null : credential.value) // toggle selection
+      }
+    >
+      {/* Show check ONLY if selected */}
+      {isSelected ? (
+        <Check className="w-4 h-4 text-green-600" />
+      ) : (
+        <span className="w-4 h-4  rounded" />
+      )}
+
+      <span
+        className={`${
+          isSelected ? "text-gray-900 font-medium" : "text-gray-400"
+        }`}
+      >
+        {credential.label}
+      </span>
+    </div>
+  );
+})}
+
                 </div>
               </div>
               
@@ -526,7 +551,7 @@ export default function CredentialComparisonPage() {
                 </div>
              
               <div className='grid grid-cols-2 md:grid-cols-4'>
-              {licenceCredentials.map((licence) => (
+              {/* {licenceCredentials.map((licence) => (
                 <div key={licence.value} className="mt-3 md:mt-4">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
@@ -544,7 +569,7 @@ export default function CredentialComparisonPage() {
                     </span>
                   </label>
                 </div>
-              ))}
+              ))} */}
 
               </div>
                 
@@ -597,7 +622,7 @@ export default function CredentialComparisonPage() {
                <div className="space-y-2">
                  <div>
                    <Label htmlFor="firstName" className="text-sm font-medium">
-                     Payer Email
+                     Who is Paying?
                    </Label>
                    <Input
                      id="email"

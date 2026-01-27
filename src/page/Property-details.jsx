@@ -545,8 +545,13 @@ const PropertyDetails = () => {
                   </div>
                   <div className="grid md:grid-cols-1 gap-4">
                   <p className="text-sm text-gray-500 mb-1">License Status</p>
-                    <p className="font-medium text-gray-900">
-                      {booking.inspector.licenceStatus || 'N/A'}
+                    <p className="font-medium text-gray-900 p-3 bg-yellow-50 rounded text-yellow-900">
+                      {booking.inspector.licenceStatus
+  ? booking.inspector.licenceStatus
+      .split('_')                
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')                 
+  : 'N/A'}
                     </p>
                     <p className="text-sm text-gray-500 mb-1">Website URL</p>
                     <a

@@ -147,8 +147,8 @@ const PropertyConfirmation = () => {
     switch (status) {
       case 'pending_verification':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pending</Badge>;
-      case 'SUCCESS':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Success</Badge>;
+      case 'PAID':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">PAID</Badge>;
       case 'approval_pending':
         return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">Approval Pending</Badge>;
         case 'Approved':
@@ -248,7 +248,7 @@ const PropertyConfirmation = () => {
                       </td>
 
                       <td className="px-4 py-3 text-gray-700">
-                        {getStatusBadge(booking.status || (isSuccess ? 'SUCCESS' : 'pending_verification'))}
+                        {getStatusBadge(booking.status)}
                       </td>
 
                       <td className="px-3 py-2 text-gray-700">
