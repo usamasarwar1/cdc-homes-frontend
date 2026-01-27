@@ -19,8 +19,10 @@ import {
 } from './ui/dialoag';
 import { Button } from './ui/Button';
 import { Input } from './ui/input';
+import { useNavigate } from 'react-router-dom';
 
 const AuthModal = ({ isOpen, onClose, modalType, setModalType, onAuthSuccess, setIsAuthenticated }) => {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -320,6 +322,21 @@ const AuthModal = ({ isOpen, onClose, modalType, setModalType, onAuthSuccess, se
                   >
                     Sign up here
                   </button>
+                  <div>
+                  forget Password?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetForm();
+                      setIsLoading(false);
+                      onClose();
+                      navigate('/forgot-password')
+                    }}
+                    className="text-red-600 cursor-pointer font-semibold hover:text-red-700 hover:underline transition-colors"
+                  >
+                   click here
+                  </button> 
+                  </div>
                 </>
               ) : (
                 <>

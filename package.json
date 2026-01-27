@@ -29,6 +29,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "firebase": "^12.7.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.0.0",
     "lucide": "^0.562.0",
     "lucide-react": "^0.562.0",
     "node-fetch": "^3.3.2",

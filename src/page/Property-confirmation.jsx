@@ -122,7 +122,7 @@ const PropertyConfirmation = () => {
 
   const handleView = async (booking) => {
     sessionStorage.setItem('booking', JSON.stringify(booking));
-    navigate(`/property-details/${booking.id}`);
+    navigate(`/admin/property-details/${booking.id}`);
   };
 
   const getBookingDate = (booking) => {
@@ -169,8 +169,8 @@ const PropertyConfirmation = () => {
     }
   };
 
-  const getPaymentMethod = (isDiscount) => {
-    if (isDiscount) {
+  const getPaymentMethod = (isDiscount, isDiscount2) => {
+    if (isDiscount === true || isDiscount2 === true ) {
       return 'Challenge';
     }
     return 'Pay Now';
@@ -241,7 +241,7 @@ const PropertyConfirmation = () => {
                       </td>
 
                       <td className="px-3 py-2 text-gray-700 font-medium">
-                        {getPaymentMethod(booking.isDiscount)}
+                        {getPaymentMethod( booking.property.isDiscount, booking.isDiscount)}
                       </td>
 
                       <td className="px-4 py-3 text-gray-700">

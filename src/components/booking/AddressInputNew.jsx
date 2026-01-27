@@ -30,6 +30,7 @@ export default function AddressInputNew({
   const [propertyData, setPropertyData] = useState(null);
   const [isValidatingProperty, setIsValidatingProperty] = useState(false);
   const [squareFootageConfirmed, setSquareFootageConfirmed] = useState(false);
+  const [squareFootageEdit, setSquareFootageEdit] = useState(false)
   const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
   // const VITE_BASE_URL = import.meta.env.VITE_LOCAL_URL;
   
@@ -360,14 +361,23 @@ export default function AddressInputNew({
                   type="text"
                   placeholder="123"
                   value={manualAddress.streetNumber}
-                  onChange={(e) => setManualAddress(prev => ({ ...prev, streetNumber: e.target.value }))}
+                  // onChange={(e) => setManualAddress(prev => ({ ...prev, streetNumber: e.target.value }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || parseInt(value) >= 1 && parseInt(value) <= 999999) {
+                      setManualAddress(prev => ({
+                        ...prev,
+                        streetNumber: value
+                      }));
+                    }
+                  }}
                   className="text-center text-sm md:text-base border border-gray-300 rounded-md w-full focus:ring-red-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2 ">
-                  Direction
+                  Direction *
                 </label>
                 <Select 
                   value={manualAddress.direction} 
@@ -462,15 +472,22 @@ export default function AddressInputNew({
                 <h3 className="text-sm md:text-base font-medium text-green-900 mb-2">Property Information</h3>
                 <div className="space-y-1 md:space-y-2 text-xs md:text-sm">
                   <p><span className="font-medium">Address:</span> {propertyData.address}</p>
-                  <p><span className="font-medium">ZIP Code:</span> {propertyData.zipCode}</p>
+                  {/* <p><span className="font-medium">ZIP Code:</span> {propertyData.zipCode}</p> */}
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">Square Footage:</span>
                     <Input
                       type="number"
                       value={propertyData.squareFootage}
-                      readOnly={propertyData.isValidated}
-                      onChange={(e) => setPropertyData(prev => prev ? { ...prev, squareFootage: parseInt(e.target.value) || 0 } : null)}
-                      className={`w-20 md:w-24 h-7 md:h-8 text-xs md:text-sm ${propertyData.isValidated ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      // readOnly={propertyData.isValidated}
+                      disabled={!squareFootageEdit}
+                      // onChange={(e) => setPropertyData(prev => prev ? { ...prev, squareFootage: parseInt(e.target.value) || 0 } : null)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '' || parseInt(value) >= 1 && parseInt(value) <= 6000) {
+                          setPropertyData(prev => prev ? { ...prev, squareFootage: parseInt(value)} : null)
+                        }
+                      }}
+                      className={`w-20 md:w-24 h-7 md:h-8 text-xs md:text-sm ${propertyData.isValidated ? 'bg-gray-100' : ''}`}
                       min="1"
                       max="6000"
                     />
@@ -480,6 +497,21 @@ export default function AddressInputNew({
                   </div>
                 </div>
                 
+             
+                <div className="mt-3 md:mt-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={squareFootageEdit}
+                      onChange={(e) => setSquareFootageEdit(e.target.checked)}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-xs md:text-sm text-gray-700">
+                      Edit Square Footage
+                    </span>
+                  </label>
+                </div>
+
                 <div className="mt-3 md:mt-4">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
@@ -496,7 +528,7 @@ export default function AddressInputNew({
 
                 <Button
                   onClick={handleConfirmAndProceed}
-                  disabled={!squareFootageConfirmed || isLoading}
+                  disabled={!squareFootageConfirmed || isLoading || propertyData.squareFootage < 0}
                                   className="w-full text-sm md:text-base mt-10 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isLoading ? (

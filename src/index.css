@@ -9,3 +9,26 @@ input:invalid {
     border-color: inherit;
   }
   
+
+  @media print {
+    body {
+      background: white;
+    }
+  
+    button,
+    a,
+    .no-print {
+      display: none !important;
+    }
+  
+    #pdf-content {
+      margin: 0;
+      padding: 0;
+    }
+  
+    .card,
+    .break-avoid {
+      page-break-inside: avoid;
+    }
+  }
+  

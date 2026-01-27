@@ -63,7 +63,7 @@ function Home() {
       processPropertyInfo(pendingPropertyInfo);
       setPendingPropertyInfo(null);
     } else if (pendingPropertyInfo === null && parsedUserData?.role === "admin"){
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
       // console.log("userData in home", parsedUserData);
       // console.log("pendingPropertyInfo in home", pendingPropertyInfo);
     } else {

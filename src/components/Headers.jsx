@@ -83,7 +83,7 @@ const handleLogIn = (params) => {
                     variant="outline"
                     size="sm"
                     onClick={handleLogOut}
-                    className="hidden md:flex text-gray-600 hover:text-red-600 border-gray-300 hover:border-red-300"
+                    className="flex text-gray-600 hover:text-red-600 border-gray-300 hover:border-red-300"
                   >
                     <LogOut className="w-4 h-4 md:mr-2" />
                     <span className="hidden md:inline">Log Out</span>

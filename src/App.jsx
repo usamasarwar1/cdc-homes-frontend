@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Home from './page/Home.jsx'
 import PropertyConfirm from './page/Property-confirmed.jsx'
 import { ProgressProvider } from './components/gamification/ProgressProvider.jsx'
@@ -26,43 +26,44 @@ import Profile from './page/Profile.jsx'
 import PricingScheduleAdminPage from './page/Pricing_schduleAdmin.jsx'
 import PaymentSuccess from './page/PaymentSuccess.jsx'
 import PaymentCancel from './page/PaymentCancel.jsx'
+import ForgetPassword from './page/ForgetPassword.jsx'
+import ResetPassword from './page/ResetPassword.jsx'
 
 
 
-function ProtectedRoute({ children, allowedRoles = "admin" }) {
+function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        setUser(null);
+        setUserRole(null);
         setLoading(false);
         return;
       }
 
-      setUser(currentUser);
-
       try {
-        const userByRole = await getDoc(doc(db, "users", currentUser.uid));
-       console.log("userByRole", userByRole.data());
+        const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+        const role = userSnap.data()?.role || null;
+        setUserRole(role);
 
-       if(userByRole.data().role === "admin") {
-        navigate("/dashboard");
-        setUserRole("admin");
-       }
+        // Redirect only if user is admin and not already on admin route
+        if (role === "admin" && !location.pathname.startsWith("/admin")) {
+          navigate("/admin/dashboard", { replace: true });
+        }
       } catch (err) {
         console.error("Error fetching user role", err);
+        setUserRole(null);
       }
 
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
-  
+  }, [location.pathname, navigate]);
 
   if (loading) {
     return (
@@ -72,10 +73,10 @@ function ProtectedRoute({ children, allowedRoles = "admin" }) {
     );
   }
 
-  if (userRole !== "admin") {
+  // If not allowed role, redirect to home
+  if (!allowedRoles.includes(userRole)) {
     return <Navigate to="/" replace />;
   }
-
 
   return children;
 }
@@ -90,44 +91,36 @@ function Router() {
             <Home />
         } />
         
-        <Route path="/dashboard" element={
+        <Route path="/admin/dashboard" element={
           <ProtectedRoute>
             <Layout>
               <Dashboard />
             </Layout>
           </ProtectedRoute>
         } />
-        <Route path="/users" element={
+        <Route path="/admin/users" element={
           <ProtectedRoute>
           <Layout>
             <Users />
           </Layout>
           </ProtectedRoute>
         } />
-      
-        {/* <Route path="/pricing-schedule" element={
-          <ProtectedRoute>
-          <Layout>
-            <PricingSchedulePage />
-          </Layout>
-          </ProtectedRoute>
-        } /> */}
 
-<Route path="/pricing-schedule-admin" element={
+<Route path="/admin/pricing-schedule-admin" element={
           <ProtectedRoute>
           <Layout>
             <PricingScheduleAdminPage />
           </Layout>
           </ProtectedRoute>
         } />
-        <Route path="/property-confirm" element={
+        <Route path="/admin/property-confirm" element={
           <ProtectedRoute>
           <Layout>
             <PropertyConfirmation />
           </Layout>
           </ProtectedRoute>
         } />
-        <Route path="/property-details/:bookingId" element={
+        <Route path="/admin/property-details/:bookingId" element={
           <ProtectedRoute>
           <Layout>
             <PropertyDetails />
@@ -137,6 +130,9 @@ function Router() {
   
           <Route path="/property-confirmed" element={<PropertyConfirm />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/forgot-password" element={<ForgetPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-password" element={<Profile />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
           <Route path="/contact-verification" element={<ContactVerification />} />

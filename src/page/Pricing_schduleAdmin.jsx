@@ -9,23 +9,48 @@ import { MultiFamilyPricingAdmin } from '../components/MultiFamilyPricingAdmin';
 import { Download, DollarSign, Star, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function PricingScheduleAdminPage() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, []);
-
-  const generatePDF = () => {
-    window.print();
+  const injectRGBStyles = () => {
+    const style = document.createElement("style");
+    style.id = "html2canvas-rgb-fix";
+    style.innerHTML = `
+      * {
+        color: rgb(0,0,0) !important;
+        background-color: white !important;
+        border-color: rgb(200,200,200) !important;
+        box-shadow: none !important;
+      }
+  
+      /* common Tailwind bg overrides */
+      .bg-red-50 { background-color: rgb(254,242,242) !important; }
+      .bg-blue-50 { background-color: rgb(239,246,255) !important; }
+      .bg-green-50 { background-color: rgb(240,253,244) !important; }
+      .bg-purple-50 { background-color: rgb(250,245,255) !important; }
+      .bg-gray-50 { background-color: rgb(249,250,251) !important; }
+    `;
+    document.head.appendChild(style);
   };
+  
+  const removeRGBStyles = () => {
+    const style = document.getElementById("html2canvas-rgb-fix");
+    if (style) style.remove();
+  };
+  
+
+
+  const generatePDF = async () => {
+    window.print()
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
   
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div id='pdf-content' className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Complete Pricing Schedule</h1>
           <p className="text-lg text-gray-600">All inspection services and payment options for Arizona properties</p>
@@ -46,8 +71,9 @@ export default function PricingScheduleAdminPage() {
                 </Button>
               </Link>
             
-               <Button 
+               <Button
                onClick={generatePDF}
+               
                className="bg-[#dc2626] hover:bg-red-600 text-white">
                <Download className="h-4 w-4 mr-2" />
                Download PDF

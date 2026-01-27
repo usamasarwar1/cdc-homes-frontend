@@ -24,7 +24,7 @@ const inspectorCredentials = [
   { label: "Realtor", value: "realtor" }
 ];
 
-const customerCredentials = [
+const licenceCredentials = [
   { label: "Home Inspector", value: "home_inspector" },
   { label: "GC KB-1 or KB-2", value: "gc_kb_license" },
   { label: "HVAC Licensed", value: "hvac_licensed" },
@@ -38,17 +38,23 @@ const customerCredentials = [
 export default function CredentialComparisonPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [whoIsPaying, setWhoIsPaying] = useState(false)
+  const [payerEmail, setPayerEmail] = useState(null)
   const [selectedCredentials, setSelectedCredentials] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showDetailForm, setShowDetailForm] = useState(false);
   const [inspectorDetails, setInspectorDetails] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     licenseNumbers: '',
     websiteUrl: ''
   });
+  const [licenceValue, setLicenceValue] = useState(null)
+
   const [errors, setErrors] = useState({
     websiteUrl: ''
   });
+  const [price, setPrice] = useState()
   
   const { currentStep, completedSteps, completeStep, setStep } = useProgress();
   
@@ -64,6 +70,14 @@ export default function CredentialComparisonPage() {
         window.pageYOffset = 0;
       }
     };
+
+    const property = JSON.parse(sessionStorage.getItem('confirmedProperty'))
+    // console.log("property", property, property.basePrice, property.challengePrice);
+    
+    setPrice({
+      basePrice: property.basePrice,
+      challengePrice: property.challengePrice
+    })
     
     scrollToTop();
     
@@ -82,61 +96,19 @@ export default function CredentialComparisonPage() {
     if (!text || typeof text !== 'string') return "";
     return text.replace(/\b\w/g, (char) => char.toUpperCase());
   };
-  
-  function getWebsiteUrl(input) {
-    if (!input) return '';
-  
-    let value = input.toLowerCase().replace(/\s+/g, '');
-  
-    // 1️⃣ Allow natural typing of w / ww
-    if (value === 'w' || value === 'ww') {
-      return value;
-    }
-  
-    // 2️⃣ Normalize 3+ w's → www
-    value = value.replace(/^w{3,}/, 'www');
-  
-    // 3️⃣ Handle www prefix
-    if (value === 'www') return 'www';
-  
-    if (value.startsWith('www') && !value.startsWith('www.')) {
-      value = 'www.' + value.slice(3);
-    }
-  
-    // 4️⃣ Collapse multiple dots
-    value = value.replace(/\.{2,}/g, '.');
-  
-    // 5️⃣ Prevent www.. or www...
-    value = value.replace(/^www\.+/, 'www.');
-  
-    // 6️⃣ ENFORCE `.com` ONLY
-    // If ".com" exists, remove anything after it
-    if (value.includes('.com')) {
-      value = value.replace(/\.com.*$/, '.com');
-    }
-  
-    // 7️⃣ Prevent fake TLDs like .coma, .comx
-    value = value.replace(/\.co[^m].*$/, '.com');
-  
-    return value;
-  }
 
   function validateWebsiteUrl(url) {
     if (!url) return 'Website URL is required';
   
-    // Must start with www.
-    if (!/^www\./i.test(url)) return 'Website must start with "www."';
+    const pattern = /^(https?:\/\/|www\.)[a-z0-9-]+(\.[a-z0-9-]+)+(\/.*)?$/i;
+
   
-    // Must end with .com
-    if (!/\.com$/i.test(url)) return 'Invalid website Url';
+    if (!pattern.test(url)) {
+      return 'Website must start with http://, https://, or www. and have a valid domain';
+    }
   
-    // Only letters, numbers, dashes, and dots in domain name
-    const domainRegex = /^www\.[a-z0-9-]+(\.[a-z0-9-]+)*\.com$/i;
-    if (!domainRegex.test(url)) return 'Invalid website format';
-  
-    return ''; // valid
+    return '';
   }
-  
   
   const handleInputChange = (field, value) => {
     let newValue = value;
@@ -199,27 +171,36 @@ export default function CredentialComparisonPage() {
       setStep('contact');
       const paymentMethod = sessionStorage.getItem('paymentMethod');
       const propertyData = JSON.parse(sessionStorage.getItem('confirmedProperty'));
-      const userData = JSON.parse(sessionStorage.getItem('userData'));
+      // const userData = JSON.parse(sessionStorage.getItem('userData'));
   
+
+      const inspector = {
+        ...inspectorDetails,
+        licenceStatus: licenceValue
+      }
+
       const data = {
         isDiscount: paymentMethod === 'challenge' ? true : false,
         property: propertyData,
-        userId: userData.userId,
-        inspector: inspectorDetails,
+        user: payerEmail,
+        inspector: inspector,
         status: 'pending_verification',
         updatedAt: serverTimestamp()
       };
+
+      console.log(data);
+      
   
 
-      const bookingsRef = collection(db, 'bookings');
-        const newData = {
-          ...data,
-          createdAt: serverTimestamp()
-        };
-         await addDoc(bookingsRef, newData);
+      // const bookingsRef = collection(db, 'bookings');
+      //   const newData = {
+      //     ...data,
+      //     createdAt: serverTimestamp()
+      //   };
+      //    await addDoc(bookingsRef, newData);
   
       alert("Thank you! We will verify the provided information within 2 hours. If the credentials are confirmed, we will honor the discounted price.");
-      navigate("/");
+      // navigate("/");
     } catch (error) {
       console.error("Error saving data to database", error);
       alert(`Error: ${error.message || 'Failed to save booking. Please try again.'}`);
@@ -510,16 +491,28 @@ export default function CredentialComparisonPage() {
                 </div>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <div>
-                  <Label htmlFor="fullName" className="text-sm font-medium">
-                    Full Name of Inspector
+                  <Label htmlFor="firstName" className="text-sm font-medium">
+                    Fist Name of Inspector
                   </Label>
                   <Input
-                    id="fullName"
-                    value={inspectorDetails.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    placeholder="Enter Inspector's Full Name"
+                    id="firstName"
+                    value={inspectorDetails.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    placeholder="Enter Inspector's First Name"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastname" className="text-sm font-medium">
+                    Last Name of Inspector
+                  </Label>
+                  <Input
+                    id="lastName"
+                    value={inspectorDetails.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    placeholder="Enter Inspector's Last Name"
                     className="mt-1"
                   />
                 </div>
@@ -536,6 +529,29 @@ export default function CredentialComparisonPage() {
                     className="mt-1"
                   />
                 </div>
+             
+              <div className='grid grid-cols-2 md:grid-cols-4'>
+              {licenceCredentials.map((licence) => (
+                <div key={licence.value} className="mt-3 md:mt-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={licenceValue === licence.value}
+                      onChange={(e) => {
+                        setLicenceValue(
+                          e.target.checked ? licence.value : null
+                        );
+                      }}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-xs md:text-sm text-gray-700">
+                      {licence.label}
+                    </span>
+                  </label>
+                </div>
+              ))}
+
+              </div>
                 
                 <div>
                   <Label htmlFor="websiteUrl" className="text-sm font-medium">
@@ -549,40 +565,77 @@ export default function CredentialComparisonPage() {
                     className="mt-1"
                   />
                    {errors.websiteUrl && (
-    <p className="text-red-600 text-sm mt-1">{errors.websiteUrl}</p>
-  )}
+                      <p className="text-red-600 text-sm mt-1">{errors.websiteUrl}</p>
+                    )}
                 </div>
                 
                 <div className="text-center pt-4">
-                  {/* <Button 
-                    onClick={handleFinalSubmit}
-                    className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
-                    disabled={!inspectorDetails.fullName || !inspectorDetails.licenseNumbers}
-                  >
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
-                  </Button> */}
+                {!whoIsPaying && 
                   <Button 
-  onClick={handleFinalSubmit}
-  className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
-  disabled={
-    !inspectorDetails.fullName || 
-    !inspectorDetails.licenseNumbers || 
-    !!errors.websiteUrl
-  }
->
-  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
-</Button>
+                    onClick={()=> setWhoIsPaying(true)}
+                    className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
+                    disabled={
+                      !inspectorDetails.firstName || 
+                      !inspectorDetails.lastName || 
+                      !inspectorDetails.licenseNumbers || 
+                      !!errors.websiteUrl
+                    }
+                  >
+                    {/* {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"} */}
+                   submit
+                  </Button>
+}
                 </div>
               </div>
             </div>
+
+            {whoIsPaying && (
+               <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+               <div className="text-center text-blue-800 mb-4">
+                 <div className="font-semibold mb-2">
+                   You are one step ahead
+                 </div>
+                 <div className="text-sm mb-4">
+                   Please provide the Email details for a Payer which one is paying:
+                 </div>
+               </div>
+               
+               <div className="space-y-2">
+                 <div>
+                   <Label htmlFor="firstName" className="text-sm font-medium">
+                     Payer Email
+                   </Label>
+                   <Input
+                     id="email"
+                     required
+                     value={payerEmail}
+                     onChange={(e) => setPayerEmail(e.target.value)}
+                     placeholder="Enter Payer Email"
+                     className="mt-1"
+                   />
+                 </div>
+                 
+                 <div className="text-center pt-4">
+                 
+                   <Button 
+                     onClick={handleFinalSubmit}
+                     className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
+                     disabled={!payerEmail}
+                   >
+                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
+                   </Button>
+                 </div>
+               </div>
+             </div>
+            )}
 
             <div className="bg-white border border-green-200 rounded-lg p-6" style={{ animation: 'dramatic-pulse 1.2s ease-in-out infinite' }}>
               <h3 className="text-lg font-semibold text-center mb-4 text-green-800">50% Off Pricing</h3>
               <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 border border-green-200 rounded-lg text-center bg-green-50" style={{ animation: 'attention-pulse 1.5s ease-in-out infinite' }}>
                   <div className="text-green-600 font-semibold mb-2">Pay Now</div>
-                  <div className="text-2xl font-bold text-green-800">$312.50</div>
-                  <div className="text-sm text-gray-600">50% Off Standard Rate ($625)</div>
+                  <div className="text-2xl font-bold text-green-800">${price.challengePrice}</div>
+                  <div className="text-sm text-gray-600">50% Off Standard Rate (${price.basePrice})</div>
                 </div>
               </div>
               <div className="text-center mt-4 text-sm text-green-700">

@@ -124,60 +124,88 @@ exports.propertyValidate = functions
         
         – CDC Inspection Team`,
           html: `
-            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;">
-              <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-        
-                <!-- Header -->
-                <div style="background-color: #FF0000; padding: 20px 30px;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 22px;">
-                    Property Verification Approved
-                  </h1>
-                </div>
-        
-                <!-- Body -->
-                <div style="padding: 30px; color: #333333;">
-                  <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
-        
-                  <p style="font-size: 15px; line-height: 1.6;">
-                    Great news! Your property verification has been successfully approved.
-                    You are now eligible for a <strong style="color:#FF0000;">50% discount</strong> on your inspection.
-                  </p>
-        
-                  <p style="font-size: 15px; line-height: 1.6;">
-                    Please click the button below to verify your property and continue.
-                  </p>
-        
-                  <!-- CTA Button -->
-                  <div style="text-align: center; margin: 35px 0;">
-                    <a href="${url}"
-                       style="background-color: #FF0000; color: #ffffff; padding: 14px 30px; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; display: inline-block;">
-                      Verify Property
-                    </a>
-                  </div>
-        
-                  <p style="font-size: 14px; line-height: 1.6;">
-                    Once verified, one of our certified inspectors will contact you to schedule your inspection.
-                  </p>
-        
-                  <p style="font-size: 14px; color: #666666;">
-                    If the button doesn’t work, copy and paste this link into your browser:
-                    <br />
-                    <a href="${url}" style="color:#FF0000; word-break: break-all;">${url}</a>
-                  </p>
-                </div>
-        
-                <!-- Footer -->
-                <div style="background-color: #f3f3f3; padding: 20px 30px; font-size: 12px; color: #777777; text-align: center;">
-                  <p style="margin: 0;">
-                    © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
-                  </p>
-                  <p style="margin: 8px 0 0;">
-                    This is an automated message. If you have questions, simply reply to this email.
-                  </p>
-                </div>
-        
-              </div>
-            </div>
+            <!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f9f9f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;">
+  <tr>
+    <td align="center" style="padding:20px 10px;">
+
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#FF0000;padding:20px;">
+            <h1 style="margin:0;font-size:22px;color:#ffffff;font-family:Arial,sans-serif;">
+              Property Verification Approved
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:25px;font-family:Arial,sans-serif;color:#333;">
+            <p style="font-size:16px;margin:0 0 12px;">
+              Hello <strong>${name}</strong>,
+            </p>
+
+            <p style="font-size:15px;line-height:1.6;margin:0 0 15px;">
+              Great news! Your property verification has been successfully approved.
+              You are now eligible for a
+              <strong style="color:#FF0000;">50% discount</strong> on your inspection.
+            </p>
+
+            <p style="font-size:15px;line-height:1.6;margin:0 0 20px;">
+              Please click the button below to verify your property and continue.
+            </p>
+
+            <!-- Button -->
+            <table width="100%">
+              <tr>
+                <td align="center" style="padding:15px 0;">
+                  <a href="${url}"
+                     style="background:#FF0000;color:#ffffff;text-decoration:none;
+                     padding:14px 26px;font-size:16px;font-weight:bold;
+                     border-radius:6px;display:inline-block;">
+                    Verify Property
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:14px;line-height:1.6;margin:15px 0;">
+              Once verified, one of our certified inspectors will contact you to schedule your inspection.
+            </p>
+
+            <p style="font-size:13px;color:#666;word-break:break-word;">
+              If the button doesn’t work, copy and paste this link into your browser:<br>
+              <a href="${url}" style="color:#FF0000;">${url}</a>
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f3f3f3;padding:18px;text-align:center;
+            font-size:12px;font-family:Arial,sans-serif;color:#777;">
+            <p style="margin:0;">
+              © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+            </p>
+            <p style="margin:6px 0 0;">
+              This is an automated message. Replies are monitored.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+
           `,
         };
   
@@ -229,53 +257,77 @@ exports.propertyValidate = functions
         
         – CDC Inspection Team`,
           html: `
-            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;">
-              <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-        
-                <!-- Header -->
-                <div style="background-color: #FF0000; padding: 20px 30px;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 22px;">
-                    Property Verification Not Approved
-                  </h1>
-                </div>
-        
-                <!-- Body -->
-                <div style="padding: 30px; color: #333333;">
-                  <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
-        
-                  <p style="font-size: 15px; line-height: 1.6;">
-                    Thank you for submitting your property for verification.
-                  </p>
-        
-                  <p style="font-size: 15px; line-height: 1.6;">
-                    After reviewing the information provided, we were unable to approve your
-                    property verification at this time.
-                  </p>
-        
-                  <div style="background-color: #fff5f5; border-left: 4px solid #FF0000; padding: 15px; margin: 25px 0;">
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6;">
-                      This may be due to missing, incomplete, or unclear details in your submission.
-                    </p>
-                  </div>
-        
-                  <p style="font-size: 14px; line-height: 1.6;">
-                    Please review your information and resubmit once the necessary updates are made.
-                    If you need help or clarification, simply reply to this email — our team is happy to assist.
-                  </p>
-                </div>
-        
-                <!-- Footer -->
-                <div style="background-color: #f3f3f3; padding: 20px 30px; font-size: 12px; color: #777777; text-align: center;">
-                  <p style="margin: 0;">
-                    © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
-                  </p>
-                  <p style="margin: 8px 0 0;">
-                    This is an automated message. Replies are monitored.
-                  </p>
-                </div>
-        
-              </div>
-            </div>
+          <!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f9f9f9;">
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" style="padding:20px 10px;">
+
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#FF0000;padding:20px;">
+            <h1 style="margin:0;font-size:22px;color:#ffffff;font-family:Arial,sans-serif;">
+              Property Verification Not Approved
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:25px;font-family:Arial,sans-serif;color:#333;">
+            <p style="font-size:16px;margin:0 0 12px;">
+              Hello <strong>${name}</strong>,
+            </p>
+
+            <p style="font-size:15px;line-height:1.6;margin:0 0 12px;">
+              Thank you for submitting your property for verification.
+            </p>
+
+            <p style="font-size:15px;line-height:1.6;margin:0 0 15px;">
+              After reviewing the information provided, we were unable to approve your
+              property verification at this time.
+            </p>
+
+            <table width="100%" style="background:#fff5f5;border-left:4px solid #FF0000;margin:20px 0;">
+              <tr>
+                <td style="padding:14px;font-size:14px;line-height:1.6;">
+                  This may be due to missing, incomplete, or unclear details in your submission.
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:14px;line-height:1.6;">
+              Please review your information and resubmit once the necessary updates are made.
+              If you need help, simply reply to this email.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f3f3f3;padding:18px;text-align:center;
+            font-size:12px;font-family:Arial,sans-serif;color:#777;">
+            <p style="margin:0;">
+              © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+            </p>
+            <p style="margin:6px 0 0;">
+              This is an automated message. Replies are monitored.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+
           `,
         };
         
@@ -325,37 +377,59 @@ exports.propertyValidate = functions
   
   – CDC Inspection Team`,
           html: `
-            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;">
-              <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-  
-                <!-- Header -->
-                <div style="background-color: #FF0000; padding: 20px 30px;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 22px;">
-                    Property Verification Update
-                  </h1>
-                </div>
-  
-                <!-- Body -->
-                <div style="padding: 30px; color: #333333;">
-                  <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
-  
-                  <p style="font-size: 15px; line-height: 1.6;">
-                    ${message}
-                  </p>
-                </div>
-  
-                <!-- Footer -->
-                <div style="background-color: #f3f3f3; padding: 20px 30px; font-size: 12px; color: #777777; text-align: center;">
-                  <p style="margin: 0;">
-                    © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
-                  </p>
-                  <p style="margin: 8px 0 0;">
-                    This is an automated message. Replies are monitored.
-                  </p>
-                </div>
-  
-              </div>
-            </div>
+         <!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f9f9f9;">
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" style="padding:20px 10px;">
+
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#FF0000;padding:20px;">
+            <h1 style="margin:0;font-size:22px;color:#ffffff;font-family:Arial,sans-serif;">
+              Property Verification Update
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:25px;font-family:Arial,sans-serif;color:#333;">
+            <p style="font-size:16px;margin:0 0 12px;">
+              Hello <strong>${name}</strong>,
+            </p>
+
+            <p style="font-size:15px;line-height:1.6;">
+              ${message}
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f3f3f3;padding:18px;text-align:center;
+            font-size:12px;font-family:Arial,sans-serif;color:#777;">
+            <p style="margin:0;">
+              © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+            </p>
+            <p style="margin:6px 0 0;">
+              This is an automated message. Replies are monitored.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+
           `,
         };
   
@@ -665,6 +739,7 @@ exports.propertyValidate = functions
               stripeSessionId: sessionId,
               updatedAt: admin.firestore.FieldValue.serverTimestamp(),
               approvalTokenUsed: true,
+              isDiscount:true,
               approvalToken: admin.firestore.FieldValue.delete(),
               approvalTokenExpiresAt: admin.firestore.FieldValue.delete(),
             });
@@ -730,249 +805,3 @@ exports.propertyValidate = functions
       return res.json({ received: true });
     }
   });
-
-
-
-
-  // Webhook handler for payment confirmations
-// exports.stripeWebhook = functions.https.onRequest((req, res) => {
-//   const sig = req.headers["stripe-signature"];
-//   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-//   let event;
-
-//   try {
-//     event = Stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-//     console.log("Webhook event received:", event.type);
-
-//     console.log("event in stripe webhook", req.body);
-    
-//   } catch (err) {
-//     console.error("Webhook signature verification failed:", err.message);
-//     return res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-
-//   // Handle the event
-//   switch (event.type) {
-//     case "checkout.session.completed":
-//         const session = event.data.object;
-
-//   const paymentRef = admin.firestore().collection("payments").doc(session.id);
-//   const paymentSnap = await paymentRef.get();
-//   if (!paymentSnap.exists) {
-//     console.error("No payment doc for session:", session.id);
-//     break;
-//   }
-
-//   const payment = paymentSnap.data();
-//   const bookingPayload =
-//     payment.bookingPayload ||
-//     (session.metadata?.bookingPayload ? JSON.parse(session.metadata.bookingPayload) : null);
-
-//   if (!bookingPayload) {
-//     console.error("Missing bookingPayload for session:", session.id);
-//     break;
-//   }
-//       break;
-    
-//     case "checkout.session.async_payment_succeeded":
-//       handleCheckoutSessionCompleted(event.data.object);
-//       break;
-    
-//     case "payment_intent.succeeded":
-//       const paymentIntent = event.data.object;
-//       console.log("Payment succeeded:", paymentIntent.id);
-//       // You can keep this for other payment flows if needed
-//       break;
-    
-//     case "payment_intent.payment_failed":
-//       console.log("Payment failed:", event.data.object.id);
-//       break;
-    
-//     default:
-//       console.log(`Unhandled event type ${event.type}`);
-//   }
-
-//   res.json({ received: true });
-// });
-
-
-// exports.stripeWebhook = functions.https.onRequest((req, res) => {
-//   const sig = req.headers["stripe-signature"];
-//   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-//   let event;
-
-//   try {
-//     event = Stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-//     console.log("Webhook event received:", event.type);
-//   } catch (err) {
-//     console.error("Webhook signature verification failed:", err.message);
-//     return res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-
-//   // Handle the event
-//   switch (event.type) {
-//     case "checkout.session.completed":
-//       handleCheckoutSessionCompleted(event.data.object);
-//       break;
-    
-//     case "checkout.session.async_payment_succeeded":
-//       handleCheckoutSessionCompleted(event.data.object);
-//       break;
-    
-//     case "payment_intent.succeeded":
-//       const paymentIntent = event.data.object;
-//       console.log("Payment succeeded:", paymentIntent.id);
-//       // You can keep this for other payment flows if needed
-//       break;
-    
-//     case "payment_intent.payment_failed":
-//       console.log("Payment failed:", event.data.object.id);
-//       break;
-    
-//     default:
-//       console.log(`Unhandled event type ${event.type}`);
-//   }
-
-//   // Always return 200 immediately to acknowledge receipt
-//   res.json({ received: true });
-// });
-
-
-
-
-
-
-// updating our data into database 
-// async function handleCheckoutSessionCompleted(session) {
-//   try {
-//     console.log("Processing checkout.session.completed for session:", session.id);
-    
-//     // Extract metadata from session
-//     const metadata = session.metadata || {};
-//     const userId = metadata.userId;
-//     const paymentType = metadata.paymentType; // 'pay_now' or 'challenge'
-//     const sessionId = session.id;
-    
-//     if (!userId) {
-//       console.error("Missing userId in session metadata");
-//       return;
-//     }
-    
-//     // Retrieve pending booking data from Firestore
-//     const pendingBookingRef = admin.firestore()
-//       .collection('pendingBookings')
-//       .doc(sessionId);
-    
-//     const pendingBookingDoc = await pendingBookingRef.get();
-    
-//     if (!pendingBookingDoc.exists) {
-//       console.error("Pending booking not found for session:", sessionId);
-//       return;
-//     }
-    
-//     const pendingBookingData = pendingBookingDoc.data();
-    
-//     /* =====================
-//        PAY NOW FLOW
-//     ====================== */
-//     if (paymentType === 'pay_now') {
-//       // Check if booking already exists
-//       const existingBookingQuery = await admin.firestore()
-//         .collection('bookings')
-//         .where('stripeSessionId', '==', sessionId)
-//         .limit(1)
-//         .get();
-      
-//       if (!existingBookingQuery.empty) {
-//         console.warn('Booking already exists for this Stripe session');
-//         return;
-//       }
-      
-//       // Create booking document
-//       const bookingToSave = {
-//         ...pendingBookingData,
-//         userId: userId,
-//         status: 'PAID',
-//         paymentStatus: 'completed',
-//         stripeSessionId: sessionId,
-//         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-//         paidAt: admin.firestore.FieldValue.serverTimestamp(),
-//       };
-      
-//       await admin.firestore().collection('bookings').add(bookingToSave);
-//       console.log('Booking created successfully (Pay Now)');
-      
-//       // Delete pending booking document
-//       await pendingBookingRef.delete();
-//     }
-    
-//     /* =====================
-//        CHALLENGE FLOW
-//     ====================== */
-//     else if (paymentType === 'challenge') {
-//       const approvalToken = pendingBookingData.approvalToken;
-      
-//       if (!approvalToken) {
-//         console.error('Approval token missing in challenge flow');
-//         return;
-//       }
-      
-//       // Find existing booking by approval token
-//       const bookingsQuery = await admin.firestore()
-//         .collection('bookings')
-//         .where('approvalToken', '==', approvalToken)
-//         .limit(1)
-//         .get();
-      
-//       if (bookingsQuery.empty) {
-//         console.error('Booking not found for approval token');
-//         return;
-//       }
-      
-//       const bookingDoc = bookingsQuery.docs[0];
-//       const bookingRef = admin.firestore()
-//         .collection('bookings')
-//         .doc(bookingDoc.id);
-      
-//       const existingBookingData = bookingDoc.data();
-      
-//       // Merge property data
-//       const updatedProperty = {
-//         ...pendingBookingData.property,
-//         challengePrice: existingBookingData.property?.challengePrice || pendingBookingData.property?.challengePrice,
-//       };
-      
-//       // Update booking
-//       await bookingRef.update({
-//         property: updatedProperty,
-//         isDiscount: true,
-//         status: 'Approved',
-//         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-//         approvalTokenUsed: true,
-//         approvalToken: admin.firestore.FieldValue.delete(),
-//         approvalTokenExpiresAt: admin.firestore.FieldValue.delete(),
-//         date: pendingBookingData.date,
-//         sessionId: sessionId,
-//         time: pendingBookingData.time,
-//         formattedDateTime: pendingBookingData.formattedDateTime,
-//         verifiedContact: pendingBookingData.verifiedContact,
-//         userId: userId,
-//       });
-      
-//       console.log('Booking updated successfully (Challenge)');
-      
-//       // Delete pending booking document
-//       await pendingBookingRef.delete();
-//     }
-    
-//   } catch (error) {
-//     console.error("Error processing checkout session:", error);
-//     // Don't throw - webhook should return 200 even on errors
-//     // You might want to log to a separate error collection
-//   }
-// }
-
-
-

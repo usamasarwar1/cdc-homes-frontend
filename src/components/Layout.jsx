@@ -22,10 +22,10 @@ import Headers2 from './Headers2'
 import { cn } from '../utils/Cn'
 
 const links = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/users', label: 'Users', icon: Users },
-    { to: '/pricing-schedule-admin', label: 'Pricing Schedule', icon: CreditCard },
-    { to: '/property-confirm', label: 'Property Confirm', icon: CreditCard }
+    { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/admin/users', label: 'Users', icon: Users },
+    { to: '/admin/pricing-schedule-admin', label: 'Pricing Schedule', icon: CreditCard },
+    { to: '/admin/property-confirm', label: 'Property Confirm', icon: CreditCard }
 ]
 
 const SidebarMenuItems = () => {

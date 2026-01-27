@@ -860,8 +860,8 @@ const PropertyDetails = () => {
               <Separator />
               <div>
                 <p className="text-sm text-gray-500 mb-1">Payment Method</p>
-                <Badge variant={isDiscount ? "outline" : "default"} className={isDiscount ? "bg-yellow-50 text-yellow-700" : "bg-green-100 text-green-700"}>
-                  {isDiscount ? 'Challenge (50%)' : 'Pay Now'}
+                <Badge variant={isDiscount || booking.property.isDiscount ? "outline" : "default"} className={isDiscount || booking.property.isDiscount ? "bg-yellow-50 text-yellow-700" : "bg-green-100 text-green-700"}>
+                  {isDiscount || booking.property.isDiscount ? 'Challenge (50%) Off' : 'Pay Now'}
                 </Badge>
               </div>
               <Separator />
