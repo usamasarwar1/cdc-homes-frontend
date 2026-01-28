@@ -103,14 +103,19 @@ const PropertyConfirmation = () => {
   const filteredBookings = bookings.filter((booking) => {
     const search = searchEmail.toLowerCase();
   
+    const payerEmail =
+      booking.verifiedContact?.payerEmail?.toLowerCase() ||
+      booking.user?.email?.toLowerCase() ||
+      '';
+  
     const userName = booking.user?.name?.toLowerCase() || '';
-    const userEmail = booking.user?.email?.toLowerCase() || '';
   
     return (
-      userName.includes(search) ||
-      userEmail.includes(search)
+      payerEmail.includes(search) ||
+      userName.includes(search)
     );
   });
+  
   
 
   const handleView = async (booking) => {

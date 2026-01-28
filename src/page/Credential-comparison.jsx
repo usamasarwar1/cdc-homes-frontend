@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -37,6 +37,7 @@ const licenceCredentials = [
 
 export default function CredentialComparisonPage() {
   const navigate = useNavigate();
+const matchedCredentialsRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [whoIsPaying, setWhoIsPaying] = useState(false)
   const [payerEmail, setPayerEmail] = useState(null)
@@ -54,8 +55,11 @@ export default function CredentialComparisonPage() {
   const [errors, setErrors] = useState({
     websiteUrl: ''
   });
+  const [inputError, setInputError] = useState(null)
+  const [emailError, setEmailError] = useState(null)
   const [price, setPrice] = useState()
-  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const { currentStep, completedSteps, completeStep, setStep } = useProgress();
   
   useEffect(() => {
@@ -176,6 +180,13 @@ export default function CredentialComparisonPage() {
         licenceStatus: licenceValue
       }
 
+      if (!emailRegex.test(payerEmail)) {
+        setEmailError("Please enter a valid email address etc 'example@gmail.com");
+        setIsLoading(false);
+        return;
+      }
+      setEmailError(null)
+
       const data = {
         isDiscount: paymentMethod === 'challenge' ? true : false,
         property: propertyData,
@@ -184,8 +195,6 @@ export default function CredentialComparisonPage() {
         status: 'pending_verification',
         updatedAt: serverTimestamp()
       };
-
-      // console.log(data);
 
       const bookingsRef = collection(db, 'bookings');
         const newData = {
@@ -203,6 +212,23 @@ export default function CredentialComparisonPage() {
       setIsLoading(false);
     }
   };
+
+  const handleApprove = () => {
+    if (!licenceValue) {
+      setInputError("Please Select the lincence Status")
+      matchedCredentialsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      return;
+    } if (licenceValue) {
+      setInputError('')
+    }
+  
+    setWhoIsPaying(true);
+    
+  };
+  
 
   const { matches, total } = calculateMatch();
   const matchPercentage = Math.round((matches / total) * 100);
@@ -474,43 +500,61 @@ export default function CredentialComparisonPage() {
                 </div>
               </div>
 
-              <div className="mb-6">
+              {/* <div
+                ref={matchedCredentialsRef}
+              className="mb-2"> */}
+              <div
+                ref={matchedCredentialsRef}
+                className={`mb-2 rounded ${
+                  inputError ? "ring-2 ring-red-400" : ""
+                }`}
+              >
                 <h4 className="font-semibold mb-3 text-center">Matched Credentials *</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                {inspectorCredentials.map((credential) => {
-  const isSelected = licenceValue === credential.value;
+             {inspectorCredentials.map((credential) => {
+                const isSelected = licenceValue === credential.value;
 
-  return (
-    <div
-      key={credential.value}
-      className={`flex items-center space-x-2 p-2 rounded cursor-pointer ${
-        isSelected ? "bg-green-100" : "bg-white"
-      }`}
-      onClick={() =>
-        setLicenceValue(isSelected ? null : credential.value) 
-      }
-    >
+                return (
+                  <div
+                    key={credential.value}
+                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer ${
+                      isSelected ? "bg-green-100" : "bg-white"
+                    }`}
+                    onClick={() =>
+                      // setLicenceValue(isSelected ? null : credential.value) 
+                      {
+                        const value = isSelected ? null : credential.value;
+                        setLicenceValue(value);
+                      
+                        if (value) {
+                          setInputError("");
+                        }
+                      }
+                    }
+                  >
 
-      {isSelected ? (
-        <Check className="w-4 h-4 text-green-600" />
-      ) : (
-        <span className="w-4 h-4  rounded" />
-      )}
+                    {isSelected ? (
+                      <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <span className="w-4 h-4  rounded" />
+                    )}
 
-      <span
-        className={`${
-          isSelected ? "text-gray-900 font-medium" : "text-gray-400"
-        }`}
-      >
-        {credential.label}
-      </span>
-    </div>
-  );
-})}
+                    <span
+                      className={`${
+                        isSelected ? "text-gray-900 font-medium" : "text-gray-400"
+                      }`}
+                    >
+                      {credential.label}
+                    </span>
+                  </div>
+                );
+              })}
 
                 </div>
               </div>
-              
+              {inputError && (
+                <p className='pb-3 pl-2 text-sm text-red-400'>{inputError}</p>
+              )}
               <div className="space-y-2">
                 <div>
                   <Label htmlFor="firstName" className="text-sm font-medium">
@@ -551,25 +595,6 @@ export default function CredentialComparisonPage() {
                 </div>
              
               <div className='grid grid-cols-2 md:grid-cols-4'>
-              {/* {licenceCredentials.map((licence) => (
-                <div key={licence.value} className="mt-3 md:mt-4">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={licenceValue === licence.value}
-                      onChange={(e) => {
-                        setLicenceValue(
-                          e.target.checked ? licence.value : null
-                        );
-                      }}
-                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-xs md:text-sm text-gray-700">
-                      {licence.label}
-                    </span>
-                  </label>
-                </div>
-              ))} */}
 
               </div>
                 
@@ -592,14 +617,13 @@ export default function CredentialComparisonPage() {
                 <div className="text-center pt-4">
                 {!whoIsPaying && 
                   <Button 
-                    onClick={()=> setWhoIsPaying(true)}
+                    onClick={()=> handleApprove()}
                     className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
                     disabled={
                       !inspectorDetails.firstName || 
                       !inspectorDetails.lastName || 
                       !inspectorDetails.licenseNumbers || 
-                      !!errors.websiteUrl ||
-                      !licenceValue 
+                      !!errors.websiteUrl
                     }
                   >
                    Submit
@@ -623,24 +647,29 @@ export default function CredentialComparisonPage() {
                <div className="space-y-2">
                  <div>
                    <Label htmlFor="firstName" className="text-sm font-medium">
-                     Who is Paying?
+                     Who is Paying? *
                    </Label>
                    <Input
-                     id="email"
-                     required
-                     value={payerEmail}
-                     onChange={(e) => setPayerEmail(e.target.value)}
-                     placeholder="Enter Payer Email"
-                     className="mt-1"
-                   />
+                      id="email"
+                      type="email"
+                      required
+                      value={payerEmail}
+                      onChange={(e) => setPayerEmail(e.target.value)}
+                      placeholder="example@gmail.com"
+                      className="mt-1"
+                    />
+
                  </div>
+                 {emailError && (
+                  <p className='text-sm text-red-400'>{emailError}</p>
+                 )}
                  
                  <div className="text-center pt-4">
                  
                    <Button 
                      onClick={handleFinalSubmit}
                      className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
-                     disabled={!payerEmail}
+                    //  disabled={!payerEmail}
                    >
                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
                    </Button>

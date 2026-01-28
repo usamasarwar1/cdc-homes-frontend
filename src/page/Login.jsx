@@ -83,11 +83,10 @@ const Login = ({}) => {
       <form onSubmit={handleLogin} className="space-y-5">
 
       <div>
-          <label className="text-sm font-medium text-gray-700">New Password</label>
+          <label className="text-sm font-medium text-gray-700">Email</label>
           <div className="relative mt-1 border-gray-500">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-            //   type={text}
               value={email}
                placeholder="Enter Email"
               onChange={(e) => setEmail(e.target.value)}
@@ -97,7 +96,6 @@ const Login = ({}) => {
       
           </div>
         </div>
-        {/* Password */}
         <div>
           <label className="text-sm font-medium text-gray-700">New Password</label>
           <div className="relative mt-1 border-gray-500">
