@@ -642,6 +642,7 @@ exports.propertyValidate = functions
   
           // 2) Get bookingPayload
           let bookingPayload = paymentData.bookingPayload || null;
+          // let email = paymentData.stripe.customerEmail
   
           if (!bookingPayload && session.metadata?.bookingPayload) {
             try {
@@ -659,13 +660,8 @@ exports.propertyValidate = functions
             console.error("paymentData keys:", Object.keys(paymentData));
             console.error("session.metadata:", session.metadata);
             break;
-          }
-  
-  
-          // const userId = paymentData.userId || bookingPayload.userId || session.metadata?.userId || null;
-          
-  
-  
+          }          
+
           const paymentType = paymentData.paymentType || session.metadata?.paymentType || "pay_now";
   
           let bookingId = null;
@@ -683,9 +679,10 @@ exports.propertyValidate = functions
               console.log("⚠️ Booking already exists:", bookingId);
             } else {
               console.log("📝 Creating new booking...");
+              
+              
               const bookingRef = await admin.firestore().collection("bookings").add({
                 ...bookingPayload,
-                // userId: userId, 
                 status: "PAID",
                 paymentStatus: "completed",
                 stripeSessionId: sessionId,
@@ -723,7 +720,6 @@ exports.propertyValidate = functions
 
             await admin.firestore().collection("bookings").doc(bookingId).update({
               ...bookingDataWithoutToken,
-              // userId: userId, 
               status: "Approved",
               paymentStatus: "completed",
               stripeSessionId: sessionId,
@@ -748,7 +744,6 @@ exports.propertyValidate = functions
           
           const paymentUpdateData = {
             status: "paid",
-            // userId: userId,
             bookingId: bookingId,
             paidAt: admin.firestore.FieldValue.serverTimestamp(),
             stripe: {
@@ -775,7 +770,36 @@ exports.propertyValidate = functions
           };
   
           await paymentRef.update(paymentUpdateData);
-  
+          
+          // Send confirmation email to customer
+          try {
+            const customerEmail = paymentUpdateData.stripe.customerEmail || 
+                                paymentData.stripe?.customerEmail || 
+                                bookingPayload.verifiedContact?.payerEmail;
+            
+            if (customerEmail && bookingPayload) {
+              // Call the email function internally
+              const functionUrl = `https://us-central1-inspection-app-4c592.cloudfunctions.net/paymentSuccessConfirmation`;
+              
+              // Use internal HTTP call or direct function call
+              await fetch(functionUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  customerEmail: customerEmail,
+                  bookingData: bookingPayload,
+                }),
+              }).catch(err => {
+                // Log error but don't fail the webhook
+                console.error("Failed to send confirmation email:", err);
+              });
+              
+              console.log("✅ Confirmation email sent to:", customerEmail);
+            }
+          } catch (emailError) {
+            // Log error but don't fail the webhook
+            console.error("Error sending confirmation email:", emailError);
+          }
           break;
         }
   
@@ -795,4 +819,156 @@ exports.propertyValidate = functions
       console.error("Error stack:", err.stack);
       return res.json({ received: true });
     }
+  });
+
+  exports.paymentSuccessConfirmation = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        const { customerEmail, bookingData } = req.body;
+  
+        if (!bookingData || !customerEmail) {
+          return res.status(400).json({ error: "Missing required fields: bookingData, customerEmail" });
+        }
+  
+        const apiKey = process.env.SENDGRID_API_KEY;
+        const fromEmail = "hello@answerlyapp.com";
+  
+        if (!apiKey) {
+          return res.status(500).json({ error: "SendGrid API key missing" });
+        }
+  
+        sgMail.setApiKey(apiKey);
+  
+        // Extract customer name from bookingData
+        const firstName = bookingData.verifiedContact?.payeeName?.firstName || 
+                         bookingData.verifiedContact?.firstName || 
+                         '';
+        const lastName = bookingData.verifiedContact?.payeeName?.lastName || 
+                        bookingData.verifiedContact?.lastName || 
+                        '';
+        const customerName = `${firstName} ${lastName}`.trim() || 'Valued Customer';
+        
+        // Extract booking details
+        const propertyAddress = bookingData.property?.address || 'N/A';
+        const formattedDateTime = bookingData.formattedDateTime || 
+                                  `${bookingData.date || 'N/A'} at ${bookingData.time || 'N/A'}`;
+        const price = bookingData.fullPrice || bookingData.price || 0;
+        const paymentMethod = bookingData.property?.paymentMethod === 'challenge' ? 'Challenge (50% Discount)' : 'Pay Now';
+  
+        const msg = {
+          to: customerEmail,
+          from: fromEmail,
+          subject: "Payment Confirmed – Your Home Inspection is Scheduled",
+          text: `Hello ${customerName},
+  
+  Thank you for your payment! Your home inspection has been successfully scheduled.
+  
+  Booking Details:
+  - Property Address: ${propertyAddress}
+  - Inspection Date & Time: ${formattedDateTime}
+  - Payment Amount: $${price.toFixed(2)}
+  - Payment Method: ${paymentMethod}
+  
+  Our inspector will contact you prior to the scheduled inspection date. If you have any questions or need to reschedule, please don't hesitate to reach out.
+  
+  Thank you for choosing CDC Inspection!
+  
+  – CDC Inspection Team`,
+          html: `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;">
+    <tr>
+      <td align="center" style="padding:20px 10px;">
+        <table width="100%" cellpadding="0" cellspacing="0"
+          style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background:#FF0000;padding:20px;">
+              <h1 style="margin:0;font-size:22px;color:#ffffff;font-family:Arial,sans-serif;">
+                Payment Confirmed ✓
+              </h1>
+            </td>
+          </tr>
+  
+          <!-- Body -->
+          <tr>
+            <td style="padding:25px;font-family:Arial,sans-serif;color:#333;">
+              <p style="font-size:16px;margin:0 0 12px;">
+                Hello <strong>${customerName}</strong>,
+              </p>
+  
+              <p style="font-size:15px;line-height:1.6;margin:0 0 15px;">
+                Thank you for your payment! Your home inspection has been successfully scheduled.
+              </p>
+  
+              <!-- Booking Details Box -->
+              <table width="100%" style="background:#f8f9fa;border-radius:6px;padding:20px;margin:20px 0;border-left:4px solid #FF0000;">
+                <tr>
+                  <td style="padding:0;">
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Property Address:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">${propertyAddress}</p>
+                    
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Inspection Date & Time:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">${formattedDateTime}</p>
+                    
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Payment Amount:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">$${price.toFixed(2)}</p>
+                    
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Payment Method:</strong></p>
+                    <p style="margin:0;font-size:15px;color:#333;font-weight:500;">${paymentMethod}</p>
+                  </td>
+                </tr>
+              </table>
+  
+              <p style="font-size:14px;line-height:1.6;margin:15px 0;">
+                Our inspector will contact you prior to the scheduled inspection date. If you have any questions or need to reschedule, please don't hesitate to reach out.
+              </p>
+  
+              <p style="font-size:14px;line-height:1.6;margin:15px 0;">
+                Thank you for choosing CDC Inspection!
+              </p>
+            </td>
+          </tr>
+  
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f3f3f3;padding:18px;text-align:center;
+              font-size:12px;font-family:Arial,sans-serif;color:#777;">
+              <p style="margin:0;">
+                © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+              </p>
+              <p style="margin:6px 0 0;">
+                This is an automated message. Replies are monitored.
+              </p>
+            </td>
+          </tr>
+  
+        </table>
+      </td>
+    </tr>
+  </table>
+  </body>
+  </html>
+          `,
+        };
+  
+        await sgMail.send(msg);
+  
+        return res.status(200).json({
+          success: true,
+          message: "Payment confirmation email sent successfully",
+        });
+  
+      } catch (error) {
+        console.error("paymentSuccessConfirmation error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+    });
   });

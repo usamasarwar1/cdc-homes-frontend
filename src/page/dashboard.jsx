@@ -115,22 +115,9 @@ const Dashboard = () => {
     navigate(`/admin/property-details/${booking.id}`);
   };
 
-  const getBookingDate = (booking) => {
-    if (booking.formattedDateTime) {
-      return booking.formattedDateTime;
-    }
-    if (booking.date) {
-      return booking.date;
-    }
-    
-    if(!booking.date && !booking.time && booking.isDiscount) {
-      return '50% Discount';
-    }
-    return 'N/A';
-  };
 
   const getBookingPrice = (booking) => {
-    if(booking.status === 'pending_verification') {
+    if(booking.status === 'pending_verification' || booking.status === 'approval_pending') {
       return `$${booking.property.challengePrice}`;
     } else {
       return `$${booking.fullPrice}`;
@@ -242,7 +229,6 @@ const Dashboard = () => {
                 <tr className="text-muted-foreground font-semibold uppercase tracking-wide">
                    <th className="px-3 py-2 text-left min-w-[50px]">Email</th>
                   <th className="px-3 py-2 text-left min-w-[300px]">Property Address</th>
-                  {/* <th className="px-3 py-2 text-left min-w-[200px]">Date & Time</th> */}
                   <th className="px-3 py-2 text-left">Price</th>
                   <th className="px-3 py-2 text-left">Property Type</th>
                   <th className="px-3 py-2 text-left">Status</th>
@@ -261,7 +247,6 @@ const Dashboard = () => {
                     >
 
                     <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">
-                        {/* {booking.user?.email || 'N/A'} */}
                         {getEmail(booking)}
                       </td>
 
@@ -269,17 +254,11 @@ const Dashboard = () => {
                         {booking.property?.address || 'N/A'}
                       </td>
 
-                      {/* <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">
-                        {getBookingDate(booking)}
-                      </td> */}
 
                       <td className="px-3 py-2 text-gray-700 font-medium">
                         {getBookingPrice(booking)}
                       </td>
 
-                      {/* <td className="px-3 py-2 text-gray-700 font-medium">
-                        {getPaymentMethod( booking.property.isDiscount, booking.isDiscount)}
-                      </td> */}
                       
                       <td className="px-3 py-2 text-gray-700 font-medium">
                         {getPaymentMethod( booking.property.isDiscount, booking.isDiscount)}
