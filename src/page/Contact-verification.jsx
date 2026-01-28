@@ -5,8 +5,8 @@ import { useProgress } from '../components/gamification/ProgressProvider';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { db } from '../firebase';
-import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 
 export default function ContactVerificationPage() {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ export default function ContactVerificationPage() {
   const [tokenError, setTokenError] = useState(null);
 
   useEffect(() => {
-    console.log(token);
     
     const initializeProperty = async () => {
       if (token) {
@@ -39,8 +38,6 @@ export default function ContactVerificationPage() {
 
           const querySnapshot = await getDocs(bookingsQuery);
 
-          // console.log("querySnapshot", querySnapshot.docs[0]?.data());
-
           if (querySnapshot.empty) {
             setTokenError('Invalid approval token. Please check your email link.');
             setIsLoadingBooking(false);
@@ -48,11 +45,9 @@ export default function ContactVerificationPage() {
           }
 
           const bookingData = querySnapshot.docs[0].data();
-          console.log(bookingData);
           
           sessionStorage.setItem('bookingDataUsingToken', JSON.stringify(bookingData));
 
-          console.log("bookingData", bookingData);
 
           if (bookingData.approvalTokenUsed) {
             setTokenError('This approval link has already been used.');
@@ -115,7 +110,6 @@ export default function ContactVerificationPage() {
             paymentMethod: urlParams.get('paymentMethod') || 'pay_now'
           };
 
-          console.log("property from url params", propertyFromUrl);
           setProperty(propertyFromUrl);
         } else {
           setTokenError('No property information or approval token provided.');

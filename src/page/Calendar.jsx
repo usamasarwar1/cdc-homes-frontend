@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
-import { Calendar } from '../components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/Badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialoag';
@@ -12,23 +11,16 @@ import { Label } from '../components/ui/Label';
 import { CalendarIcon, ClockIcon, MapPinIcon, HomeIcon, UserIcon, PhoneIcon, MailIcon, UsersIcon, Clock, AlertCircle } from 'lucide-react';
 import { format, addDays, isWeekend, isSaturday, isToday } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
-import { doc, setDoc, getDoc, deleteField, serverTimestamp, collection, addDoc, updateDoc, query, where, getDocs } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { auth } from '../firebase';
 import { ProgressSteps, GuidanceCard } from '../components/ui/Progress-steps';
 import { Loader2 } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 
 
 
 export default function InspectionCalendar() {
   const functionUrl = import.meta.env.VITE_BASE_URL;
-  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-  const stripe = useStripe();
-const elements = useElements();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState();
   const [isLoading, setIsLoading] = useState(false);
@@ -38,13 +30,10 @@ const elements = useElements();
   const [showWaitingListDialog, setShowWaitingListDialog] = useState(false);
   const [waitingListEmail, setWaitingListEmail] = useState('');
   const [waitingListPhone, setWaitingListPhone] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
   const [loginUser, setLoginUser] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [token, setToken] = useState(null)
   const [user, setUser] = useState(null);
-  const [showPaymentIntent, setShowPaymentIntent] = useState(false);
-const [pendingBookingData, setPendingBookingData] = useState(null);
 
 
 
@@ -155,28 +144,8 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
       }
 
       try {
-        // console.log("currentUser", currentUser.uid);
-
         const token = localStorage.getItem('approvalToken') || sessionStorage.getItem('approvalToken');
-        console.log("token", token);
         setToken(token)
-        // let userIdToUse = currentUser.uid; 
-  
-        // if(token){
-        //   const bookingsRef = collection(db, "bookings");
-        //   const q = query(bookingsRef, where("approvalToken", "==", token));
-        //   const querySnapshot = await getDocs(q);
-      
-          
-        //     const bookingDoc = querySnapshot.docs[0]; 
-        //     // const bookingDocData = bookingDoc.data();
-
-        //     // console.log("bookingDocData", bookingDocData.userId);
-        //     // userIdToUse = bookingDocData.userId;
-        // } else {
-        //   // userIdToUse = currentUser.uid;
-        // }
-        // setCurrentUserId(userIdToUse);
       } catch (err) {
         console.error("Error fetching user role", err);
         setCurrentUserId(currentUser.uid);
@@ -224,13 +193,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
 
     const bookingData = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
 
-    // console.log("bookingData in session storage---------- after obj-", bookingData);
-    // console.log("paymentMethod from URL:", propertyData.paymentMethod);
-    
-    // Only merge challenge data if URL paymentMethod is 'challenge' AND bookingData has isDiscount
     if(bookingData && bookingData.isDiscount && propertyData.paymentMethod === 'challenge'){
-      console.log("bookingData ", bookingData);
-      
       const mergedProperty = {
         ...propertyData,
         paymentMethod: 'challenge', // Keep as challenge since URL confirms it
@@ -260,12 +223,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
       setProperty(mergedProperty);
     } else {
       // ----- pay_now -----
-
-      // console.log("----- pay_now -----", {
-      //   ...propertyData,
-      //   isDiscount: false,
-      //   paymentMethod: propertyData.paymentMethod || 'challenge'
-      // });
       
       setProperty({
         ...propertyData,
@@ -299,14 +256,12 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
     
     const bookingData = JSON.parse(sessionStorage.getItem('bookingDataUsingToken') || 'null');
     
-    // Only use challenge price if paymentMethod is 'challenge' AND bookingData confirms it
     if (bookingData && bookingData.property && paymentMethod === 'challenge') {
       if (bookingData.isDiscount === true && bookingData.property.challengePrice) {
         return bookingData.property.challengePrice;
       } 
     }
     
-    // Use payNowPrice if available and paymentMethod is pay_now
     if (bookingData && bookingData.property && paymentMethod === 'pay_now') {
       if (bookingData.property.payNowPrice) {
         return bookingData.property.payNowPrice;
@@ -358,14 +313,12 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
     if (!date) return [];
     
     if (isSaturday(date)) {
-      // Saturday: 7:30am - 2pm
       return [
         '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM',
         '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM',
         '1:30 PM', '2:00 PM'
       ];
     } else {
-      // Weekdays: 8am - 5pm
       return [
         '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
         '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM',
@@ -426,23 +379,19 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
     if (!dateString) return false;
     const date = new Date(dateString);
     const dayOfWeek = date.getDay();
-    return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
+    return dayOfWeek === 0 || dayOfWeek === 6; 
   };
 
   const isDateDisabled = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Disable past dates
     if (date < today) return true;
     
-    // Disable same-day booking (return true to disable)
-    if (isToday(date)) return true; // Disable today for booking
+    if (isToday(date)) return true; 
     
-    // Disable Sundays and Saturdays
     if (date.getDay() === 0 || date.getDay() === 6) return true;
     
-    // Only allow dates within our 14-day window
     const maxDate = addDays(today, 14);
     if (date > maxDate) return true;
     
@@ -523,7 +472,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
     try {
       setIsLoading(true);
       
-      // Validate required fields
       if (!selectedDate || !selectedTime) {
         setIsLoading(false);
         toast({
@@ -533,44 +481,9 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         });
         return;
       }
-  
-      // Get userId from multiple sources with fallback logic
+      
       const bookingDataFromToken = JSON.parse(sessionStorage.getItem('bookingDataUsingToken') || 'null');
       setToken(bookingDataFromToken)
-      // let userIdToUse = currentUserId;
-      
-      // Fallback 1: Use userId from bookingDataUsingToken if currentUserId is null
-      // if (!userIdToUse && bookingDataFromToken?.userId) {
-      //   userIdToUse = bookingDataFromToken.userId;
-      //   console.log('Using userId from bookingDataUsingToken:', userIdToUse);
-      // }
-      
-      // Fallback 2: Try to get from existing userData if available
-      // if (!userIdToUse) {
-      //   const userData = JSON.parse(sessionStorage.getItem('userData') || localStorage.getItem('userData') || 'null');
-      //   if (userData?.userId) {
-      //     userIdToUse = userData.userId;
-      //     console.log('Using userId from userData:', userIdToUse);
-      //   }
-      // }
-      
-      // Validate userId exists before proceeding
-      // if (!userIdToUse) {
-      //   console.error('userId is missing!', { 
-      //     currentUserId, 
-      //     bookingDataFromToken: bookingDataFromToken?.userId,
-      //     hasBookingData: !!bookingDataFromToken 
-      //   });
-      //   toast({
-      //     title: "User Identification Error",
-      //     description: "User identification failed. Please refresh the page and try again.",
-      //     variant: "destructive",
-      //   });
-      //   setIsLoading(false);
-      //   return;
-      // }
-  
-      // Prepare appointment data with validated userId
       const appointmentData = {
         date: selectedDate,
         time: selectedTime,
@@ -578,12 +491,10 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         property: property,
         verifiedContact: contact,
         fullPrice,
-        // userId: userIdToUse, // Use the validated userId
         isDiscount: false,
         status: 'SUCCESS',
       };
   
-      // Ensure selectedDate is a Date object and convert to ISO string
       const appointmentDateISO = selectedDate instanceof Date 
         ? selectedDate.toISOString() 
         : new Date(selectedDate).toISOString();
@@ -592,21 +503,16 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
          PAY NOW FLOW
       ====================== */
       if (property.paymentMethod === 'pay_now') {
-        // Save booking data to localStorage for retrieval after payment
         const bookingData = {
           ...appointmentData,
           timestamp: new Date().toISOString()
         };
         
-        // Log for debugging
-        // console.log('Pay Now Flow - Saving bookingData with userId:', userIdToUse);
-        console.log('Pay Now Flow - Full bookingData:', bookingData);
         
         localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
         sessionStorage.setItem('checkoutUrlMethod', 'pay_now');
         localStorage.setItem('checkoutUrlMethod', 'pay_now');
   
-        // Create Checkout Session dynamically
         const createCheckoutResponse = await fetch(`${functionUrl}/createCheckoutSession`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -619,7 +525,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
             cancelUrl: `${window.location.origin}/payment-cancel`,
             metadata: {
               enabled: true,
-              // userId: userIdToUse, // Use validated userId
               status: "PAYMENT_PENDING",
               paymentType: "pay_now",
               appointmentDate: appointmentDateISO,
@@ -638,7 +543,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
   
         console.log('Calendar - Redirecting to Stripe Checkout (Pay Now):', checkoutUrl);
         window.location.href = checkoutUrl;
-        return; // Exit after redirect
+        return; 
       }
   
       /* =====================
@@ -661,23 +566,17 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
   }
   
         
-        // Save booking data to localStorage for retrieval after payment
         const bookingData = {
           ...appointmentData,
           approvalToken: approvalToken,
           timestamp: new Date().toISOString()
         };
         
-        // Log for debugging
-        // console.log('Challenge Flow - Saving bookingData with userId:', userIdToUse);
-        console.log('Challenge Flow - Full bookingData:', bookingData);
-        
         localStorage.setItem('pending-booking-data', JSON.stringify(bookingData));
         localStorage.setItem('property', JSON.stringify(property));
         sessionStorage.setItem('checkoutUrlMethod', 'challenge');
         localStorage.setItem('checkoutUrlMethod', 'challenge');
   
-        // Create Checkout Session dynamically
         const createCheckoutResponse = await fetch(`${functionUrl}/createCheckoutSession`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -690,7 +589,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
             cancelUrl: `${window.location.origin}/payment-cancel`,
             metadata: {
               enabled: true,
-              // token: userIdToUse, 
               status: "PAYMENT_PENDING",
               paymentType: "challenge",
               appointmentDate: appointmentDateISO,
@@ -711,8 +609,7 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
         window.location.href = checkoutUrl;
         return; 
       }
-  
-      // If payment method is not recognized
+
       throw new Error(`Unknown payment method: ${property.paymentMethod}`);
   
     } catch (error) {
@@ -957,14 +854,6 @@ const [pendingBookingData, setPendingBookingData] = useState(null);
                   </div>
                 )}
 
-                {/* <div className="border-t pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Total Amount</span>
-                    <Badge variant="secondary" className="text-lg font-bold px-3 py-1">
-                      {property.isDiscount ? `$${property.challengePrice}` : `$${fullPrice}`}
-                    </Badge>
-                  </div>
-                </div> */}
                    <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total Amount</span>

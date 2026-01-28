@@ -9,22 +9,11 @@ import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { useProgress } from '../components/gamification/ProgressProvider';
 import { MiniProgressTracker } from '../components/gamification/MiniProgressTracker';
 import { AchievementBadges } from '../components/gamification/AchievementBadges';
-import { doc, setDoc, getDoc, query, where, serverTimestamp, collection, addDoc, updateDoc, getDocs } from 'firebase/firestore';
+import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
 const inspectorCredentials = [
-  { label: "Home Inspector", value: "home_inspector" },
-  { label: "GC KB-1 or KB-2", value: "gc_kb_license" },
-  { label: "HVAC Licensed", value: "hvac_licensed" },
-  { label: "Plumbing Licensed", value: "plumbing_licensed" },
-  { label: "Electrical Licensed", value: "electrical_licensed" },
-  { label: "Insurance Adjuster", value: "insurance_adjuster" },
-  { label: "IICRC Certified", value: "iicrc_certified" },
-  { label: "Realtor", value: "realtor" }
-];
-
-const licenceCredentials = [
   { label: "Home Inspector", value: "home_inspector" },
   { label: "GC KB-1 or KB-2", value: "gc_kb_license" },
   { label: "HVAC Licensed", value: "hvac_licensed" },
@@ -336,7 +325,6 @@ const matchedCredentialsRef = useRef(null);
           </div>
         </div>
 
-        {/* Submit Button */}
         {!hasSubmitted && (
           <div className="mt-4 md:mt-6 text-center px-4 space-y-3">
             <Button 
@@ -500,9 +488,7 @@ const matchedCredentialsRef = useRef(null);
                 </div>
               </div>
 
-              {/* <div
-                ref={matchedCredentialsRef}
-              className="mb-2"> */}
+ 
               <div
                 ref={matchedCredentialsRef}
                 className={`mb-2 rounded ${
@@ -521,7 +507,6 @@ const matchedCredentialsRef = useRef(null);
                       isSelected ? "bg-green-100" : "bg-white"
                     }`}
                     onClick={() =>
-                      // setLicenceValue(isSelected ? null : credential.value) 
                       {
                         const value = isSelected ? null : credential.value;
                         setLicenceValue(value);
@@ -669,7 +654,6 @@ const matchedCredentialsRef = useRef(null);
                    <Button 
                      onClick={handleFinalSubmit}
                      className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold"
-                    //  disabled={!payerEmail}
                    >
                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for Verification"}
                    </Button>

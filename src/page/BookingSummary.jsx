@@ -4,12 +4,12 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Separator } from '../components/ui/separator';
 import { Badge } from '../components/ui/Badge';
-import { MapPin, Home, Users, DollarSign, Calendar, User, Phone, Mail, FileText } from 'lucide-react';
+import { MapPin, Home, Users, DollarSign, Calendar, User, Phone, Mail } from 'lucide-react';
 import { ProgressSteps, GuidanceCard } from '../components/ui/Progress-steps';
 
 
 export default function BookingSummary() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [bookingData, setBookingData] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pay_now');
   const [price, setPrice] = useState(0);
@@ -52,16 +52,13 @@ export default function BookingSummary() {
     const booking = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
     setBooking(booking);
     
-    // Only set to 'challenge' if URL paymentMethod is 'challenge' AND booking has challengePrice and isDiscount
     if(paymentMethod === 'challenge' && booking && booking.property?.challengePrice && booking.isDiscount){
       setSelectedPaymentMethod('challenge');
       setPrice(booking.property.challengePrice);
     } else {
-      // Explicitly set to 'pay_now' if not challenge
       setSelectedPaymentMethod('pay_now');
     }
     
-    // console.log('BookingSummary - Parsed booking data:', data);
     setBookingData(data);
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -71,7 +68,6 @@ export default function BookingSummary() {
   const calculatePrice = () => {
     if (!bookingData) return { basePrice: 0, total: 0 };
     
-    // Multi-Family pricing logic - always use fixed unit-based pricing
     if (bookingData.propertyType === 'Multi-Family Residence') {
       const { multiFamilyUnits } = bookingData;
       let basePrice = 0;
@@ -82,10 +78,9 @@ export default function BookingSummary() {
         case '4 Units': basePrice = 950; break;
         case '5 Units': basePrice = 1050; break;
         case '6 Units': basePrice = 1500; break;
-        default: basePrice = 825; break; // Default to 2-unit pricing
+        default: basePrice = 825; break; 
       }
       
-      // Only override with challenge price if payment method is challenge
       if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
         basePrice = booking.property.challengePrice;
       }
@@ -93,9 +88,7 @@ export default function BookingSummary() {
       return { basePrice, total: basePrice };
     }
 
-    // Mobile/Manufactured Home pricing
     if (bookingData.propertyType === 'Mobile/Manufactured Home') {
-      // Get mobile home type from bookingData or fallback to default
       const mobileHomeType = bookingData.mobileHomeType || 'Single Wide';
       let basePrice = 0;
       
@@ -103,10 +96,9 @@ export default function BookingSummary() {
         case 'Single Wide': basePrice = 625; break;
         case 'Double Wide': basePrice = 750; break;
         case 'Triple Wide': basePrice = 800; break;
-        default: basePrice = 625; break; // Default to Single Wide
+        default: basePrice = 625; break; 
       }
       
-      // Only override with challenge price if payment method is challenge
       if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
         basePrice = booking.property.challengePrice;
       }
@@ -117,7 +109,6 @@ export default function BookingSummary() {
     if (bookingData.propertyType === 'Commercial') {
       let basePrice = 1100;
       
-      // Only override with challenge price if payment method is challenge
       if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
         basePrice = booking.property.challengePrice;
       }
@@ -150,7 +141,6 @@ export default function BookingSummary() {
     // else if (sqft <= 5000) basePrice = 825;
     // else basePrice = 875;
 
-    // Only override with challenge price if payment method is challenge
     if(selectedPaymentMethod === 'challenge' && booking && booking.property?.challengePrice){
       basePrice = booking.property.challengePrice;
     }
@@ -165,9 +155,6 @@ export default function BookingSummary() {
   const handlePickDate = () => {
     if (!bookingData) return;
 
-    console.log("bookingData", bookingData);
-    
-    
     const params = new URLSearchParams({
       address: bookingData.address,
       squareFootage: bookingData.squareFootage.toString(),
@@ -205,9 +192,7 @@ export default function BookingSummary() {
   const handleBack = () => {
     if (!bookingData) return;
     
-    // Preserve all booking data by passing it through URL parameters
-    const params = new URLSearchParams({
-      // Property data
+      const params = new URLSearchParams({
       address: bookingData.address,
       street: bookingData.address.split(',')[0]?.trim() || '',
       city: bookingData.address.split(',')[1]?.trim() || '',
@@ -217,7 +202,6 @@ export default function BookingSummary() {
       propertyType: bookingData.propertyType,
       paymentMethod: bookingData.paymentMethod,
       
-      // Contact data to preserve
       firstName: bookingData.payeeName.firstName,
       lastName: bookingData.payeeName.lastName,
       payerEmail: bookingData.payerEmail,
@@ -232,7 +216,6 @@ export default function BookingSummary() {
       occupancyStatus: bookingData.occupancyStatus
     });
 
-    // Add Multi-Family specific data if available
     if (bookingData.multiFamilyUnits) {
       params.set('multiFamilyUnits', bookingData.multiFamilyUnits);
     }
@@ -243,25 +226,20 @@ export default function BookingSummary() {
       params.set('unitSquareFootages', JSON.stringify(bookingData.unitSquareFootages));
     }
     
-    // Add Mobile Home specific data if available
     if (bookingData.mobileHomeType) {
       params.set('mobileHomeType', bookingData.mobileHomeType);
     }
     
-    // Add Commercial specific data if available  
     if (bookingData.commercialType) {
       params.set('commercialType', bookingData.commercialType);
     }
     
-    // Add Additional Recipients data if available
     if (bookingData.contactPersons && bookingData.contactPersons.length > 0) {
       params.set('contactPersons', JSON.stringify(bookingData.contactPersons));
     }
     
-    // Scroll to top before navigation
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // Navigate back to contact verification with all data preserved
     navigate(`/contact-verification?${params.toString()}`);
   };
 

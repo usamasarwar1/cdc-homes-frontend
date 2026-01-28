@@ -1,27 +1,19 @@
 import { useState } from 'react';
 import {
-  X,
-  Mail,
   Lock,
-  LogIn,
-  UserPlus,
-  AlertCircle,
-  Loader2,
   Eye,
   EyeOff,
 } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/input';
 import { useNavigate } from 'react-router-dom';
 
-const Login = ({}) => {
+  const Login = () => {
   const navigate = useNavigate()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +21,6 @@ const Login = ({}) => {
   const resetForm = () => {
     setEmail('');
     setPassword('');
-    setConfirmPassword('');
     setError('');
   };
 
@@ -117,7 +108,6 @@ const Login = ({}) => {
           </div>
         </div>
 
-        {/* {message && <p className="text-green-600 text-sm">{message}</p>} */}
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
         <button

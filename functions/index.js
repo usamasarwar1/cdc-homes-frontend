@@ -352,7 +352,6 @@ exports.propertyValidate = functions
       try {
         const { email, name, message } = req.body;
   
-        // Validate required fields
         if (!email || !name || !message) {
           return res.status(400).json({ error: "Missing required fields: email, name, or message" });
         }
@@ -366,7 +365,6 @@ exports.propertyValidate = functions
   
         sgMail.setApiKey(apiKey);
   
-        // Compose email
         const msg = {
           to: email,
           from: fromEmail,
@@ -433,7 +431,6 @@ exports.propertyValidate = functions
           `,
         };
   
-        // Send email
         await sgMail.send(msg);
   
         return res.status(200).json({
@@ -452,7 +449,6 @@ exports.propertyValidate = functions
   exports.createPaymentIntent = functions.https.onRequest((req, res) => {
     corsHandler(req, res, async () => {
       try {
-        // Get secret from environment variable
         const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
         
         if (!stripeSecretKey) {
@@ -470,7 +466,6 @@ exports.propertyValidate = functions
           });
         }
   
-        // Create Payment Intent - convert dollars to cents
         const paymentIntent = await stripeInstance.paymentIntents.create({
           amount: Math.round(amount * 100), 
           currency: currency,

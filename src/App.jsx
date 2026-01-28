@@ -71,7 +71,6 @@ function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
     );
   }
 
-  // If not allowed role, redirect to home
   if (!allowedRoles.includes(userRole)) {
     return <Navigate to="/" replace />;
   }

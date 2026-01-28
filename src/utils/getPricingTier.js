@@ -1,7 +1,6 @@
  const getPricingTier = (propertyData) => {
   const { propertyType, mobileHomeType, multiFamilyUnits, commercialType, squareFootage = 0 } = propertyData;
   
-  // Mobile/Manufactured Home pricing - fixed rates
   if (propertyType === 'Mobile/Manufactured Home') {
     switch (mobileHomeType) {
       case 'Single Wide': return { payNow: 625, challenge: 312, tier: "Single Wide Mobile Home" };
@@ -11,17 +10,14 @@
     }
   }
   
-  // Multi-Family pricing with per-unit calculation and discounts
   if (propertyType === 'Multi-Family Residence') {
     const { unitSquareFootages = [] } = propertyData;
     
     if (unitSquareFootages && unitSquareFootages.length > 0) {
-      // Check if all units have the same square footage
       const uniqueSquareFootages = Array.from(new Set(unitSquareFootages.map((sf) => parseInt(sf) || 0)));
       const allSameSize = uniqueSquareFootages.length === 1;
       
       if (allSameSize) {
-        // Use standard unit-based pricing
         switch (multiFamilyUnits) {
           case '2 Units': return { payNow: 825, challenge: 412.50, tier: "2-Unit Multi-Family" };
           case '3 Units': return { payNow: 900, challenge: 450, tier: "3-Unit Multi-Family" };
@@ -31,7 +27,6 @@
           default: return { payNow: 825, challenge: 412, tier: "Multi-Family Residence" };
         }
       } else {
-        // Calculate price per unit based on square footage with discounts
         let totalPayNow = 0;
         
         unitSquareFootages.forEach((sf) => {
@@ -51,19 +46,18 @@
           totalPayNow += unitPrice;
         });
         
-        // Apply multi-family discounts
         const unitCount = unitSquareFootages.length;
         let discount = 0;
         switch (unitCount) {
-          case 2: discount = 0.20; break; // 20% off
-          case 3: discount = 0.22; break; // 22% off
-          case 4: discount = 0.25; break; // 25% off
-          case 5: discount = 0.27; break; // 27% off
-          case 6: discount = 0.30; break; // 30% off
+          case 2: discount = 0.20; break; 
+          case 3: discount = 0.22; break; 
+          case 4: discount = 0.25; break; 
+          case 5: discount = 0.27; break; 
+          case 6: discount = 0.30; break; 
         }
         
         const discountedPayNow = Math.round(totalPayNow * (1 - discount));
-        const discountedChallenge = Math.floor(discountedPayNow / 2); // 50% challenge pricing
+        const discountedChallenge = Math.floor(discountedPayNow / 2); 
         
         return { 
           payNow: discountedPayNow, 
@@ -73,7 +67,6 @@
       }
     }
     
-    // Fallback to new fixed pricing if no unit square footages
     switch (multiFamilyUnits) {
       case '2 Units': return { payNow: 825, challenge: 412.50, tier: "2-Unit Multi-Family" };
       case '3 Units': return { payNow: 900, challenge: 450, tier: "3-Unit Multi-Family" };
@@ -84,11 +77,6 @@
     }
   }
   
-  // Commercial pricing - flat rate
-  // if (propertyType === 'Commercial') {
-  //   return { payNow: 1100, challenge: 550, tier: `Commercial - ${commercialType || 'Property'}` };
-  // }
-  // Commercial Property - square footage based pricing
 if (propertyType === 'Commercial') {
   if (squareFootage <= 1200) {
     return { 
@@ -121,7 +109,6 @@ if (propertyType === 'Commercial') {
 }
 
   
-  // Single Family Residence - square footage based pricing
   if (squareFootage <= 1200) {
     return { payNow: 575, challenge: 287.50, tier: "Up to 1,200 SF" };
   } else if (squareFootage <= 3000) {
