@@ -14,8 +14,7 @@ import {
 } from './ui/sidebar'
 import { Link } from 'react-router-dom'
 import { 
-    LayoutDashboard, 
-    Users,  
+    LayoutDashboard,  
     CreditCard
 } from 'lucide-react'
 import Headers2 from './Headers2'
@@ -23,7 +22,7 @@ import { cn } from '../utils/Cn'
 
 const links = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/admin/pricing-schedule-admin', label: 'Pricing Schedule', icon: CreditCard },
+    // { to: '/admin/pricing-schedule-admin', label: 'Pricing Schedule', icon: CreditCard },
     { to: '/admin/property-confirm', label: 'Property Confirm', icon: CreditCard }
 ]
 

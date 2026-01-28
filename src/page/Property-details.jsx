@@ -117,7 +117,7 @@ const PropertyDetails = () => {
       const bookingRef = doc(db, "bookings", bookingId);
       const bookingSnap = await getDoc(bookingRef);
 
-      console.log(bookingSnap.data());
+      // console.log(bookingSnap.data());
       
   
       if (!bookingSnap.exists()) {
@@ -202,11 +202,11 @@ const PropertyDetails = () => {
       const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
       const url = `${baseUrl}/contact-verification?token=${token}`;
 
-      console.log({
-        url,
-        email: userEmail,
-        name: userName,
-      });
+      // console.log({
+      //   url,
+      //   email: userEmail,
+      //   name: userName,
+      // });
 
 
       const response = await fetch(`${VITE_BASE_URL}/propertyVerificationApproval`, {
@@ -224,7 +224,7 @@ const PropertyDetails = () => {
   
   const data = await response.json();
 
-  console.log("---email--",data);
+  // console.log("---email--",data);
   
   
   
@@ -326,10 +326,7 @@ const PropertyDetails = () => {
       const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
       const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
   
-      for (const contact of booking.additionalContact) {
-  
-        console.log("Sending email to:", contact.email);
-  
+      for (const contact of booking.additionalContact) {  
         const response = await fetch(`${VITE_BASE_URL}/additionalAcknowledgementReport`, {
           method: "POST",
           headers: {

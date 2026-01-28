@@ -90,10 +90,9 @@ const Login = ({}) => {
               value={email}
                placeholder="Enter Email"
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 pr-10 "
+              className="pl-10 pr-10"
               required
             />
-      
           </div>
         </div>
         <div>

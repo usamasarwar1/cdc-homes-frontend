@@ -85,7 +85,7 @@ const PropertyConfirmation = () => {
           ...booking,
         }));
   
-        console.log("0000",finalBookings);
+        // console.log("0000",finalBookings);
         
     
         setBookings(finalBookings);
@@ -140,7 +140,6 @@ const PropertyConfirmation = () => {
   };
 
   const getBookingPrice = (booking) => {
-    // console.log("booking", booking);
     if(booking.isDiscount) {
       return `$${booking.property.challengePrice}`;
     } else {

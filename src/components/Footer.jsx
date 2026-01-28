@@ -1,9 +1,9 @@
 import React from 'react';
 import { Phone, Mail, Clock } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 export default function Footer() {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
     return (
          <footer className="bg-gray-900 text-white py-2 mt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,7 +17,7 @@ export default function Footer() {
               <ul className="space-y-2 text-base text-gray-400">
                 <li > Standard Inspection</li>
                 <li >  Pool/Spa Inspection</li>
-                <li onClick={()=> navigate('/pricing-schedule')}>  Price Schedule</li>
+                {/* <li onClick={()=> navigate('/pricing-schedule')}>  Price Schedule</li> */}
               </ul>
             </div>
             <div>
