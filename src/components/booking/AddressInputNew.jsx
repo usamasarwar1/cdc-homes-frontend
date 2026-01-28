@@ -448,7 +448,18 @@ export default function AddressInputNew({
                     <span className="text-xs text-gray-500">
                       {propertyData.isValidated ? '(Validated)' : '(Manual)'}
                     </span>
+                    
                   </div>
+                  {propertyData.squareFootage < 700 ? (
+                      <p className="text-xs md:text-xs text-gray-500 mt-1">
+                      Maximum 6,000 square feet & Minimum 700 Square feet
+                    </p>
+                  ) : (
+                    <p className="text-xs md:text-xs text-gray-500 mt-1">
+                    Maximum 6,000 square feet & Minimum 700 Square feet
+                  </p>
+                  )}
+                
                 </div>
                 
              
@@ -482,8 +493,14 @@ export default function AddressInputNew({
 
                 <Button
                   onClick={handleConfirmAndProceed}
-                  disabled={!squareFootageConfirmed || isLoading || propertyData.squareFootage < 0}
-                                  className="w-full text-sm md:text-base mt-10 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+                  disabled={!squareFootageConfirmed 
+                    || isLoading 
+                    || propertyData.squareFootage < 0
+                    ||  Number(propertyData.squareFootage) < 700 
+                    || Number(propertyData.squareFootage) > 6000
+
+                  }
+                   className="w-full text-sm md:text-base mt-10 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isLoading ? (
                     <>

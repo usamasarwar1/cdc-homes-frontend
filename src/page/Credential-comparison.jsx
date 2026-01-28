@@ -475,7 +475,7 @@ export default function CredentialComparisonPage() {
               </div>
 
               <div className="mb-6">
-                <h4 className="font-semibold mb-3 text-center">Matched Credentials</h4>
+                <h4 className="font-semibold mb-3 text-center">Matched Credentials *</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                 {inspectorCredentials.map((credential) => {
   const isSelected = licenceValue === credential.value;
@@ -487,10 +487,10 @@ export default function CredentialComparisonPage() {
         isSelected ? "bg-green-100" : "bg-white"
       }`}
       onClick={() =>
-        setLicenceValue(isSelected ? null : credential.value) // toggle selection
+        setLicenceValue(isSelected ? null : credential.value) 
       }
     >
-      {/* Show check ONLY if selected */}
+
       {isSelected ? (
         <Check className="w-4 h-4 text-green-600" />
       ) : (
@@ -514,7 +514,7 @@ export default function CredentialComparisonPage() {
               <div className="space-y-2">
                 <div>
                   <Label htmlFor="firstName" className="text-sm font-medium">
-                    Fist Name of Inspector
+                    First Name of Inspector *
                   </Label>
                   <Input
                     id="firstName"
@@ -526,7 +526,7 @@ export default function CredentialComparisonPage() {
                 </div>
                 <div>
                   <Label htmlFor="lastname" className="text-sm font-medium">
-                    Last Name of Inspector
+                    Last Name of Inspector *
                   </Label>
                   <Input
                     id="lastName"
@@ -539,7 +539,7 @@ export default function CredentialComparisonPage() {
                 
                 <div>
                   <Label htmlFor="licenseNumbers" className="text-sm font-medium">
-                    License Number(s)
+                    License Number(s) *
                   </Label>
                   <Input
                     id="licenseNumbers"
@@ -575,7 +575,7 @@ export default function CredentialComparisonPage() {
                 
                 <div>
                   <Label htmlFor="websiteUrl" className="text-sm font-medium">
-                    Website URL
+                    Website URL *
                   </Label>
                   <Input
                     id="websiteUrl"
@@ -598,7 +598,8 @@ export default function CredentialComparisonPage() {
                       !inspectorDetails.firstName || 
                       !inspectorDetails.lastName || 
                       !inspectorDetails.licenseNumbers || 
-                      !!errors.websiteUrl
+                      !!errors.websiteUrl ||
+                      !licenceValue 
                     }
                   >
                    Submit
