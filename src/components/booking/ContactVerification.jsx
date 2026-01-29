@@ -1040,7 +1040,7 @@ const handleSubmit = () => {
               </div>
             </div>
             
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col md:flex-row justify-center gap-4">
               <Button
                 onClick={() => {
                   setShowContractPreview(false);

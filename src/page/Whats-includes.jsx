@@ -157,12 +157,12 @@ export default function WhatsIncludedPage() {
 
         <div className="mt-12 text-center space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
+            {/* <Link 
               to="/pricing" 
               className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
             >
               View Pricing
-            </Link>
+            </Link> */}
             <Link 
               to="/inspector" 
               className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
