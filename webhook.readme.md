@@ -107,7 +107,7 @@ exports.propertyValidate = functions
         }
   
         const apiKey = process.env.SENDGRID_API_KEY;
-        const fromEmail = "hello@answerlyapp.com";
+          const fromEmail = "hello@answerlyapp.com";
   
         if (!apiKey) {
           return res.status(500).json({ error: "SendGrid API key missing" });

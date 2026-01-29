@@ -10,6 +10,94 @@ admin.initializeApp();
 const corsHandler = cors({
   origin: true,
 });
+
+exports.testSecureFunction = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    const apiKey = process.env.SENDGRID_API_KEY;
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'devmetaxols@gmail.com';
+    return res.json({
+      hasApiKey: !!apiKey,
+      hasFromEmail: !!fromEmail,
+      body: {
+        apiKey: apiKey,
+        fromEmail: fromEmail
+      }
+    });
+  });
+});  
+
+// exports.testSendGridEmail = functions.https.onRequest((req, res) => {
+//   corsHandler(req, res, async () => {
+//     try {
+//       const apiKey = process.env.SENDGRID_API_KEY;
+//       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'devmetaxols@gmail.com';
+//       const testEmail = req.body?.testEmail || req.query?.testEmail;
+
+//       if (!testEmail) {
+//         return res.status(400).json({ 
+//           error: "Please provide testEmail in query or body",
+//           example: "?testEmail=your-email@example.com",
+//           currentFromEmail: fromEmail
+//         });
+//       }
+
+//       if (!apiKey) {
+//         return res.status(500).json({ error: "SendGrid API key missing" });
+//       }
+
+//       if (!fromEmail) {
+//         return res.status(500).json({ error: "SendGrid FROM email missing" });
+//       }
+
+//       console.log("Attempting to send email:", { fromEmail, toEmail: testEmail });
+
+//       sgMail.setApiKey(apiKey);
+
+//       const msg = {
+//         to: testEmail,
+//         from: fromEmail,
+//         subject: "Test Email from SendGrid",
+//         text: "This is a test email to verify SendGrid configuration.",
+//         html: "<p>This is a test email to verify SendGrid configuration.</p>"
+//       };
+
+//       const result = await sgMail.send(msg);
+      
+//       return res.status(200).json({
+//         success: true,
+//         message: "Test email sent successfully",
+//         fromEmail: fromEmail,
+//         toEmail: testEmail,
+//         sendGridResponse: result[0]?.statusCode,
+//         headers: result[0]?.headers
+//       });
+//     } catch (error) {
+//       console.error("testSendGridEmail error:", error);
+      
+//       if (error.response) {
+//         const sendGridError = error.response.body;
+//         console.error("SendGrid API Error Details:", JSON.stringify(sendGridError, null, 2));
+        
+//         return res.status(500).json({ 
+//           error: "SendGrid API error",
+//           message: sendGridError.errors?.[0]?.message || error.message,
+//           field: sendGridError.errors?.[0]?.field || 'unknown',
+//           help: sendGridError.errors?.[0]?.help || null,
+//           fullError: sendGridError.errors || sendGridError,
+//           fromEmail: process.env.SENDGRID_FROM_EMAIL || 'devmetaxols@gmail.com',
+//           statusCode: error.response.statusCode
+//         });
+//       }
+      
+//       return res.status(500).json({ 
+//         error: "Internal server error",
+//         message: error.message,
+//         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+//       });
+//     }
+//   });
+// });
+
  
  exports.placesAutocomplete = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
