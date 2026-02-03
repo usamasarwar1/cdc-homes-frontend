@@ -150,24 +150,39 @@ useEffect(() => {
   }, [payerEmail]);
 
   useEffect(() => {
-    const verifiedContactData = JSON.parse(sessionStorage.getItem('verified-contact-data'));
-    if (verifiedContactData) {
-      setPayeeName({
-        firstName: verifiedContactData.payeeName.firstName,
-        lastName: verifiedContactData.payeeName.lastName
-      });
-    }
-    setContactPersons(verifiedContactData.contactPersons);
-    setPayerEmail(verifiedContactData.payerEmail);
-    setPhoneNumber(verifiedContactData.phoneNumber);
-    setRelationshipToBuyer(verifiedContactData.relationshipToBuyer);
-    setBuyerExplanation(verifiedContactData.buyerExplanation);
-    setOccupancyStatus(verifiedContactData.occupancyStatus);
-    setReportEmail(verifiedContactData.reportEmail);
-    setWantsRealtorNotification(verifiedContactData.wantsRealtorNotification);
-    setRealtorName(verifiedContactData.realtorName);
-    setRealtorEmail(verifiedContactData.realtorEmail);
-    setRealtorPhone(verifiedContactData.realtorPhone);
+
+    let verifiedContactData = null;
+      try {
+        const storedData = sessionStorage.getItem('verified-contact-data');
+        if (storedData) {
+          verifiedContactData = JSON.parse(storedData);
+        }
+      } catch (error) {
+        console.error('Error parsing verified-contact-data from sessionStorage:', error);
+      }
+
+      if (verifiedContactData) {
+        console.log('1verifiedContactData', verifiedContactData);
+        
+        // Safely access payeeName with null check
+        setPayeeName({
+          firstName: verifiedContactData.payeeName?.firstName || '',
+          lastName: verifiedContactData.payeeName?.lastName || ''
+        });
+        
+        // Safely access contactPersons with null check
+        setContactPersons(verifiedContactData.contactPersons || []);
+        setPayerEmail(verifiedContactData.payerEmail || '');
+        setPhoneNumber(verifiedContactData.phoneNumber || '');
+        setRelationshipToBuyer(verifiedContactData.relationshipToBuyer || '');
+        setBuyerExplanation(verifiedContactData.buyerExplanation || '');
+        setOccupancyStatus(verifiedContactData.occupancyStatus || '');
+        setReportEmail(verifiedContactData.reportEmail || '');
+        setWantsRealtorNotification(verifiedContactData.wantsRealtorNotification || false);
+        setRealtorName(verifiedContactData.realtorName || '');
+        setRealtorEmail(verifiedContactData.realtorEmail || '');
+        setRealtorPhone(verifiedContactData.realtorPhone || '');
+      } 
 
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -1259,7 +1274,7 @@ const handleSubmit = () => {
         </CardContent>
       </Card>
 
-      {isReadyForVerification && (
+      {/* {isReadyForVerification && (
         <Card className={isVerified ? "border-green-500" : ""} data-section="phone-verification">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1342,7 +1357,7 @@ const handleSubmit = () => {
             )}
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       <Card className={shouldBlurFormSections ? "opacity-50 blur-sm pointer-events-none" : ""}>
         <CardHeader>

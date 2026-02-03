@@ -620,6 +620,7 @@ exports.propertyValidate = functions
   
           // 2) Get bookingPayload
           let bookingPayload = paymentData.bookingPayload || null;
+          // let inceptionDate = paymentData.bookingPayload.formattedDateTime || null;
           // let email = paymentData.stripe.customerEmail
   
           if (!bookingPayload && session.metadata?.bookingPayload) {
@@ -639,6 +640,9 @@ exports.propertyValidate = functions
             console.error("session.metadata:", session.metadata);
             break;
           }          
+
+          let inceptionDate = bookingPayload.formattedDateTime || null;
+
 
           const paymentType = paymentData.paymentType || session.metadata?.paymentType || "pay_now";
   
@@ -667,8 +671,18 @@ exports.propertyValidate = functions
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 paidAt: admin.firestore.FieldValue.serverTimestamp(),
               });
+
+              bookingId = bookingRef.id;  
+
+              if (inceptionDate) {
+                await admin.firestore().collection("inceptionDates").add({
+                  bookingId: bookingId,
+                  inceptionDate: inceptionDate,
+                  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+                console.log("✅ Added inceptionDate for new booking:", bookingId);
+              }
               
-              bookingId = bookingRef.id;
             }
           } else if (paymentType === "challenge") {
             const approvalToken = bookingPayload.approvalToken || paymentData.approvalToken;
@@ -692,7 +706,7 @@ exports.propertyValidate = functions
   
             const bookingDoc = bookingsQuery.docs[0];
             bookingId = bookingDoc.id;
-            
+            inceptionDate = bookingPayload.formattedDateTime;
 
             const { approvalToken: _, timestamp: __, ...bookingDataWithoutToken } = bookingPayload;
 
@@ -708,6 +722,16 @@ exports.propertyValidate = functions
               approvalToken: admin.firestore.FieldValue.delete(),
               approvalTokenExpiresAt: admin.firestore.FieldValue.delete(),
             });
+
+            if (inceptionDate) {
+              await admin.firestore().collection("inceptionDates").add({
+                bookingId: bookingId,
+                inceptionDate: inceptionDate,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              });
+              console.log("✅ Added inceptionDate for challenge booking:", bookingId);
+            }
+            
   
           } else {
             console.error("❌ Unknown paymentType:", paymentType);

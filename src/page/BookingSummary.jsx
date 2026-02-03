@@ -267,7 +267,7 @@ export default function BookingSummary() {
 
         <div className="text-center hover:underline cursor-pointer md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
           <Button
-            onClick={() => navigate('/contact-verification')}
+            onClick={handleBack}
             variant="ghost"
             className="text-blue-600 hover:bg-white hover:text-blue-600 text-sm cursor-pointer"
           >
