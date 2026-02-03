@@ -122,7 +122,7 @@ useEffect(() => {
   const [isVerified, setIsVerified] = useState(import.meta.env.DEV ? true : false);
   const [showVerificationInput, setShowVerificationInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showWhatsIncluded, setShowWhatsIncluded] = useState(false);
+  const [showWhatsIncluded, setShowWhatsIncluded] = useState(true);
   const [showContractPreview, setShowContractPreview] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [hasClosedModal, setHasClosedModal] = useState(false);
@@ -150,6 +150,26 @@ useEffect(() => {
   }, [payerEmail]);
 
   useEffect(() => {
+    const verifiedContactData = JSON.parse(sessionStorage.getItem('verified-contact-data'));
+    if (verifiedContactData) {
+      setPayeeName({
+        firstName: verifiedContactData.payeeName.firstName,
+        lastName: verifiedContactData.payeeName.lastName
+      });
+    }
+    setContactPersons(verifiedContactData.contactPersons);
+    setPayerEmail(verifiedContactData.payerEmail);
+    setPhoneNumber(verifiedContactData.phoneNumber);
+    setRelationshipToBuyer(verifiedContactData.relationshipToBuyer);
+    setBuyerExplanation(verifiedContactData.buyerExplanation);
+    setOccupancyStatus(verifiedContactData.occupancyStatus);
+    setReportEmail(verifiedContactData.reportEmail);
+    setWantsRealtorNotification(verifiedContactData.wantsRealtorNotification);
+    setRealtorName(verifiedContactData.realtorName);
+    setRealtorEmail(verifiedContactData.realtorEmail);
+    setRealtorPhone(verifiedContactData.realtorPhone);
+
+
     const urlParams = new URLSearchParams(window.location.search);
     
     if (urlParams.get('firstName')) {
@@ -197,8 +217,8 @@ useEffect(() => {
   // code comment by Haider dev
   // Check if form sections should be blurred based on email validation
   // Blur when user has left email field without proper format
-  const shouldBlurFormSections = hasEmailBlurred && !isPayerEmailValid;
-  
+  // const shouldBlurFormSections = hasEmailBlurred && !isPayerEmailValid;
+  const shouldBlurFormSections = false;
   //code comment by Haider dev Debug logging for blur conditions 
   // useEffect(() => {
   //   console.log('Blur condition check:', {
@@ -875,6 +895,17 @@ const handleSubmit = () => {
 
       <div className="text-center space-y-4" data-section="action-buttons">
         <div className="flex flex-col lg:flex-row gap-4 justify-center">
+             <Button
+            onClick={() => {
+              setShowWhatsIncluded(true);
+              setHasInteracted(false)
+            
+            }}
+            variant="outline"
+            className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            📋 See What's Included
+          </Button>
           <Button
             onClick={() => {
               setHasInteracted(true);
@@ -888,17 +919,7 @@ const handleSubmit = () => {
             📄 Preview Contract
           </Button>
           
-          <Button
-            onClick={() => {
-              setShowWhatsIncluded(true);
-              setHasInteracted(false)
-            
-            }}
-            variant="outline"
-            className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            📋 See What's Included
-          </Button>
+       
           
           <Button
             onClick={() => {

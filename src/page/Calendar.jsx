@@ -859,8 +859,8 @@ export default function InspectionCalendar() {
                     <span className="font-semibold">Total Amount</span>
                     <Badge variant="secondary" className="text-lg font-bold px-3 py-1">
                       {property.paymentMethod === 'challenge' && property.isDiscount && property.challengePrice 
-                        ? `$${property.challengePrice}` 
-                        : `$${fullPrice}`}
+                        ? `$${Number(property.challengePrice).toFixed(2)}` 
+                        : `$${Number(fullPrice).toFixed(2)}`}
                     </Badge>
                   </div>
                 </div>

@@ -264,6 +264,16 @@ export default function BookingSummary() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-6xl mx-auto px-4">
         <ProgressSteps steps={progressSteps} />
+
+        <div className="text-center hover:underline cursor-pointer md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
+          <Button
+            onClick={() => navigate('/contact-verification')}
+            variant="ghost"
+            className="text-blue-600 hover:bg-white hover:text-blue-600 text-sm cursor-pointer"
+          >
+            ← Back
+          </Button>
+        </div>
         
         <GuidanceCard
           title="Step 4: Review Your Booking Details"
@@ -417,7 +427,7 @@ export default function BookingSummary() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Home Inspection</span>
-                    <span className="font-medium">${pricing.basePrice}</span>
+                    <span className="font-medium">${Number(pricing.basePrice).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm text-gray-500 border-b-2 border-gray-200 pb-6">
                     <span>
@@ -435,8 +445,8 @@ export default function BookingSummary() {
 
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-green-600">${pricing.total}</span>
-                </div>
+                  <span className="text-green-600">${Number(pricing.total).toFixed(2)}</span>
+                </div>  
 
                 <div className="space-y-3 pt-4">
                   <Button 

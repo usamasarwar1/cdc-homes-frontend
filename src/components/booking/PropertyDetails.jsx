@@ -176,7 +176,7 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
                 <span className="font-semibold text-sm md:text-base text-white mb-1 md:mb-0">50% Off Challenge</span>
                 <ArrowRight className="h-4 w-4 md:h-5 md:w-5 text-white mx-auto md:mx-0 flex-shrink-0" />
               </div>
-              <div className="text-xl md:text-2xl font-bold text-white">${pricing.challenge}</div>
+              <div className="text-xl md:text-2xl font-bold text-white">${Number(pricing.challenge).toFixed(2)}</div>
               <div className="text-xs md:text-base text-white mt-1">Match Credentials</div>
             </button>
           </div>

@@ -44,7 +44,7 @@ export default function MainContent({ property,
                     sessionStorage.setItem(
                       "confirmedProperty",
                       JSON.stringify(propertyWithPricing),
-                    );
+                    );                    
                     navigate("/property-confirmed");
                   }}
                   isLoading={isLoading}

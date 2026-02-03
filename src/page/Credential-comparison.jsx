@@ -667,7 +667,7 @@ const matchedCredentialsRef = useRef(null);
               <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 border border-green-200 rounded-lg text-center bg-green-50" style={{ animation: 'attention-pulse 1.5s ease-in-out infinite' }}>
                   <div className="text-green-600 font-semibold mb-2">Pay Now</div>
-                  <div className="text-2xl font-bold text-green-800">${price.challengePrice}</div>
+                  <div className="text-2xl font-bold text-green-800">${Number(price.challengePrice).toFixed(2)}</div>
                   <div className="text-sm text-gray-600">50% Off Standard Rate (${price.basePrice})</div>
                 </div>
               </div>

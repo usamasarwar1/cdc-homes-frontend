@@ -57,7 +57,8 @@
         }
         
         const discountedPayNow = Math.round(totalPayNow * (1 - discount));
-        const discountedChallenge = Math.floor(discountedPayNow / 2); 
+        // const discountedChallenge = Math.floor(discountedPayNow / 2); 
+        const discountedChallenge = Number((discountedPayNow / 2).toFixed(2));
         
         return { 
           payNow: discountedPayNow, 

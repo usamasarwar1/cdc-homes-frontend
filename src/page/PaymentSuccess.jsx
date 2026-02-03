@@ -21,6 +21,18 @@ export default function PaymentSuccess() {
         localStorage.removeItem('approvalToken');
         localStorage.removeItem('checkoutUrlMethod');
         sessionStorage.removeItem('checkoutUrlMethod');
+        sessionStorage.removeItem('verified-contact-data');
+        localStorage.removeItem('verified-contact-data'); 
+        sessionStorage.removeItem('bookingDataUsingToken');
+        localStorage.removeItem('bookingDataUsingToken');
+        sessionStorage.removeItem('confirmedProperty');
+        localStorage.removeItem('confirmedProperty');
+        sessionStorage.removeItem('property');
+        localStorage.removeItem('property');
+        sessionStorage.removeItem('paymentMethod');
+        localStorage.removeItem('paymentMethod');
+        localStorage.removeItem('challengeAvailable');
+        localStorage.removeItem('assessmentProgress');
 
         setIsProcessing(false);
 
