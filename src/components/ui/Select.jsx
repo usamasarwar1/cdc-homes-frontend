@@ -104,16 +104,18 @@ const SelectLabel = React.forwardRef(
 SelectLabel.displayName = "SelectLabel";
 
 const SelectItem = React.forwardRef(
-  ({ className, children, ...props }, ref) => (
+  ({ className, children, disabled, ...props }, ref) => (
     <SelectPrimitive.Item
       ref={ref}
+      disabled={disabled}
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-md  px-3 py-2 text-sm",
+        "relative flex w-full select-none items-center rounded-md px-3 py-2 text-sm",
         "text-gray-900",
-        "hover:bg-gray-200",
-        "focus:bg-gray-200 focus:outline-none",
-        "data-[highlighted]:bg-gray-200 data-[highlighted]:text-gray-900",
+        disabled 
+          ? "opacity-50 cursor-not-allowed pointer-events-none"
+          : "cursor-pointer hover:bg-gray-200 focus:bg-gray-200 focus:outline-none data-[highlighted]:bg-gray-200 data-[highlighted]:text-gray-900",
         "data-[state=checked]:font-medium",
+        "data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[disabled]:pointer-events-none",
         className
       )}
       {...props}

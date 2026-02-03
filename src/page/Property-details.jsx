@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Separator } from '../components/ui/separator'
-import { useToast } from '../hooks/use-toast'
+import { useToast } from '../hooks/use-toast.js'
 import { db } from '../firebase'
 import { useParams } from 'react-router-dom'
 import { 

@@ -7,7 +7,7 @@ import {
   useElements
 } from '@stripe/react-stripe-js';
 import { Button } from '../ui/Button';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/use-toast.js';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);

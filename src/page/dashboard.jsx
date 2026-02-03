@@ -15,7 +15,7 @@ import { Loader2, Search, CheckCircle2, XCircle, Package } from 'lucide-react'
 import { Eye } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { Badge } from '../components/ui/Badge'
-import { useToast } from '../hooks/use-toast'
+import { useToast } from '../hooks/use-toast.js'
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {

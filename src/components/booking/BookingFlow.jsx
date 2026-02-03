@@ -12,7 +12,7 @@ import { ContractAgreement } from './ContractAgreement';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '../../lib/queryClient';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/use-toast.js';
 
 
 export function BookingFlow({ initialProperty }) {

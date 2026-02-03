@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../../components/ui/checkbox';
 import { Badge } from '../../components/ui/Badge';
 import { Mail, Phone, Shield, Plus, X, Edit3, Check, User, FileText, Calendar } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/use-toast.js';
 import { ProgressSteps, GuidanceCard } from '../ui/progress-steps';
 import { useFormGuidance } from '../../hooks/useGormGuideance';
 
@@ -162,7 +162,7 @@ useEffect(() => {
       }
 
       if (verifiedContactData) {
-        console.log('1verifiedContactData', verifiedContactData);
+        // console.log('1verifiedContactData', verifiedContactData);
         
         // Safely access payeeName with null check
         setPayeeName({

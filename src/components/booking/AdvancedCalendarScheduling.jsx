@@ -7,7 +7,7 @@ import { Checkbox } from '../ui/Checkbox';
 import { Badge } from '../ui/Badge';
 import { Clock, Calendar as CalendarIcon, MapPin, AlertCircle, Home } from 'lucide-react';
 import { format, addDays, isWeekend, isSameDay, addHours, startOfDay, setHours, setMinutes } from 'date-fns';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/use-toast.js';
 
 
 export default function AdvancedCalendarScheduling({ property, onScheduled, onBack }) {

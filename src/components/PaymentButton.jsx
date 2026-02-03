@@ -3,7 +3,7 @@ import { Copy, Edit, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialoag';
-import { useToast } from '../hooks/use-toast';
+import { useToast } from '../hooks/use-toast.js';
 
 export function PaymentButton({ amount, type, description, buttonText, className = "" }) {
   const isPayLater = type === 'pay-later';

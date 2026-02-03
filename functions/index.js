@@ -675,7 +675,7 @@ exports.propertyValidate = functions
               bookingId = bookingRef.id;  
 
               if (inceptionDate) {
-                await admin.firestore().collection("inceptionDates").add({
+                await admin.firestore().collection("inspectionDates").add({
                   bookingId: bookingId,
                   inceptionDate: inceptionDate,
                   createdAt: admin.firestore.FieldValue.serverTimestamp(),
