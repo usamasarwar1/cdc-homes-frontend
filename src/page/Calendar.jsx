@@ -24,6 +24,7 @@ import { db } from '../firebase';
 export default function InspectionCalendar() {
   const functionUrl = import.meta.env.VITE_BASE_URL;
   const { toast } = useToast();
+  const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTime, setSelectedTime] = useState('');
@@ -40,6 +41,58 @@ export default function InspectionCalendar() {
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [blockedSlotsByDate, setBlockedSlotsByDate] = useState({});
+  const [bookingData, setBookingData] = useState(null);
+  const [booking, setBooking] = useState(null)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pay_now');
+
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const contactData = JSON.parse(sessionStorage.getItem('verified-contact-data'));
+    
+    const data = {
+      address: urlParams.get('address') || '',
+      squareFootage: parseInt(urlParams.get('squareFootage') || '0'),
+      propertyType: urlParams.get('propertyType') || '',
+      occupancyStatus: urlParams.get('occupancyStatus') || '',
+      
+      multiFamilyUnits: urlParams.get('multiFamilyUnits') || undefined,
+      
+      mobileHomeType: urlParams.get('mobileHomeType') || undefined,
+      commercialType: urlParams.get('commercialType') || undefined,
+            
+      payeeName: {
+        firstName: urlParams.get('firstName') || '',
+        lastName: urlParams.get('lastName') || ''
+      },
+      payerEmail: urlParams.get('payerEmail') || '',
+      reportEmail: urlParams.get('reportEmail') || '',
+      phoneNumber: urlParams.get('phoneNumber') || '',
+      relationshipToBuyer: urlParams.get('relationshipToBuyer') || '',
+      buyerExplanation: urlParams.get('buyerExplanation') || '',
+      wantsRealtorNotification: urlParams.get('wantsRealtorNotification') === 'true',
+      realtorName: urlParams.get('realtorName') || '',
+      realtorEmail: urlParams.get('realtorEmail') || '',
+      realtorPhone: urlParams.get('realtorPhone') || '',
+      paymentMethod: urlParams.get('paymentMethod') || 'pay_now',
+      contactData :  contactData.contactPersons
+    };
+
+    const paymentMethod = urlParams.get('paymentMethod') || 'pay_now';
+    const booking = JSON.parse(sessionStorage.getItem('bookingDataUsingToken'));
+    setBooking(booking);
+    
+    if(paymentMethod === 'challenge' && booking && booking.property?.challengePrice && booking.isDiscount){
+      setSelectedPaymentMethod('challenge');
+      setPrice(booking.property.challengePrice);
+    } else {
+      setSelectedPaymentMethod('pay_now');
+    }
+    
+    setBookingData(data);
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   /**
    * Gets all time slots for a given date (regardless of availability)
@@ -896,6 +949,61 @@ export default function InspectionCalendar() {
     }
   };
 
+  const handleBack = () => {
+    if (!bookingData) return;
+    
+      const params = new URLSearchParams({
+      address: bookingData.address,
+      street: bookingData.address.split(',')[0]?.trim() || '',
+      city: bookingData.address.split(',')[1]?.trim() || '',
+      state: bookingData.address.split(',')[2]?.split(' ')[0]?.trim() || '',
+      zip: bookingData.address.split(',')[2]?.split(' ')[1]?.trim() || '',
+      squareFootage: bookingData.squareFootage.toString(),
+      propertyType: bookingData.propertyType,
+      paymentMethod: bookingData.paymentMethod,
+      
+      firstName: bookingData.payeeName.firstName,
+      lastName: bookingData.payeeName.lastName,
+      payerEmail: bookingData.payerEmail,
+      reportEmail: bookingData.reportEmail || '',
+      phoneNumber: bookingData.phoneNumber,
+      relationshipToBuyer: bookingData.relationshipToBuyer,
+      buyerExplanation: bookingData.buyerExplanation || '',
+      wantsRealtorNotification: bookingData.wantsRealtorNotification.toString(),
+      realtorName: bookingData.realtorName || '',
+      realtorEmail: bookingData.realtorEmail || '',
+      realtorPhone: bookingData.realtorPhone || '',
+      occupancyStatus: bookingData.occupancyStatus
+    });
+
+    if (bookingData.multiFamilyUnits) {
+      params.set('multiFamilyUnits', bookingData.multiFamilyUnits);
+    }
+    if (bookingData.unitLabels) {
+      params.set('unitLabels', JSON.stringify(bookingData.unitLabels));
+    }
+    if (bookingData.unitSquareFootages) {
+      params.set('unitSquareFootages', JSON.stringify(bookingData.unitSquareFootages));
+    }
+    
+    if (bookingData.mobileHomeType) {
+      params.set('mobileHomeType', bookingData.mobileHomeType);
+    }
+    
+    if (bookingData.commercialType) {
+      params.set('commercialType', bookingData.commercialType);
+    }
+    
+    if (bookingData.contactPersons && bookingData.contactPersons.length > 0) {
+      params.set('contactPersons', JSON.stringify(bookingData.contactPersons));
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // navigate(`/booking-summary?${params.toString()}`);
+    navigate(`/booking-summary?${params.toString()}`);
+  };
+
 
   const progressSteps = [
     { id: 'address', title: 'Address', description: 'Enter location', completed: true },
@@ -909,6 +1017,15 @@ export default function InspectionCalendar() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <ProgressSteps steps={progressSteps} />
+          <div className="text-center hover:underline cursor-pointer md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
+          <Button
+            onClick={handleBack}
+            variant="ghost"
+            className="text-blue-600 hover:bg-white hover:text-blue-600 text-sm cursor-pointer"
+          >
+            ← Back
+          </Button>
+        </div>
           
           <GuidanceCard
             title="Final Step: Schedule Your Inspection"

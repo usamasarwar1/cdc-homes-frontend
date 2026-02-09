@@ -14,6 +14,7 @@ export default function BookingSummary() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('pay_now');
   const [price, setPrice] = useState(0);
   const [booking, setBooking] = useState(null);
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
 
   useEffect(() => {
@@ -440,6 +441,44 @@ export default function BookingSummary() {
                     </span>
                   </div>
                 </div>
+                <div className='space-y-2'>
+                <div className="mt-4">
+                <label className="flex items-start space-x-2 cursor-pointer">
+  <input
+    type="checkbox"
+    checked={termsAccepted}
+    onChange={(e) => setTermsAccepted(e.target.checked)}
+    className="mt-1 flex-shrink-0 rounded border-gray-300 text-green-600 focus:ring-green-500"
+  />
+
+  <span className="text-xs md:text-sm text-gray-700 leading-6 md:leading-5">
+    I agree to the{" "}
+    <a
+      href="/contract/Service-Agreement.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-[#e7000b] hover:underline px-1 py-0.5"
+    >
+      Terms of Service
+    </a>
+    , and{" "}
+    <a
+      href="/contract/Payment-Terms.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-[#e7000b] hover:underline px-1 py-0.5"
+    >
+      Payment Terms
+    </a>
+    .
+  </span>
+</label>
+
+</div>
+
+
+                  
+                </div>
 
                 <Separator />
 
@@ -451,6 +490,7 @@ export default function BookingSummary() {
                 <div className="space-y-3 pt-4">
                   <Button 
                     onClick={handlePickDate}
+                    disabled={!termsAccepted}
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3"
                   >
                     <Calendar className="w-4 h-4 mr-2" />
