@@ -1591,14 +1591,14 @@ const handleSubmit = () => {
                   </div>
                  
                   <div className="text-blue-800 text-sm sm:text-base font-medium leading-relaxed">
-  {editedAddress ? (
-    editedAddress.split(',').map((line, i) => (
-      <div key={i}>{line.trim()}</div>
-    ))
-  ) : (
-    <div>Address not available</div>
-  )}
-</div>
+                    {editedAddress ? (
+                      editedAddress.split(',').map((line, i) => (
+                        <div key={i}>{line.trim()}</div>
+                      ))
+                    ) : (
+                      <div>Address not available</div>
+                    )}
+                  </div>
                   <div className="mt-2 flex justify-between items-center">
                     <Button
                       variant="outline"
@@ -1742,7 +1742,7 @@ const handleSubmit = () => {
 
           <div className="space-y-3 p-4 border-2 border-blue-500 rounded-lg" data-section="occupancy-status">
             <Label className="text-base font-semibold">Occupancy Status *</Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid md:grid-cols-3 gap-3">
               {['Occupied', 'Vacant', 'Unknown'].map((status) => (
                 <Button
                   key={status}
