@@ -119,7 +119,7 @@ useEffect(() => {
   const [contactPersons, setContactPersons] = useState([]);
   const [verificationMethod, setVerificationMethod] = useState('sms');
   const [verificationCode, setVerificationCode] = useState('');
-  const [isVerified, setIsVerified] = useState(import.meta.env.DEV ? true : false);
+  const [isVerified, setIsVerified] = useState(false);
   const [showVerificationInput, setShowVerificationInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showWhatsIncluded, setShowWhatsIncluded] = useState(true);
@@ -264,6 +264,24 @@ useEffect(() => {
     ));
   };
 
+  const formatPhoneNumberForApi = (phone) => {
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, "");
+  
+    // If US number (10 digits), add +1
+    if (digits.length === 10) {
+      return `+1${digits}`;
+    }
+  
+    // If already includes country code (11+ digits)
+    if (digits.length > 10) {
+      return `+${digits}`;
+    }
+  
+    return null;
+  };
+  
+
   const sendVerificationCode = async () => {
     if (!phoneNumber) {
       toast({
@@ -277,50 +295,50 @@ useEffect(() => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/sms/send-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber: phoneNumber
-        }),
-      });
+      const formattedPhone = formatPhoneNumberForApi(phoneNumber);
 
-      const data = await response.json();
+      console.log(formattedPhone);
+      
 
-      if (data.success) {
-        setShowVerificationInput(true);
-        
-        // Show different messages based on Twilio response
-        const description = data.message.includes('Twilio Verify')
-          ? "Verification code sent via Twilio Verify - check your phone!"
-          : data.message.includes('Trial account')
-          ? "Code generated! Since this is a trial account, use the code shown in your browser console."
-          : "We've sent a verification code to your phone.";
-        
+      if (!formattedPhone) {
         toast({
-          title: "Verification Code Sent",
-          description,
-        });
-        
-        // Always log the code for trial accounts
-        if (data.code) {
-          console.log('SMS Verification Code:', data.code);
-          console.log('Enter this code in the verification field');
-        }
-        
-        // Log Twilio debugging info
-        if (data.twilioInfo) {
-          console.log('Twilio Status:', data.twilioInfo);
-        }
-      } else {
-        toast({
-          title: "Error",
-          description: data.message || "Failed to send verification code",
+          title: "Invalid Phone Number",
+          description: "Please enter a valid phone number.",
           variant: "destructive",
         });
+        return;
       }
+      
+     
+    const response = await fetch(
+      "https://us-central1-inspection-app-4c592.cloudfunctions.net/sendVerificationCode",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber: formattedPhone,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      setShowVerificationInput(true);
+
+      toast({
+        title: "Verification Code Sent",
+        description: "Check your phone for the OTP.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: data.message || "Failed to send verification code",
+        variant: "destructive",
+      });
+    }
     } catch (error) {
       console.error('SMS verification error:', error);
       toast({
@@ -348,14 +366,27 @@ useEffect(() => {
     setIsLoading(true);
     
     try {
-      console.log('Making verification request to server...');
-      const response = await fetch('/api/sms/verify-code', {
+
+      const formattedPhone = formatPhoneNumberForApi(phoneNumber);
+
+      if (!formattedPhone) {
+        toast({
+          title: "Invalid Phone Number",
+          description: "Please enter a valid phone number.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+
+      // console.log('Making verification request to server...');
+      const response = await fetch('https://us-central1-inspection-app-4c592.cloudfunctions.net/verifyOtpCode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phoneNumber: phoneNumber,
+          phoneNumber: formattedPhone,
           code: verificationCode
         }),
       });
@@ -613,11 +644,7 @@ const handleSubmit = () => {
      realtorPhone && realtorPhone.replace(/\D/g, '').length === 10);
   
   // Check if ready for verification (only email is needed)
-  const isReadyForVerification = isFirstNameValid && 
-    isLastNameValid && 
-    isRelationshipValid && 
-    isPhoneNumberValid && 
-    isEmailValid;
+  const isReadyForVerification = phoneNumber
   
   // Overall form completion check
   const isFormComplete = isFirstNameValid && 
@@ -1239,9 +1266,6 @@ const handleSubmit = () => {
 
           <div>
             <Label htmlFor="payerEmail">Your Email Address *
-            {/* <span className={hasEmailBlurred && !isPayerEmailValid ? 'text-red-500 font-bold' : ''}>
-      *
-    </span> */}
             </Label>
             <div className="relative">
               <Input
@@ -1274,7 +1298,7 @@ const handleSubmit = () => {
         </CardContent>
       </Card>
 
-      {/* {isReadyForVerification && (
+      {isReadyForVerification && (
         <Card className={isVerified ? "border-green-500" : ""} data-section="phone-verification">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1284,11 +1308,11 @@ const handleSubmit = () => {
                 <Shield className="h-5 w-5 text-blue-600" />
               )}
               Contact Verification
-              {import.meta.env.DEV && (
+              {/* {import.meta.env.DEV && (
                 <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                   DEV MODE - BYPASSED
                 </span>
-              )}
+              )} */}
             </CardTitle>
             <CardDescription>
               {isVerified 
@@ -1298,10 +1322,13 @@ const handleSubmit = () => {
                 : "You'll receive a verification code via text. This step helps us filter serious inquiries and provide instant and accurate service prices."
               }
             </CardDescription>
+            {/* <Button  onClick={sendVerificationCode} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white w-full">
+                      {isLoading ? "Sending..." : "Please Verify your Phone Number"} 
+                    </Button> */}
           </CardHeader>
+          
           <CardContent className="space-y-4">
-            {!isVerified && !import.meta.env.DEV && (
-              <>
+
                 {!showVerificationInput ? (
                   <div className="space-y-3">
                     <Button  onClick={sendVerificationCode} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white w-full">
@@ -1311,11 +1338,11 @@ const handleSubmit = () => {
                 ) : (
                   <div className="space-y-3">
                     <Label htmlFor="verificationCode">Enter Verification Code</Label>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                    {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
                       <p className="text-sm text-yellow-800">
                         <strong>SMS not received?</strong> Check the browser console for the verification code, or use the development code option.
                       </p>
-                    </div>
+                    </div> */}
                     <div className="flex gap-2">
                       <Input
                         id="verificationCode"
@@ -1325,19 +1352,20 @@ const handleSubmit = () => {
                         maxLength={6}
                         className="border-2 border-blue-500"
                       />
-                      <Button onClick={verifyCode} disabled={isLoading || verificationCode.length < 6}>
-                        {isLoading ? "Verifying..." : "Verify"}
-                      </Button>
                     </div>
-                    <div className="flex gap-2 justify-center">
-                      <Button variant="ghost" onClick={() => setShowVerificationInput(false)} size="sm">
+                    <div className="flex gap-2 justify-center cursor-pointer border-2 bg-green-500 text-white border-green-500 rounded-md">
+                      <Button variant="ghost" onClick={verifyCode} size="sm">
                         Resend Code
                       </Button>
                     </div>
+                     {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>SMS not received?</strong> Check the browser console for the verification code, or use the development code option.
+                      </p>
+                    </div> */}
                   </div>
                 )}
-              </>
-            )}
+
 
             {isVerified && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -1357,7 +1385,7 @@ const handleSubmit = () => {
             )}
           </CardContent>
         </Card>
-      )} */}
+      )}
 
       <Card className={shouldBlurFormSections ? "opacity-50 blur-sm pointer-events-none" : ""}>
         <CardHeader>
@@ -1608,12 +1636,7 @@ const handleSubmit = () => {
                     >
                       {showUnitNumber ? 'Remove Unit #' : 'Add Unit Number'}
                     </Button>
-                    {/* <button
-                      onClick={() => setIsEditingAddress(true)}
-                      className="text-blue-600 cursor-pointer hover:text-blue-700 text-xs sm:text-sm underline"
-                    >
-                      Edit
-                    </button> */}
+
                   </div>
                 </div>
               )}
@@ -1773,6 +1796,7 @@ const handleSubmit = () => {
         </Button>
         <Button 
           onClick={handleSubmit}
+          disabled={!isVerified}
           className="flex-1 bg-red-600 hover:bg-red-700 text-white"
         >
           View Booking Summary

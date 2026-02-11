@@ -4,6 +4,7 @@ const cors = require("cors");
 const RentCastService = require("./services/rentCast");
 const sgMail = require('@sendgrid/mail');
 const Stripe = require("stripe")
+const twilio = require("twilio");
 
 admin.initializeApp();
 
@@ -65,6 +66,106 @@ exports.propertyValidate = functions
       });
     });
   });
+
+  exports.sendVerificationCode = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        if (req.method !== "POST") {
+          return res.status(405).json({ success: false });
+        }
+  
+        const { phoneNumber } = req.body;
+  
+        if (!phoneNumber) {
+          return res.status(400).json({
+            success: false,
+            message: "Phone number required",
+          });
+        }
+
+        const twilioSID = process.env.TWILIO_SID;
+        const authToken = process.env.TWILIO_AUTH_TOKEN
+        const verifyServiceSID  = process.env.TWILIO_VERIFY_SERVICE_SID
+  
+        const client = twilio(twilioSID, authToken);
+  
+        const verification = await client.verify.v2
+          .services(verifyServiceSID)
+          .verifications.create({
+            to: phoneNumber,
+            channel: "sms",
+          });
+  
+        return res.status(200).json({
+          success: true,
+          message: "Verification code sent",
+          status: verification.status,
+        });
+  
+      } catch (error) {
+        console.error("Twilio Error:", error);
+  
+        return res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+  });
+
+  exports.verifyOtpCode = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        if (req.method !== "POST") {
+          return res.status(405).json({ success: false });
+        }
+  
+        const { phoneNumber, code } = req.body;
+  
+        if (!phoneNumber || !code) {
+          return res.status(400).json({
+            success: false,
+            message: "Phone number and code required",
+          });
+        }
+  
+        const twilioSID = process.env.TWILIO_SID;
+        const authToken = process.env.TWILIO_AUTH_TOKEN
+        const verifyServiceSID = process.env.TWILIO_VERIFY_SERVICE_SID; 
+  
+        const client = twilio(twilioSID, authToken);
+  
+  
+        const verificationCheck = await client.verify.v2
+        .services(verifyServiceSID)
+          .verificationChecks.create({
+            to: phoneNumber,
+            code: code,
+          });
+  
+        if (verificationCheck.status === "approved") {
+          return res.status(200).json({
+            success: true,
+            message: "Phone verified successfully",
+          });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid code",
+          });
+        }
+  
+      } catch (error) {
+        console.error("Verify Error:", error);
+  
+        return res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+  });
+  
 
   exports.propertyVerificationApproval = functions.https.onRequest((req, res) => {
     corsHandler(req, res, async () => {
