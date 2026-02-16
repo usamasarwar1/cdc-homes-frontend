@@ -1,7 +1,6 @@
 import React from "react";
 import RotatingCredentials from "../utils/RotatingCreadentials";
-import { Star } from 'lucide-react';
-
+import { Star } from "lucide-react";
 
 export default function Herosection() {
   return (
@@ -49,11 +48,11 @@ export default function Herosection() {
                 minHeight: "100%",
                 minWidth: "100%",
               }}
-              src="/videos/myvideo_fixed.mp4"
+              src="https://firebasestorage.googleapis.com/v0/b/inspection-app-4c592.firebasestorage.app/o/inspection_video%2Fmyvideo_fixed.mp4?alt=media&token=98d10d33-fcbc-4354-9bc5-1e99bede75c5"
+              // src="/videos/myvideo_fixed.mp4"
             >
               Your browser does not support the video tag.
             </video>
-           
           </div>
 
           <div className="absolute top-0 left-0 w-full h-1 bg-red-500 shadow-lg z-20"></div>
@@ -146,5 +145,5 @@ export default function Herosection() {
         </div>
       </section>
     </>
-  )
+  );
 }

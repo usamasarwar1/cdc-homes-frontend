@@ -11,8 +11,6 @@ function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  console.log("isOpen", isOpen);
-
   return (
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       <Header isOpen={isOpen} setIsOpen={setIsOpen} />

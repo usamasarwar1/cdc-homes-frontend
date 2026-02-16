@@ -1420,7 +1420,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 )}
               </div>
 
-              <div data-section="contact-info">
+              {/* <div data-section="contact-info">
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor="phoneNumber">Phone Number *</Label>
                 </div>
@@ -1458,7 +1458,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                     </div>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               <div>
                 <Label htmlFor="payerEmail">Your Email Address *</Label>
@@ -1478,6 +1478,46 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   {isPayerEmailValid && (
                     <div className="absolute right-10 top-1/2 transform -translate-y-1/2 z-10">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div data-section="contact-info">
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="phoneNumber">Phone Number *</Label>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="phoneNumber"
+                    data-section="phoneNumber"
+                    required
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      handlePhoneChange(e);
+                    }}
+                    placeholder="(555) 123-4567"
+                    className="pr-12 border-2 border-blue-500"
+                  />
+
+                  {isPhoneNumberValid && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
                       <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                         <svg
                           className="w-3 h-3 text-white"
@@ -2176,7 +2216,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!isVerified}
+              // disabled={!isVerified}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
               View Booking Summary
