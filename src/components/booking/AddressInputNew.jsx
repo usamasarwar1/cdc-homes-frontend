@@ -290,7 +290,7 @@ export default function AddressInputNew({
             onClick={() => handleModalOpen()}
             className="bg-[#FF0000] text-white font-semibold px-4 py-2 rounded-md cursor-pointer hover:bg-[#FF0000]/80 transition-all duration-300"
           >
-            Submit Request
+            Enter Inspection Address
           </div>
         </div>
       </div>

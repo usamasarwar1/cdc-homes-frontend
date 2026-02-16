@@ -73,41 +73,113 @@ export default function InspectionCalendar() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const contactData = JSON.parse(
-      sessionStorage.getItem("verified-contact-data"),
-    );
+
+    // Safely parse sessionStorage data
+    let contactData = null;
+    let confirmedProperty = null;
+    try {
+      const contactDataStr = sessionStorage.getItem("verified-contact-data");
+      if (contactDataStr) {
+        contactData = JSON.parse(contactDataStr);
+      }
+      const confirmedPropertyStr = sessionStorage.getItem("confirmedProperty");
+      if (confirmedPropertyStr) {
+        confirmedProperty = JSON.parse(confirmedPropertyStr);
+      }
+    } catch (error) {
+      console.error("Error parsing sessionStorage:", error);
+    }
+
+    // Check if URL params exist, otherwise fall back to sessionStorage
+    const hasUrlParams = urlParams.get("address") || urlParams.get("firstName");
 
     const data = {
-      address: urlParams.get("address") || "",
-      squareFootage: parseInt(urlParams.get("squareFootage") || "0"),
-      propertyType: urlParams.get("propertyType") || "",
-      occupancyStatus: urlParams.get("occupancyStatus") || "",
+      address:
+        urlParams.get("address") ||
+        contactData?.address ||
+        confirmedProperty?.address ||
+        "",
+      squareFootage: parseInt(
+        urlParams.get("squareFootage") ||
+          contactData?.squareFootage ||
+          confirmedProperty?.squareFootage ||
+          "0",
+      ),
+      propertyType:
+        urlParams.get("propertyType") ||
+        contactData?.propertyType ||
+        confirmedProperty?.propertyType ||
+        "",
+      occupancyStatus:
+        urlParams.get("occupancyStatus") || contactData?.occupancyStatus || "",
 
-      multiFamilyUnits: urlParams.get("multiFamilyUnits") || undefined,
+      multiFamilyUnits:
+        urlParams.get("multiFamilyUnits") ||
+        contactData?.multiFamilyUnits ||
+        undefined,
 
-      mobileHomeType: urlParams.get("mobileHomeType") || undefined,
-      commercialType: urlParams.get("commercialType") || undefined,
+      mobileHomeType:
+        urlParams.get("mobileHomeType") ||
+        contactData?.mobileHomeType ||
+        undefined,
+      commercialType:
+        urlParams.get("commercialType") ||
+        contactData?.commercialType ||
+        undefined,
 
       payeeName: {
-        firstName: urlParams.get("firstName") || "",
-        lastName: urlParams.get("lastName") || "",
+        firstName:
+          urlParams.get("firstName") ||
+          contactData?.payeeName?.firstName ||
+          contactData?.firstName ||
+          "",
+        lastName:
+          urlParams.get("lastName") ||
+          contactData?.payeeName?.lastName ||
+          contactData?.lastName ||
+          "",
       },
-      payerEmail: urlParams.get("payerEmail") || "",
-      reportEmail: urlParams.get("reportEmail") || "",
-      phoneNumber: urlParams.get("phoneNumber") || "",
-      relationshipToBuyer: urlParams.get("relationshipToBuyer") || "",
-      buyerExplanation: urlParams.get("buyerExplanation") || "",
+      payerEmail: urlParams.get("payerEmail") || contactData?.payerEmail || "",
+      reportEmail:
+        urlParams.get("reportEmail") || contactData?.reportEmail || "",
+      phoneNumber:
+        urlParams.get("phoneNumber") || contactData?.phoneNumber || "",
+      relationshipToBuyer:
+        urlParams.get("relationshipToBuyer") ||
+        contactData?.relationshipToBuyer ||
+        "",
+      buyerExplanation:
+        urlParams.get("buyerExplanation") ||
+        contactData?.buyerExplanation ||
+        "",
       wantsRealtorNotification:
-        urlParams.get("wantsRealtorNotification") === "true",
-      realtorName: urlParams.get("realtorName") || "",
-      realtorEmail: urlParams.get("realtorEmail") || "",
-      realtorPhone: urlParams.get("realtorPhone") || "",
-      paymentMethod: urlParams.get("paymentMethod") || "pay_now",
-      contactData: contactData.contactPersons,
+        urlParams.get("wantsRealtorNotification") === "true" ||
+        contactData?.wantsRealtorNotification ||
+        false,
+      realtorName:
+        urlParams.get("realtorName") || contactData?.realtorName || "",
+      realtorEmail:
+        urlParams.get("realtorEmail") || contactData?.realtorEmail || "",
+      realtorPhone:
+        urlParams.get("realtorPhone") || contactData?.realtorPhone || "",
+      paymentMethod:
+        urlParams.get("paymentMethod") ||
+        contactData?.paymentMethod ||
+        confirmedProperty?.paymentMethod ||
+        "pay_now",
+      contactPersons: contactData?.contactPersons || [],
     };
 
-    const paymentMethod = urlParams.get("paymentMethod") || "pay_now";
-    const booking = JSON.parse(sessionStorage.getItem("bookingDataUsingToken"));
+    const paymentMethod = data.paymentMethod;
+    let booking = null;
+    try {
+      const bookingStr = sessionStorage.getItem("bookingDataUsingToken");
+      if (bookingStr) {
+        booking = JSON.parse(bookingStr);
+      }
+    } catch (error) {
+      console.error("Error parsing bookingDataUsingToken:", error);
+    }
     setBooking(booking);
 
     if (
@@ -566,11 +638,38 @@ export default function InspectionCalendar() {
 
     const urlParams = new URLSearchParams(window.location.search);
     setLoginUser(JSON.parse(sessionStorage.getItem("userData")));
-    const additionalContact = JSON.parse(
-      sessionStorage.getItem("verified-contact-data"),
-    );
 
-    const urlAddress = urlParams.get("address") || "";
+    // Safely parse sessionStorage data
+    let additionalContact = null;
+    let contactData = null;
+    let confirmedProperty = null;
+    try {
+      const additionalContactStr = sessionStorage.getItem(
+        "verified-contact-data",
+      );
+      if (additionalContactStr) {
+        additionalContact = JSON.parse(additionalContactStr);
+      }
+      const contactDataStr = sessionStorage.getItem("contactData");
+      if (contactDataStr) {
+        contactData = JSON.parse(contactDataStr);
+      }
+      const confirmedPropertyStr = sessionStorage.getItem("confirmedProperty");
+      if (confirmedPropertyStr) {
+        confirmedProperty = JSON.parse(confirmedPropertyStr);
+      }
+    } catch (error) {
+      console.error("Error parsing sessionStorage:", error);
+    }
+
+    // Check if URL params exist, otherwise fall back to sessionStorage
+    const hasUrlParams = urlParams.get("address") || urlParams.get("firstName");
+
+    const urlAddress =
+      urlParams.get("address") ||
+      confirmedProperty?.address ||
+      additionalContact?.address ||
+      "";
 
     const parsedAddress = urlAddress
       ? parseAddress(urlAddress)
@@ -587,23 +686,62 @@ export default function InspectionCalendar() {
 
     const propertyData = {
       address: urlAddress || parsedAddress.address,
-      street: urlParams.get("street") || parsedAddress.street,
-      streetNumber: urlParams.get("streetNumber") || parsedAddress.streetNumber,
-      direction: urlParams.get("direction") || parsedAddress.direction,
-      streetName: urlParams.get("streetName") || parsedAddress.streetName,
-      city: urlParams.get("city") || parsedAddress.city,
-      state: urlParams.get("state") || parsedAddress.state,
-      zip: urlParams.get("zip") || parsedAddress.zip,
-      propertyType: urlParams.get("propertyType") || "",
-      squareFootage: Number(urlParams.get("squareFootage")) || 0,
-      paymentMethod: urlParams.get("paymentMethod") || "pay_now",
-      multiFamilyUnits: urlParams.get("multiFamilyUnits") || "",
-      additionalContact: additionalContact.contactPersons,
+      street:
+        urlParams.get("street") ||
+        confirmedProperty?.street ||
+        parsedAddress.street,
+      streetNumber:
+        urlParams.get("streetNumber") ||
+        confirmedProperty?.streetNumber ||
+        parsedAddress.streetNumber,
+      direction:
+        urlParams.get("direction") ||
+        confirmedProperty?.direction ||
+        parsedAddress.direction,
+      streetName:
+        urlParams.get("streetName") ||
+        confirmedProperty?.streetName ||
+        parsedAddress.streetName,
+      city:
+        urlParams.get("city") || confirmedProperty?.city || parsedAddress.city,
+      state:
+        urlParams.get("state") ||
+        confirmedProperty?.state ||
+        parsedAddress.state,
+      zip: urlParams.get("zip") || confirmedProperty?.zip || parsedAddress.zip,
+      propertyType:
+        urlParams.get("propertyType") ||
+        confirmedProperty?.propertyType ||
+        additionalContact?.propertyType ||
+        "",
+      squareFootage: Number(
+        urlParams.get("squareFootage") ||
+          confirmedProperty?.squareFootage ||
+          additionalContact?.squareFootage ||
+          "0",
+      ),
+      paymentMethod:
+        urlParams.get("paymentMethod") ||
+        confirmedProperty?.paymentMethod ||
+        additionalContact?.paymentMethod ||
+        "pay_now",
+      multiFamilyUnits:
+        urlParams.get("multiFamilyUnits") ||
+        confirmedProperty?.multiFamilyUnits ||
+        additionalContact?.multiFamilyUnits ||
+        "",
+      additionalContact: additionalContact?.contactPersons || [],
     };
 
-    const bookingData = JSON.parse(
-      sessionStorage.getItem("bookingDataUsingToken"),
-    );
+    let bookingData = null;
+    try {
+      const bookingDataStr = sessionStorage.getItem("bookingDataUsingToken");
+      if (bookingDataStr) {
+        bookingData = JSON.parse(bookingDataStr);
+      }
+    } catch (error) {
+      console.error("Error parsing bookingDataUsingToken:", error);
+    }
 
     if (
       bookingData &&
@@ -687,25 +825,74 @@ export default function InspectionCalendar() {
       });
     }
 
-    const contactData = {
-      firstName: urlParams.get("firstName") || "",
-      lastName: urlParams.get("lastName") || "",
-      payerEmail: urlParams.get("payerEmail") || "",
-      reportEmail: urlParams.get("reportEmail") || "",
-      phoneNumber: urlParams.get("phoneNumber") || "",
-      relationshipToBuyer: urlParams.get("relationshipToBuyer") || "",
-      buyerExplanation: urlParams.get("buyerExplanation") || "",
-      occupancyStatus: urlParams.get("occupancyStatus") || "",
+    const contactDataFromUrl = {
+      firstName:
+        urlParams.get("firstName") ||
+        contactData?.firstName ||
+        additionalContact?.payeeName?.firstName ||
+        additionalContact?.firstName ||
+        "",
+      lastName:
+        urlParams.get("lastName") ||
+        contactData?.lastName ||
+        additionalContact?.payeeName?.lastName ||
+        additionalContact?.lastName ||
+        "",
+      payerEmail:
+        urlParams.get("payerEmail") ||
+        contactData?.payerEmail ||
+        additionalContact?.payerEmail ||
+        "",
+      reportEmail:
+        urlParams.get("reportEmail") ||
+        contactData?.reportEmail ||
+        additionalContact?.reportEmail ||
+        "",
+      phoneNumber:
+        urlParams.get("phoneNumber") ||
+        contactData?.phoneNumber ||
+        additionalContact?.phoneNumber ||
+        "",
+      relationshipToBuyer:
+        urlParams.get("relationshipToBuyer") ||
+        contactData?.relationshipToBuyer ||
+        additionalContact?.relationshipToBuyer ||
+        "",
+      buyerExplanation:
+        urlParams.get("buyerExplanation") ||
+        contactData?.buyerExplanation ||
+        additionalContact?.buyerExplanation ||
+        "",
+      occupancyStatus:
+        urlParams.get("occupancyStatus") ||
+        contactData?.occupancyStatus ||
+        additionalContact?.occupancyStatus ||
+        "",
       wantsRealtorNotification:
-        urlParams.get("wantsRealtorNotification") === "true",
-      realtorName: urlParams.get("realtorName") || "",
-      realtorEmail: urlParams.get("realtorEmail") || "",
-      realtorPhone: urlParams.get("realtorPhone") || "",
+        urlParams.get("wantsRealtorNotification") === "true" ||
+        contactData?.wantsRealtorNotification ||
+        additionalContact?.wantsRealtorNotification ||
+        false,
+      realtorName:
+        urlParams.get("realtorName") ||
+        contactData?.realtorName ||
+        additionalContact?.realtorName ||
+        "",
+      realtorEmail:
+        urlParams.get("realtorEmail") ||
+        contactData?.realtorEmail ||
+        additionalContact?.realtorEmail ||
+        "",
+      realtorPhone:
+        urlParams.get("realtorPhone") ||
+        contactData?.realtorPhone ||
+        additionalContact?.realtorPhone ||
+        "",
     };
 
-    sessionStorage.setItem("contactData", JSON.stringify(contactData));
+    sessionStorage.setItem("contactData", JSON.stringify(contactDataFromUrl));
 
-    setContact(contactData);
+    setContact(contactDataFromUrl);
   }, []);
 
   const calculatePrice = (propertyData) => {
