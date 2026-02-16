@@ -1,18 +1,18 @@
-import React from 'react'
+import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "./ui/Button";
 
-
-function Header() {
-
+function Header({ isOpen, setIsOpen }) {
   return (
-        <>
+    <>
       <header className="bg-white shadow-sm border-b sticky top-0 z-50 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center min-h-[80px] py-3">
             <div className="flex items-center justify-start space-x-4 md:space-x-6">
-              <img 
+              <img
                 src="/attached_assets/CDC Logo_1753482679929.png"
-                alt="CDC Logo" 
-                className="h-12 md:h-16 w-auto flex-shrink-0" 
+                alt="CDC Logo"
+                className="h-12 md:h-16 w-auto flex-shrink-0"
               />
               <div className="text-center">
                 <div className="hidden md:block">
@@ -33,12 +33,19 @@ function Header() {
                 </div>
               </div>
             </div>
+            <div className="hidden md:block">
+              <div
+                onClick={() => setIsOpen(!isOpen)}
+                className="bg-[#FF0000] text-white font-semibold px-4 py-2 rounded-md cursor-pointer hover:bg-[#FF0000]/80 transition-all duration-300"
+              >
+                Submit Request
+              </div>
+            </div>
           </div>
-            
         </div>
       </header>
-      </>
-  )
+    </>
+  );
 }
 
-export default Header
+export default Header;
