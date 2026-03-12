@@ -1,33 +1,32 @@
-import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import Home from './page/Home.jsx'
-import PropertyConfirm from './page/Property-confirmed.jsx'
-import { ProgressProvider } from './components/gamification/ProgressProvider.jsx'
-import CredentialComparisonPage from './page/Credential-comparison.jsx'
-import Pricing from './page/Pricing.jsx'
-import WhatsIncludedPage from './page/Whats-includes.jsx'
-import InspectorPage from './page/Inspector.jsx'
-import PricingSchedulePage from './page/pricing-schedule.jsx'
-import ContactVerification from './page/Contact-verification.jsx'
-import BookingSummary from './page/BookingSummary.jsx'
-import InspectionCalendar from './page/Calendar.jsx'
-import InspectionConfirmedPage from './page/inspection-confirmed.jsx'
-import Layout from './components/Layout.jsx'
-import Dashboard from './page/dashboard.jsx'
-import { onAuthStateChanged } from 'firebase/auth'
+import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Home from "./page/Home.jsx";
+import PropertyConfirm from "./page/Property-confirmed.jsx";
+import { ProgressProvider } from "./components/gamification/ProgressProvider.jsx";
+import CredentialComparisonPage from "./page/Credential-comparison.jsx";
+import Pricing from "./page/Pricing.jsx";
+import WhatsIncludedPage from "./page/Whats-includes.jsx";
+import InspectorPage from "./page/Inspector.jsx";
+import PricingSchedulePage from "./page/pricing-schedule.jsx";
+import ContactVerification from "./page/Contact-verification.jsx";
+import BookingSummary from "./page/BookingSummary.jsx";
+import InspectionCalendar from "./page/Calendar.jsx";
+import InspectionConfirmedPage from "./page/inspection-confirmed.jsx";
+import Layout from "./components/Layout.jsx";
+import Dashboard from "./page/dashboard.jsx";
+import BlockDates from "./page/Admin-block-dates.jsx";
+import { onAuthStateChanged } from "firebase/auth";
 
-import { auth, db } from './firebase'
-import { getDoc, doc } from 'firebase/firestore'
-import { useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
-import PropertyConfirmation from './page/Property-confirmation.jsx'
-import PropertyDetails from './page/Property-details.jsx'
-import PricingScheduleAdminPage from './page/Pricing_schduleAdmin.jsx'
-import PaymentSuccess from './page/PaymentSuccess.jsx'
-import PaymentCancel from './page/PaymentCancel.jsx'
-import Login from './page/Login.jsx'
-
-
+import { auth, db } from "./firebase";
+import { getDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import PropertyConfirmation from "./page/Property-confirmation.jsx";
+import PropertyDetails from "./page/Property-details.jsx";
+import PricingScheduleAdminPage from "./page/Pricing_schduleAdmin.jsx";
+import PaymentSuccess from "./page/PaymentSuccess.jsx";
+import PaymentCancel from "./page/PaymentCancel.jsx";
+import Login from "./page/Login.jsx";
 
 function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
   const navigate = useNavigate();
@@ -78,69 +77,93 @@ function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
   return children;
 }
 
-
 function Router() {
-
   return (
-      <Routes>
-          <Route path="/" element={
-              <Home />
-          } />
-          
-          <Route path="/admin/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
+    <Routes>
+      <Route path="/" element={<Home />} />
 
-          <Route path="/admin/pricing-schedule-admin" element={
-            <ProtectedRoute>
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/pricing-schedule-admin"
+        element={
+          <ProtectedRoute>
             <Layout>
               <PricingScheduleAdminPage />
             </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/property-confirm" element={
-            <ProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/property-confirm"
+        element={
+          <ProtectedRoute>
             <Layout>
               <PropertyConfirmation />
             </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/property-details/:bookingId" element={
-            <ProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      {/* Block Date */}
+      <Route
+        path="/admin/block"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <BlockDates />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/property-details/:bookingId"
+        element={
+          <ProtectedRoute>
             <Layout>
               <PropertyDetails />
             </Layout>
-            </ProtectedRoute>
-          } />
+          </ProtectedRoute>
+        }
+      />
 
-          <Route path='/login' element={<Login />} />
-          <Route path="/property-confirmed" element={<PropertyConfirm />} />
-          {/* <Route path="/property-confirmed" element={<login />} /> */}
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/credential-comparison" element={<CredentialComparisonPage />} />
-          <Route path="/contact-verification" element={<ContactVerification />} />
-          <Route path="/what's-included" element={<WhatsIncludedPage />} />
-          <Route path="/inspector" element={<InspectorPage />} />
-          <Route path="/pricing-schedule" element={<PricingSchedulePage />} />
-          <Route path="/inspection-confirmed" element={<InspectionConfirmedPage />} />
-          <Route path="/booking-summary" element={<BookingSummary />} />
-          <Route path="/calendar" element={<InspectionCalendar />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-cancel" element={<PaymentCancel />} />
-        </Routes>
-    );
-  }
+      <Route path="/login" element={<Login />} />
+      <Route path="/property-confirmed" element={<PropertyConfirm />} />
+      {/* <Route path="/property-confirmed" element={<login />} /> */}
+      <Route path="/pricing" element={<Pricing />} />
+      <Route
+        path="/credential-comparison"
+        element={<CredentialComparisonPage />}
+      />
+      <Route path="/contact-verification" element={<ContactVerification />} />
+      <Route path="/what's-included" element={<WhatsIncludedPage />} />
+      <Route path="/inspector" element={<InspectorPage />} />
+      <Route path="/pricing-schedule" element={<PricingSchedulePage />} />
+      <Route
+        path="/inspection-confirmed"
+        element={<InspectionConfirmedPage />}
+      />
+      <Route path="/booking-summary" element={<BookingSummary />} />
+      <Route path="/calendar" element={<InspectionCalendar />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-cancel" element={<PaymentCancel />} />
+    </Routes>
+  );
+}
 function App() {
-
   return (
     <ProgressProvider>
-        <Router />
+      <Router />
     </ProgressProvider>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -164,10 +164,10 @@ const Dashboard = () => {
   
 
   return (
-    <div className=" ">
+    <div className="p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
 
-      <div className="grid grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-1 gap-4 mb-5 sm:grid-cols-2 lg:grid-cols-4">
   <div className="bg-white rounded-lg shadow p-4">
     <h3 className="text-sm font-medium text-gray-600">Total Revenue</h3>
     <p className="text-2xl font-bold text-gray-900 mt-2">
@@ -211,7 +211,7 @@ const Dashboard = () => {
         <CardContent>
           <div className="mb-6 mt-6">
             <h2 className='mb-3 text-gray-700 font-bold text-lg'>Pending Bookings</h2>
-            <div className="relative max-w-md">
+            <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -223,16 +223,16 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+          <div className="w-full overflow-x-auto">
+            <table className="min-w-full text-xs sm:text-sm">
               <thead className="bg-muted/40 border-b border-gray-400">
-                <tr className="text-muted-foreground font-semibold uppercase tracking-wide">
-                   <th className="px-3 py-2 text-left min-w-[50px]">Email</th>
-                  <th className="px-3 py-2 text-left min-w-[300px]">Property Address</th>
-                  <th className="px-3 py-2 text-left">Price</th>
-                  <th className="px-3 py-2 text-left">Property Type</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-center">Actions</th>
+                <tr className="text-muted-foreground font-semibold uppercase tracking-wide text-[10px] sm:text-xs">
+                  <th className="px-2 py-2 text-left min-w-[50px] sm:px-3">Email</th>
+                  <th className="px-2 py-2 text-left min-w-[300px] sm:px-3">Property Address</th>
+                  <th className="px-2 py-2 text-left sm:px-3">Price</th>
+                  <th className="px-2 py-2 text-left sm:px-3">Property Type</th>
+                  <th className="px-2 py-2 text-left sm:px-3">Status</th>
+                  <th className="px-2 py-2 text-center sm:px-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,29 +246,29 @@ const Dashboard = () => {
                       className="border-b border-gray-400 transition hover:bg-muted/20"
                     >
 
-                    <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">
+                    <td className="px-2 py-2 text-gray-700 whitespace-normal break-words sm:px-3">
                         {getEmail(booking)}
                       </td>
 
-                      <td className="px-3 py-2 text-gray-700 whitespace-normal break-words">
+                      <td className="px-2 py-2 text-gray-700 whitespace-normal break-words sm:px-3">
                         {booking.property?.address || 'N/A'}
                       </td>
 
 
-                      <td className="px-3 py-2 text-gray-700 font-medium">
+                      <td className="px-2 py-2 text-gray-700 font-medium sm:px-3">
                         {getBookingPrice(booking)}
                       </td>
 
                       
-                      <td className="px-3 py-2 text-gray-700 font-medium">
+                      <td className="px-2 py-2 text-gray-700 font-medium sm:px-3">
                         {getPaymentMethod( booking.property.isDiscount, booking.isDiscount)}
                       </td>
 
-                      <td className="px-4 py-3 text-gray-700">
+                      <td className="px-2 py-2 text-gray-700 sm:px-4 sm:py-3">
                         {getStatusBadge(booking.status)}
                       </td>
 
-                      <td className="px-3 py-2 text-gray-700">
+                      <td className="px-2 py-2 text-gray-700 sm:px-3">
                         <div className="flex justify-center gap-2">
 
                               <Button 

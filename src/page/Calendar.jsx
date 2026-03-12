@@ -69,7 +69,11 @@ export default function InspectionCalendar() {
   const [blockedSlotsByDate, setBlockedSlotsByDate] = useState({});
   const [bookingData, setBookingData] = useState(null);
   const [booking, setBooking] = useState(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("pay_now");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState("pay_now");
+  const [blockedDateRanges, setBlockedDateRanges] = useState([]);
+  const [showBlockedSlotDialog, setShowBlockedSlotDialog] = useState(false);
+  const [blockedSlotMessage, setBlockedSlotMessage] = useState("");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -423,6 +427,43 @@ export default function InspectionCalendar() {
     return blocked;
   };
 
+  const convertTimeTo24Hour = (timeStr) => {
+    if (!timeStr) return null;
+    const [time, ampm] = timeStr.split(" ");
+    if (!time || !ampm) return null;
+
+    const [hourStr, minuteStr] = time.split(":");
+    let hours = parseInt(hourStr, 10);
+    const minutes = parseInt(minuteStr, 10);
+
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+    const upper = ampm.toUpperCase();
+    if (upper === "PM" && hours !== 12) {
+      hours += 12;
+    } else if (upper === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const isWithinBlockedRange = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr || !blockedDateRanges.length) return false;
+
+    const time24 = convertTimeTo24Hour(timeStr);
+    if (!time24) return false;
+
+    const candidate = new Date(`${dateStr}T${time24}`);
+    if (isNaN(candidate.getTime())) return false;
+
+    return blockedDateRanges.some(
+      (range) => candidate >= range.start && candidate <= range.end,
+    );
+  };
+
   /**
    * Checks if a time slot is blocked for a given date
    */
@@ -445,13 +486,20 @@ export default function InspectionCalendar() {
     }
 
     const blockedSlots = blockedSlotsByDate[dateKey] || [];
-    const isBlocked = blockedSlots.includes(timeSlot);
+    const isBookedBlocked = blockedSlots.includes(timeSlot);
+
+    // Also treat admin block ranges as blocked
+    const isAdminBlocked = isWithinBlockedRange(dateKey, timeSlot);
+
+    const isBlocked = isBookedBlocked || isAdminBlocked;
 
     // Debug logging
     if (isBlocked) {
       console.log(`Time slot ${timeSlot} is blocked for ${dateKey}`, {
         blockedSlots,
         timeSlot,
+        isBookedBlocked,
+        isAdminBlocked,
       });
     }
 
@@ -631,6 +679,34 @@ export default function InspectionCalendar() {
     };
 
     fetchBookings();
+  }, []);
+
+  useEffect(() => {
+    const fetchBlockedDateRanges = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "blockDates"));
+        const ranges = snapshot.docs
+          .map((doc) => doc.data())
+          .map((item) => {
+            const start = item.startRaw ? new Date(item.startRaw) : null;
+            const end = item.endRaw ? new Date(item.endRaw) : null;
+            return { start, end };
+          })
+          .filter(
+            (range) =>
+              range.start &&
+              range.end &&
+              !isNaN(range.start.getTime()) &&
+              !isNaN(range.end.getTime()),
+          );
+
+        setBlockedDateRanges(ranges);
+      } catch (error) {
+        console.error("Error fetching blocked date ranges:", error);
+      }
+    };
+
+    fetchBlockedDateRanges();
   }, []);
 
   useEffect(() => {
@@ -1173,6 +1249,32 @@ export default function InspectionCalendar() {
         return;
       }
 
+      if (isWithinBlockedRange(selectedDate, selectedTime)) {
+        setIsLoading(false);
+        toast({
+          title: "Blocked Time Range",
+          description:
+            "The selected date and time are currently blocked. Please choose another slot.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (isWithinBlockedRange(selectedDate, selectedTime)) {
+        setIsLoading(false);
+        toast({
+          title: "Blocked Time Range",
+          description:
+            "The selected date and time are currently blocked. Please choose another slot.",
+          variant: "destructive",
+        });
+        setBlockedSlotMessage(
+          "The selected date and time are currently blocked. Please choose another slot.",
+        );
+        setShowBlockedSlotDialog(true);
+        return;
+      }
+
       const bookingDataFromToken = JSON.parse(
         sessionStorage.getItem("bookingDataUsingToken") || "null",
       );
@@ -1577,18 +1679,37 @@ export default function InspectionCalendar() {
                             allBlockedDates: Object.keys(blockedSlotsByDate),
                           });
 
-                          if (!isBlocked) {
-                            setSelectedTime(value);
-                          } else {
+                          if (isBlocked) {
                             toast({
                               title: "Time Slot Unavailable",
                               description:
                                 "This time slot is already booked. Please select another time.",
                               variant: "destructive",
                             });
-                            // Don't set the time if it's blocked
+                            setBlockedSlotMessage(
+                              "This time slot is already booked. Please select another time.",
+                            );
+                            setShowBlockedSlotDialog(true);
                             setSelectedTime("");
+                            return;
                           }
+
+                          if (isWithinBlockedRange(selectedDate, value)) {
+                            toast({
+                              title: "Blocked Time Range",
+                              description:
+                                "This time falls within a blocked period. Please select another time.",
+                              variant: "destructive",
+                            });
+                            setBlockedSlotMessage(
+                              "This time falls within a blocked period. Please select another time.",
+                            );
+                            setShowBlockedSlotDialog(true);
+                            setSelectedTime("");
+                            return;
+                          }
+
+                          setSelectedTime(value);
                         }}
                       >
                         {/* {error && (
@@ -1962,6 +2083,27 @@ export default function InspectionCalendar() {
           </div>
         </DialogContent>
       </Dialog> */}
+
+      <Dialog
+        open={showBlockedSlotDialog}
+        onOpenChange={setShowBlockedSlotDialog}
+      >
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              Time Slot Unavailable
+            </DialogTitle>
+            <DialogDescription>
+              {blockedSlotMessage ||
+                "This time slot is not available. Please choose another time."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowBlockedSlotDialog(false)}>OK</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
