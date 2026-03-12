@@ -381,16 +381,20 @@ export default function ContactVerification({ property, onVerified, onBack }) {
         });
       } else {
         toast({
-          title: "Error",
-          description: data.message || "Failed to send verification code",
+          title: "Verification Code Error",
+          description:
+            data.message ||
+            "Failed to send verification code. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("SMS verification error:", error);
       toast({
-        title: "Error",
-        description: "Failed to send verification code. Please try again.",
+        title: "Verification Code Error",
+        description:
+          error?.message ||
+          "Failed to send verification code. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -399,12 +403,12 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   };
 
   const verifyCode = async () => {
-    console.log(
-      "Verifying code:",
-      verificationCode,
-      "Length:",
-      verificationCode.length,
-    );
+    // console.log(
+    //   "Verifying code:",
+    //   verificationCode,
+    //   "Length:",
+    //   verificationCode.length,
+    // );
 
     if (!verificationCode || verificationCode.length < 6) {
       toast({
@@ -445,12 +449,12 @@ export default function ContactVerification({ property, onVerified, onBack }) {
       );
 
       const data = await response.json();
-      console.log("Verification response:", data);
+      // console.log("Verification response:", data);
 
       if (data.success) {
         setIsVerified(true);
         toast({
-          title: "Verified Successfully",
+          title: "Verification Successful",
           description: "Your contact details have been verified!",
         });
       } else {
@@ -460,12 +464,14 @@ export default function ContactVerification({ property, onVerified, onBack }) {
             data.message || "Invalid verification code. Please try again.",
           variant: "destructive",
         });
+        // Alert(data.message || "Invalid verification code. Please try again.");
       }
     } catch (error) {
       console.error("SMS verification error:", error);
       toast({
-        title: "Verification Failed",
-        description: "Failed to verify code. Please try again.",
+        title: "Verification Code Error",
+        description:
+          error?.message || "Failed to verify code. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -516,9 +522,21 @@ export default function ContactVerification({ property, onVerified, onBack }) {
         message: "Please indicate if you want realtor notification",
       },
       {
-        isValid: isRealtorDetailsValid,
-        elementId: "realtor-notification",
-        message: "Please complete realtor details",
+        isValid: isRealtorNameValid,
+        elementId: "realtorName",
+        message: "Please enter your realtor's name",
+        condition: wantsRealtorNotification === true,
+      },
+      {
+        isValid: isRealtorEmailValid,
+        elementId: "realtorEmail",
+        message: "Please enter a valid realtor email",
+        condition: wantsRealtorNotification === true,
+      },
+      {
+        isValid: isRealtorPhoneValid,
+        elementId: "realtorPhone",
+        message: "Please enter a valid realtor phone number",
         condition: wantsRealtorNotification === true,
       },
     ];
@@ -615,7 +633,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
 
     console.log("contactData", contactData);
 
-    // Save verified contact data to localStorage
+    // // Save verified contact data to localStorage
     localStorage.setItem("verified-contact-data", JSON.stringify(contactData));
     sessionStorage.setItem(
       "verified-contact-data",
@@ -711,14 +729,16 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   const isAdditionalRecipientsValid = true; // This is always valid since it's optional
 
   // Realtor details validation (only required if user wants realtor notification)
-  const isRealtorDetailsValid =
-    wantsRealtorNotification === false ||
-    (realtorName &&
-      realtorName.trim() !== "" &&
-      realtorEmail &&
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(realtorEmail) &&
-      realtorPhone &&
-      realtorPhone.replace(/\D/g, "").length === 10);
+  const isRealtorNameValid =
+    !wantsRealtorNotification || (realtorName && realtorName.trim() !== "");
+
+  const isRealtorEmailValid =
+    !wantsRealtorNotification ||
+    (realtorEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(realtorEmail));
+
+  const isRealtorPhoneValid =
+    !wantsRealtorNotification ||
+    (realtorPhone && realtorPhone.replace(/\D/g, "").length === 10);
 
   // Check if ready for verification (only email is needed)
   const isReadyForVerification = phoneNumber;
@@ -734,7 +754,9 @@ export default function ContactVerification({ property, onVerified, onBack }) {
     isAddressConfirmed &&
     isOccupancyStatusValid &&
     isRealtorNotificationValid &&
-    isRealtorDetailsValid &&
+    isRealtorNameValid &&
+    isRealtorEmailValid &&
+    isRealtorPhoneValid &&
     isAdditionalRecipientsValid;
 
   // Define form sections for guidance system with specific field order and rotating animations
@@ -866,25 +888,26 @@ export default function ContactVerification({ property, onVerified, onBack }) {
     },
     // Realtor details (if authorized)
     {
-      id: "realtorName",
-      name: "Realtor Name",
-      isComplete: !wantsRealtorNotification || realtorName?.trim() !== "",
-      isRequired: wantsRealtorNotification === true,
-      hint: "Enter your realtor's full name.",
+      isValid: !wantsRealtorNotification || realtorName?.trim() !== "",
+      elementId: "realtorName",
+      message: "Please enter your realtor's name",
+      condition: wantsRealtorNotification === true,
     },
     {
-      id: "realtorEmail",
-      name: "Realtor Email",
-      isComplete: !wantsRealtorNotification || realtorEmail?.trim() !== "",
-      isRequired: wantsRealtorNotification === true,
-      hint: "Enter your realtor's email address.",
+      isValid:
+        !wantsRealtorNotification ||
+        (realtorEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(realtorEmail)),
+      elementId: "realtorEmail",
+      message: "Please enter a valid realtor email",
+      condition: wantsRealtorNotification === true,
     },
     {
-      id: "realtorPhone",
-      name: "Realtor Phone",
-      isComplete: !wantsRealtorNotification || realtorPhone?.trim() !== "",
-      isRequired: wantsRealtorNotification === true,
-      hint: "Enter your realtor's phone number.",
+      isValid:
+        !wantsRealtorNotification ||
+        (realtorPhone && realtorPhone.replace(/\D/g, "").length === 10),
+      elementId: "realtorPhone",
+      message: "Please enter a valid realtor phone",
+      condition: wantsRealtorNotification === true,
     },
     // Property confirmation
     {
@@ -919,7 +942,11 @@ export default function ContactVerification({ property, onVerified, onBack }) {
     {
       id: "realtor-notification",
       name: "Realtor Notification",
-      isComplete: isRealtorNotificationValid && isRealtorDetailsValid,
+      isComplete:
+        isRealtorNotificationValid &&
+        isRealtorNameValid &&
+        isRealtorEmailValid &&
+        isRealtorPhoneValid,
       isRequired: true,
       hint: "Please indicate if you want realtor notification and provide details if needed.",
     },
@@ -1569,14 +1596,51 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 {/* <Button  onClick={sendVerificationCode} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white w-full">
                       {isLoading ? "Sending..." : "Please Verify your Phone Number"} 
                     </Button> */}
+
+                {isVerified && (
+                  <div className="mt-2 flex items-center justify-between rounded-md border border-green-200 bg-green-50 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="hidden md:inline-flex h-7 w-7 items-center justify-center rounded-full bg-green-600 text-white">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-green-700">
+                          Phone Number Verified
+                        </span>
+                        <span className="text-sm text-green-800">
+                          Thank you for verifying your phone number!
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {phoneNumber.length > 13 && !isVerified && (
+                  <div className="mt-2 flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="hidden md:inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-white">
+                        <Shield className="h-4 w-4" />
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                          Verification required
+                        </span>
+                        <span className="text-sm text-red-800">
+                          Please verify your phone number +1 {phoneNumber}{" "}
+                          before booking
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardHeader>
 
               <CardContent className="space-y-4">
                 {!showVerificationInput ? (
                   <div className="space-y-3">
                     <Button
+                      disabled={phoneNumber.length < 14 || isLoading}
                       onClick={sendVerificationCode}
-                      disabled={isLoading}
                       className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                     >
                       {isLoading
@@ -1844,7 +1908,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
               {wantsRealtorNotification === true && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="realtorName">Realtor Name</Label>
+                    <Label htmlFor="realtorName">Realtor Name *</Label>
                     <div className="relative">
                       <Input
                         id="realtorName"
@@ -1875,7 +1939,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="realtorEmail">Realtor Email</Label>
+                    <Label htmlFor="realtorEmail">Realtor Email *</Label>
                     <div className="relative">
                       <Input
                         id="realtorEmail"
@@ -1908,7 +1972,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="realtorPhone">Realtor Phone</Label>
+                    <Label htmlFor="realtorPhone">Realtor Phone *</Label>
                     <div className="relative">
                       <Input
                         id="realtorPhone"
@@ -2216,7 +2280,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
             </Button>
             <Button
               onClick={handleSubmit}
-              // disabled={!isVerified}
+              disabled={!isVerified}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
               View Booking Summary

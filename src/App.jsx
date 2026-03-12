@@ -27,6 +27,7 @@ import PricingScheduleAdminPage from "./page/Pricing_schduleAdmin.jsx";
 import PaymentSuccess from "./page/PaymentSuccess.jsx";
 import PaymentCancel from "./page/PaymentCancel.jsx";
 import Login from "./page/Login.jsx";
+import { Toaster } from "./components/ui/toaster.jsx";
 
 function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
   const navigate = useNavigate();
@@ -162,6 +163,7 @@ function App() {
   return (
     <ProgressProvider>
       <Router />
+      <Toaster />
     </ProgressProvider>
   );
 }
