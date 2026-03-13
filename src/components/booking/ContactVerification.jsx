@@ -1641,7 +1641,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                     <Button
                       disabled={phoneNumber.length < 14 || isLoading}
                       onClick={sendVerificationCode}
-                      className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                      className="text-sm md:text-base bg-blue-600 hover:bg-blue-700 text-white w-full"
                     >
                       {isLoading
                         ? "Sending..."
