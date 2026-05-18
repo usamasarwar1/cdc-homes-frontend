@@ -240,16 +240,8 @@ export default function ContactVerificationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 pt-4">
-        <MiniProgressTracker
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          className="mb-4"
-        />
-      </div>
-
       <header className="bg-white shadow-sm">
-        <div className="text-center md:absolute md:left-4 md:top-40 md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
+        <div className="text-center md:absolute md:left-10 md:top-12 md:transform md:-translate-y-1/2 md:text-left pt-4 md:pb-4">
           <Button
             onClick={() => navigate("/property-confirmed")}
             variant="ghost"
@@ -269,6 +261,14 @@ export default function ContactVerificationPage() {
           </div>
         </div>
       </header>
+
+      <div className="max-w-7xl mx-auto px-4 pt-4">
+        <MiniProgressTracker
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          className="mb-4"
+        />
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {property && (

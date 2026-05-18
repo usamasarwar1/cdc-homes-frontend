@@ -1085,14 +1085,14 @@ export default function ContactVerification({ property, onVerified, onBack }) {
           </div>
 
           <div className="text-center space-y-4" data-section="action-buttons">
-            <div className="flex flex-col lg:flex-row gap-4 justify-center">
+            <div className="flex flex-col lg:flex-row justify-between px-15 gap-4 lg:gap-0">
               <Button
                 onClick={() => {
                   setShowWhatsIncluded(true);
                   setHasInteracted(false);
                 }}
                 variant="outline"
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-15 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 📋 See What's Included
               </Button>
@@ -1102,12 +1102,12 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   setShowWhatsIncluded(false);
                   setShowContractPreview(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-18 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 📄 Preview Contract
               </Button>
 
-              <Button
+              {/* <Button
                 onClick={() => {
                   setHasInteracted(true);
                   setShowWhatsIncluded(false);
@@ -1117,7 +1117,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-8 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-blue-400"
               >
                 ⏩ Skip and Continue
-              </Button>
+              </Button> */}
             </div>
           </div>
 
@@ -1201,7 +1201,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
                   >
-                    Close & Continue
+                    Continue
                   </Button>
                 </div>
               </CardContent>
