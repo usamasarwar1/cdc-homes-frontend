@@ -138,7 +138,6 @@ function Router() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/property-confirmed" element={<PropertyConfirm />} />
-      {/* <Route path="/property-confirmed" element={<login />} /> */}
       <Route path="/pricing" element={<Pricing />} />
       <Route
         path="/credential-comparison"
