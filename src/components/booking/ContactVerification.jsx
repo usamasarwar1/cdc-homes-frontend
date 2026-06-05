@@ -30,6 +30,7 @@ import {
   User,
   FileText,
   Calendar,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "../../hooks/use-toast.js";
 import { ProgressSteps, GuidanceCard } from "../ui/progress-steps";
@@ -165,18 +166,19 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   const [unitNumber, setUnitNumber] = useState("");
   const [isPayerEmailValid, setIsPayerEmailValid] = useState(false);
   const [hasEmailBlurred, setHasEmailBlurred] = useState(false);
+  const [isResendLoading, setIsResendLoading] = useState(false);
 
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleEmailBlur = () => {
-    console.log(
-      "Email blur triggered. Email:",
-      payerEmail,
-      "Valid:",
-      validateEmail(payerEmail),
-    );
+    // console.log(
+    //   "Email blur triggered. Email:",
+    //   payerEmail,
+    //   "Valid:",
+    //   validateEmail(payerEmail),
+    // );
     setHasEmailBlurred(true);
     setIsPayerEmailValid(validateEmail(payerEmail));
   };
@@ -346,7 +348,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
     try {
       const formattedPhone = formatPhoneNumberForApi(phoneNumber);
 
-      console.log(formattedPhone);
+      // console.log(formattedPhone);
 
       if (!formattedPhone) {
         toast({
@@ -403,6 +405,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
   };
 
   const verifyCode = async () => {
+    setIsResendLoading(true);
     // console.log(
     //   "Verifying code:",
     //   verificationCode,
@@ -476,6 +479,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
       });
     } finally {
       setIsLoading(false);
+      setIsResendLoading(false);
     }
   };
 
@@ -631,7 +635,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
       isAddressCorrect,
     };
 
-    console.log("contactData", contactData);
+    // console.log("contactData", contactData);
 
     // // Save verified contact data to localStorage
     localStorage.setItem("verified-contact-data", JSON.stringify(contactData));
@@ -1447,46 +1451,6 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 )}
               </div>
 
-              {/* <div data-section="contact-info">
-                <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="phoneNumber">Phone Number *</Label>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="phoneNumber"
-                    data-section="phoneNumber"
-                    required
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => {
-                      handlePhoneChange(e);
-                    }}
-                    placeholder="(555) 123-4567"
-                    className="pr-12 border-2 border-blue-500"
-                  />
-
-                  {isPhoneNumberValid && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M5 13l4 4L19 7"
-                          ></path>
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div> */}
-
               <div>
                 <Label htmlFor="payerEmail">Your Email Address *</Label>
                 <div className="relative">
@@ -1616,16 +1580,16 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                 )}
 
                 {phoneNumber.length > 13 && !isVerified && (
-                  <div className="mt-2 flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-3 py-2">
+                  <div className="mt-2 flex items-center justify-between rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <span className="hidden md:inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-white">
+                      <span className="hidden md:inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-200 text-yellow-800">
                         <Shield className="h-4 w-4" />
                       </span>
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-yellow-700">
                           Verification required
                         </span>
-                        <span className="text-sm text-red-800">
+                        <span className="text-sm text-yellow-800">
                           Please verify your phone number +1 {phoneNumber}{" "}
                           before booking
                         </span>
@@ -1643,36 +1607,53 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                       onClick={sendVerificationCode}
                       className="text-sm md:text-base bg-blue-600 hover:bg-blue-700 text-white w-full"
                     >
-                      {isLoading
-                        ? "Sending..."
-                        : "Send Verification Code via SMS"}
+                      Send Verification Code via SMS
+                      <span className="ml-2">
+                        {isLoading ? (
+                          <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                        ) : null}
+                      </span>
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <Label htmlFor="verificationCode">
-                      Enter Verification Code
-                    </Label>
-                    {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
-                      <p className="text-sm text-yellow-800">
-                        <strong>SMS not received?</strong> Check the browser console for the verification code, or use the development code option.
-                      </p>
-                    </div> */}
-                    <div className="flex gap-2">
-                      <Input
-                        id="verificationCode"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        placeholder="Enter 6-digit code"
-                        maxLength={6}
-                        className="border-2 border-blue-500"
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-center cursor-pointer border-2 bg-green-500 text-white border-green-500 rounded-md">
-                      <Button variant="ghost" onClick={verifyCode} size="sm">
-                        Resend Code
-                      </Button>
-                    </div>
+                    {!isVerified && (
+                      <Label htmlFor="verificationCode">
+                        Enter Verification Code
+                      </Label>
+                    )}
+
+                    {!isVerified && (
+                      <div className="flex gap-2">
+                        <Input
+                          id="verificationCode"
+                          value={verificationCode}
+                          onChange={(e) => setVerificationCode(e.target.value)}
+                          placeholder="Enter 6-digit code"
+                          maxLength={6}
+                          className="border-2 border-blue-500"
+                        />
+                      </div>
+                    )}
+                    {!isVerified && (
+                      <div className="flex justify-center">
+                        <Button
+                          disabled={
+                            isResendLoading || verificationCode.length !== 6
+                          }
+                          onClick={verifyCode}
+                          size="sm"
+                          className="border-2 cursor-pointer bg-green-500 text-white border-green-500 rounded-md text-sm md:text-base"
+                        >
+                          Please Verify Your Code
+                          <span className="ml-2">
+                            {isResendLoading ? (
+                              <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                            ) : null}
+                          </span>
+                        </Button>
+                      </div>
+                    )}
                     {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
                       <p className="text-sm text-yellow-800">
                         <strong>SMS not received?</strong> Check the browser console for the verification code, or use the development code option.
@@ -1686,15 +1667,17 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                     <div className="flex items-center gap-2 text-green-700">
                       <Check className="h-5 w-5" />
                       <span className="font-medium">
-                        {import.meta.env.DEV
+                        {/* {import.meta.env.DEV
                           ? "Development Mode - Verification Bypassed"
-                          : "Verification Complete"}
+                          : "Verification Complete"} */}
+                        Verification Complete
                       </span>
                     </div>
                     <p className="text-green-600 mt-1">
-                      {import.meta.env.DEV
+                      {/* {import.meta.env.DEV
                         ? "In production, users will complete SMS verification before proceeding."
-                        : "You can now access pricing and continue with your booking."}
+                        : "You can now access pricing and continue with your booking."} */}
+                      You can now access pricing and continue with your booking.
                     </p>
                   </div>
                 )}
