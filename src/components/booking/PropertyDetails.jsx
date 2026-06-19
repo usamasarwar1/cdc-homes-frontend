@@ -40,7 +40,7 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
     {
       id: "details",
       title: "Pricing Details",
-      description: "50% Off Challenge",
+      description: "Enter Price",
       current: true,
     },
     {
@@ -62,9 +62,9 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
       <div className="max-w-4xl mx-auto px-2 md:px-4">
         <ProgressSteps steps={progressSteps} />
 
-        <div className="hidden md:block">
+        {/* <div className="hidden md:block">
           <GuidanceCard
-            title="Step 2: Pricing Details & 50% Off Challenge"
+            title="Step 2: Booking Details"
             description="Review and confirm the property information below. This ensures accurate pricing for your inspection."
             nextAction="Choose payment option to continue"
             variant="info"
@@ -74,7 +74,7 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
               take the 50% challenge to proceed
             </div>
           </GuidanceCard>
-        </div>
+        </div> */}
 
         <div className="space-y-4 md:space-y-6">
           <div className="mb-4 md:mb-6">
@@ -210,7 +210,7 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 transition-colors group-hover:text-green-800">
-                          Skip Challenge & Book Now
+                          Book Now
                         </h3>
 
                         <p className="mt-1 text-sm text-gray-600">
@@ -242,12 +242,12 @@ export default function PropertyDetails({ property, onContinue, onBack }) {
                 </button>
               </div>
 
-              <div className="mt-2 md:mt-4 p-3 md:p-2 bg-blue-50 border border-blue-200 rounded-lg">
+              {/* <div className="mt-2 md:mt-4 p-3 md:p-2 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm md:text-xs text-gray-700 text-center leading-tight">
                   Choose 50% challenge to match credentials or standard pricing
                   to continue
                 </p>
-              </div>
+              </div> */}
             </div>
           )}
         </div>
