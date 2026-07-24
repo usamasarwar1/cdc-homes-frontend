@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from "./ui/sidebar";
 import { Link } from "react-router-dom";
-import { LayoutDashboard, CreditCard } from "lucide-react";
+import { LayoutDashboard, CreditCard, KeyRound } from "lucide-react";
 import Headers2 from "./Headers2";
 import { cn } from "../utils/Cn";
 
@@ -29,6 +29,11 @@ const links = [
     to: "/admin/block",
     label: "Block Dates",
     icon: CreditCard,
+  },
+  {
+    to: "/admin/change-password",
+    label: "Change Password",
+    icon: KeyRound,
   },
 ];
 
