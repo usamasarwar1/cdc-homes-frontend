@@ -28,6 +28,7 @@ import PaymentSuccess from "./page/PaymentSuccess.jsx";
 import PaymentCancel from "./page/PaymentCancel.jsx";
 import Login from "./page/Login.jsx";
 import { Toaster } from "./components/ui/toaster.jsx";
+import ChangePassword from "./page/ChangePassword.jsx";
 
 function ProtectedRoute({ children, allowedRoles = ["admin"] }) {
   const navigate = useNavigate();
@@ -121,6 +122,16 @@ function Router() {
           <ProtectedRoute>
             <Layout>
               <BlockDates />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/change-password"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ChangePassword />
             </Layout>
           </ProtectedRoute>
         }
