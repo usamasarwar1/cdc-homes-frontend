@@ -69,9 +69,10 @@ export default function InspectionCalendar() {
   const [blockedSlotsByDate, setBlockedSlotsByDate] = useState({});
   const [bookingData, setBookingData] = useState(null);
   const [booking, setBooking] = useState(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState("pay_now");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("pay_now");
   const [blockedDateRanges, setBlockedDateRanges] = useState([]);
+  // Recurring weekday blocks: { weekday: "Wednesday", startTime: "16:00", endTime: "20:00" }
+  const [blockedWeekdayRules, setBlockedWeekdayRules] = useState([]);
   const [showBlockedSlotDialog, setShowBlockedSlotDialog] = useState(false);
   const [blockedSlotMessage, setBlockedSlotMessage] = useState("");
 
@@ -450,13 +451,63 @@ export default function InspectionCalendar() {
       .padStart(2, "0")}`;
   };
 
-  const isWithinBlockedRange = (dateStr, timeStr) => {
-    if (!dateStr || !timeStr || !blockedDateRanges.length) return false;
+  /** Normalize date input to YYYY-MM-DD for consistent comparisons */
+  const normalizeDateKey = (date) => {
+    if (!date) return null;
+
+    if (typeof date === "string") {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+      const parsed = new Date(date);
+      if (isNaN(parsed.getTime())) return null;
+      return format(parsed, "yyyy-MM-dd");
+    }
+
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      return format(date, "yyyy-MM-dd");
+    }
+
+    return null;
+  };
+
+  /**
+   * Checks recurring weekday blocks (e.g. every Wednesday 4:00 PM — 8:00 PM)
+   */
+  const isWithinBlockedWeekday = (date, timeStr) => {
+    if (!date || !timeStr || !blockedWeekdayRules.length) return false;
+
+    const dateKey = normalizeDateKey(date);
+    if (!dateKey) return false;
 
     const time24 = convertTimeTo24Hour(timeStr);
     if (!time24) return false;
 
-    const candidate = new Date(`${dateStr}T${time24}`);
+    // Build local date from key so weekday is not shifted by timezone
+    const [year, month, day] = dateKey.split("-").map(Number);
+    const weekdayName = format(new Date(year, month - 1, day), "EEEE");
+
+    return blockedWeekdayRules.some(
+      (rule) =>
+        rule.weekday === weekdayName &&
+        time24 >= rule.startTime &&
+        time24 <= rule.endTime,
+    );
+  };
+
+  const isWithinBlockedRange = (date, timeStr) => {
+    if (!date || !timeStr) return false;
+
+    const time24 = convertTimeTo24Hour(timeStr);
+    if (!time24) return false;
+
+    // Recurring weekday time-window blocks
+    if (isWithinBlockedWeekday(date, timeStr)) return true;
+
+    if (!blockedDateRanges.length) return false;
+
+    const dateKey = normalizeDateKey(date);
+    if (!dateKey) return false;
+
+    const candidate = new Date(`${dateKey}T${time24}`);
     if (isNaN(candidate.getTime())) return false;
 
     return blockedDateRanges.some(
@@ -517,11 +568,8 @@ export default function InspectionCalendar() {
 
     if (timeSlotsForDate.length === 0) return true; // No slots available (e.g., weekend)
 
-    const dateKey = format(dateObj, "yyyy-MM-dd");
-    const blockedSlots = blockedSlotsByDate[dateKey] || [];
-
-    // Check if all time slots are blocked
-    return timeSlotsForDate.every((slot) => blockedSlots.includes(slot));
+    // Include booking blocks and admin blocks (date ranges + weekday rules)
+    return timeSlotsForDate.every((slot) => isTimeSlotBlocked(dateObj, slot));
   };
 
   const parseAddress = (addressString) => {
@@ -685,8 +733,11 @@ export default function InspectionCalendar() {
     const fetchBlockedDateRanges = async () => {
       try {
         const snapshot = await getDocs(collection(db, "blockDates"));
-        const ranges = snapshot.docs
-          .map((doc) => doc.data())
+        const allBlocks = snapshot.docs.map((docSnap) => docSnap.data());
+
+        // Specific date/time range blocks (startRaw / endRaw)
+        const ranges = allBlocks
+          .filter((item) => !item.isWeekday)
           .map((item) => {
             const start = item.startRaw ? new Date(item.startRaw) : null;
             const end = item.endRaw ? new Date(item.endRaw) : null;
@@ -700,7 +751,20 @@ export default function InspectionCalendar() {
               !isNaN(range.end.getTime()),
           );
 
+        // Recurring weekday blocks (e.g. every Wednesday 16:00–20:00)
+        const weekdayRules = allBlocks
+          .filter(
+            (item) =>
+              item.isWeekday && item.weekday && item.startTime && item.endTime,
+          )
+          .map((item) => ({
+            weekday: item.weekday,
+            startTime: item.startTime,
+            endTime: item.endTime,
+          }));
+
         setBlockedDateRanges(ranges);
+        setBlockedWeekdayRules(weekdayRules);
       } catch (error) {
         console.error("Error fetching blocked date ranges:", error);
       }
@@ -1057,11 +1121,7 @@ export default function InspectionCalendar() {
     const allSlots = getTimeSlots(date);
     if (!date) return allSlots;
 
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    const dateKey = format(dateObj, "yyyy-MM-dd");
-    const blockedSlots = blockedSlotsByDate[dateKey] || [];
-
-    return allSlots.filter((slot) => !blockedSlots.includes(slot));
+    return allSlots.filter((slot) => !isTimeSlotBlocked(date, slot));
   };
 
   const timeSlots = getTimeSlots(selectedDate);
@@ -1085,10 +1145,10 @@ export default function InspectionCalendar() {
         const allSlots = getTimeSlots(date);
         totalSlots = allSlots.length;
 
-        // Calculate available slots by subtracting blocked slots
-        const dateKey = format(date, "yyyy-MM-dd");
-        const blockedSlots = blockedSlotsByDate[dateKey] || [];
-        availableSlots = Math.max(0, totalSlots - blockedSlots.length);
+        // Subtract booking blocks and admin blocks (ranges + weekday rules)
+        availableSlots = allSlots.filter(
+          (slot) => !isTimeSlotBlocked(date, slot),
+        ).length;
       }
 
       let status;
