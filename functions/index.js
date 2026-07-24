@@ -8,6 +8,8 @@ const twilio = require("twilio");
 
 admin.initializeApp();
 
+const logger = functions.logger;
+
 const corsHandler = cors({
   origin: true,
 });
@@ -686,12 +688,23 @@ exports.propertyValidate = functions
     const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
     
     let event;
+
+    logger.info("stripeWebhook: request received", {
+      method: req.method,
+      hasSignature: !!sig,
+    });
   
     try {
       event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-      
-      
+      logger.info("stripeWebhook: event verified", {
+        eventId: event.id,
+        eventType: event.type,
+        livemode: event.livemode,
+      });
     } catch (err) {
+      logger.error("stripeWebhook: signature verification failed", {
+        message: err.message,
+      });
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
   
@@ -700,14 +713,22 @@ exports.propertyValidate = functions
         case "checkout.session.completed": {
           const session = event.data.object;
           const sessionId = session.id;
-  
+
+          logger.info("stripeWebhook: processing checkout.session.completed", {
+            sessionId,
+            paymentStatus: session.payment_status,
+            amountTotal: session.amount_total,
+            currency: session.currency,
+          });
   
           const paymentRef = admin.firestore().collection("payments").doc(sessionId);
           const paymentSnap = await paymentRef.get();
   
           if (!paymentSnap.exists) {
-            console.error("❌ No payments doc found for session:", sessionId);
-            console.error("This means createCheckoutSession didn't create the payment doc!");
+            logger.error("stripeWebhook: no payments doc found for session", {
+              sessionId,
+              hint: "createCheckoutSession did not create the payment doc",
+            });
             break;
           }
   
@@ -715,7 +736,7 @@ exports.propertyValidate = functions
           
           // prevent double-processing
           if (paymentData.status === "paid") {
-            console.log("⚠️ Payment already processed:", sessionId);
+            logger.warn("stripeWebhook: payment already processed", { sessionId });
             break;
           }
   
@@ -729,16 +750,23 @@ exports.propertyValidate = functions
               bookingPayload = typeof session.metadata.bookingPayload === 'string'
                 ? JSON.parse(session.metadata.bookingPayload)
                 : session.metadata.bookingPayload;
-              console.log("✅ Got bookingPayload from session.metadata");
+              logger.info("stripeWebhook: got bookingPayload from session.metadata", {
+                sessionId,
+              });
             } catch (e) {
-              console.error("❌ Failed to parse bookingPayload from metadata:", e);
+              logger.error("stripeWebhook: failed to parse bookingPayload from metadata", {
+                sessionId,
+                error: e.message,
+              });
             }
           }
   
           if (!bookingPayload) {
-            console.error("❌ Missing bookingPayload for session:", sessionId);
-            console.error("paymentData keys:", Object.keys(paymentData));
-            console.error("session.metadata:", session.metadata);
+            logger.error("stripeWebhook: missing bookingPayload", {
+              sessionId,
+              paymentDataKeys: Object.keys(paymentData),
+              sessionMetadata: session.metadata,
+            });
             break;
           }          
 
@@ -746,6 +774,12 @@ exports.propertyValidate = functions
 
 
           const paymentType = paymentData.paymentType || session.metadata?.paymentType || "pay_now";
+
+          logger.info("stripeWebhook: resolved payment type", {
+            sessionId,
+            paymentType,
+            hasInceptionDate: !!inceptionDate,
+          });
   
           let bookingId = null;
   
@@ -759,10 +793,12 @@ exports.propertyValidate = functions
   
             if (!existing.empty) {
               bookingId = existing.docs[0].id;
-              console.log("⚠️ Booking already exists:", bookingId);
+              logger.warn("stripeWebhook: booking already exists", {
+                sessionId,
+                bookingId,
+              });
             } else {
-              console.log("📝 Creating new booking...");
-              
+              logger.info("stripeWebhook: creating new booking", { sessionId });
               
               const bookingRef = await admin.firestore().collection("bookings").add({
                 ...bookingPayload,
@@ -773,7 +809,11 @@ exports.propertyValidate = functions
                 paidAt: admin.firestore.FieldValue.serverTimestamp(),
               });
 
-              bookingId = bookingRef.id;  
+              bookingId = bookingRef.id;
+              logger.info("stripeWebhook: booking created", {
+                sessionId,
+                bookingId,
+              });
 
               if (inceptionDate) {
                 await admin.firestore().collection("inspectionDates").add({
@@ -781,7 +821,10 @@ exports.propertyValidate = functions
                   inceptionDate: inceptionDate,
                   createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 });
-                console.log("✅ Added inceptionDate for new booking:", bookingId);
+                logger.info("stripeWebhook: added inspectionDate for new booking", {
+                  bookingId,
+                  inceptionDate,
+                });
               }
               
             }
@@ -789,7 +832,9 @@ exports.propertyValidate = functions
             const approvalToken = bookingPayload.approvalToken || paymentData.approvalToken;
             
             if (!approvalToken) {
-              console.error("❌ Challenge flow: approvalToken missing");
+              logger.error("stripeWebhook: challenge flow missing approvalToken", {
+                sessionId,
+              });
               break;
             }
   
@@ -801,13 +846,21 @@ exports.propertyValidate = functions
               .get();
   
             if (bookingsQuery.empty) {
-              console.error("❌ Challenge flow: booking not found for approvalToken:", approvalToken);
+              logger.error("stripeWebhook: challenge booking not found for approvalToken", {
+                sessionId,
+                approvalToken,
+              });
               break;
             }
   
             const bookingDoc = bookingsQuery.docs[0];
             bookingId = bookingDoc.id;
             inceptionDate = bookingPayload.formattedDateTime;
+
+            logger.info("stripeWebhook: updating challenge booking", {
+              sessionId,
+              bookingId,
+            });
 
             const { approvalToken: _, timestamp: __, ...bookingDataWithoutToken } = bookingPayload;
 
@@ -830,17 +883,26 @@ exports.propertyValidate = functions
                 inceptionDate: inceptionDate,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
               });
-              console.log("✅ Added inceptionDate for challenge booking:", bookingId);
+              logger.info("stripeWebhook: added inceptionDate for challenge booking", {
+                bookingId,
+                inceptionDate,
+              });
             }
             
   
           } else {
-            console.error("❌ Unknown paymentType:", paymentType);
+            logger.error("stripeWebhook: unknown paymentType", {
+              sessionId,
+              paymentType,
+            });
             break;
           }
   
           if (!bookingId) {
-            console.error("❌ bookingId is null - booking creation/update failed!");
+            logger.error("stripeWebhook: bookingId is null - booking creation/update failed", {
+              sessionId,
+              paymentType,
+            });
             break;
           }
   
@@ -873,6 +935,12 @@ exports.propertyValidate = functions
           };
   
           await paymentRef.update(paymentUpdateData);
+          logger.info("stripeWebhook: payment marked as paid", {
+            sessionId,
+            bookingId,
+            amountTotal: paymentUpdateData.stripe.amountTotal,
+            customerEmail: paymentUpdateData.stripe.customerEmail,
+          });
           
           // Send confirmation email to customer
           try {
@@ -894,32 +962,61 @@ exports.propertyValidate = functions
                 }),
               }).catch(err => {
                 // Log error but don't fail the webhook
-                console.error("Failed to send confirmation email:", err);
+                logger.error("stripeWebhook: failed to send confirmation email", {
+                  customerEmail,
+                  error: err.message,
+                });
               });
               
-              console.log("✅ Confirmation email sent to:", customerEmail);
+              logger.info("stripeWebhook: confirmation email sent", {
+                customerEmail,
+                bookingId,
+              });
+            } else {
+              logger.warn("stripeWebhook: skipped confirmation email - missing email or bookingPayload", {
+                hasCustomerEmail: !!customerEmail,
+                hasBookingPayload: !!bookingPayload,
+                bookingId,
+              });
             }
           } catch (emailError) {
             // Log error but don't fail the webhook
-            console.error("Error sending confirmation email:", emailError);
+            logger.error("stripeWebhook: error sending confirmation email", {
+              message: emailError.message,
+              stack: emailError.stack,
+            });
           }
+
+          logger.info("stripeWebhook: checkout.session.completed finished", {
+            sessionId,
+            bookingId,
+            paymentType,
+          });
           break;
         }
   
         case "checkout.session.async_payment_succeeded": {
-          console.log("Async payment succeeded - processing same as checkout.session.completed");
+          logger.info("stripeWebhook: async payment succeeded - no additional processing", {
+            eventId: event.id,
+          });
           break;
         }
   
         default:
-          console.log(`Unhandled event type ${event.type}`);
+          logger.info("stripeWebhook: unhandled event type", {
+            eventType: event.type,
+            eventId: event.id,
+          });
       }
   
       return res.json({ received: true });
     } catch (err) {
-      console.error("❌ Webhook handler error:", err);
-      console.error("Error message:", err.message);
-      console.error("Error stack:", err.stack);
+      logger.error("stripeWebhook: handler error", {
+        message: err.message,
+        stack: err.stack,
+        eventId: event?.id,
+        eventType: event?.type,
+      });
       return res.json({ received: true });
     }
   });

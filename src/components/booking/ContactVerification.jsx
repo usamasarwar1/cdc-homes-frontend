@@ -1096,7 +1096,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   setHasInteracted(false);
                 }}
                 variant="outline"
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-15 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-15 py-3 text-[15px] md:text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 📋 See What's Included
               </Button>
@@ -1106,7 +1106,7 @@ export default function ContactVerification({ property, onVerified, onBack }) {
                   setShowWhatsIncluded(false);
                   setShowContractPreview(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-18 py-3 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-16 py-3 text-[17px] md:text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 📄 Preview Contract
               </Button>
