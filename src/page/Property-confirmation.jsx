@@ -12,7 +12,7 @@ import { auth } from '../firebase'
 import { Card, CardContent } from '../components/ui/Card'
 import { Input } from '../components/ui/input'
 import { Loader2, Search, CheckCircle2, XCircle, Package } from 'lucide-react'
-import { Eye } from 'lucide-react'
+import { Eye, Pencil } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { Badge } from '../components/ui/Badge'
 import { useToast } from '../hooks/use-toast.js'
@@ -121,6 +121,11 @@ const PropertyConfirmation = () => {
   const handleView = async (booking) => {
     sessionStorage.setItem('booking', JSON.stringify(booking));
     navigate(`/admin/property-details/${booking.id}`);
+  };
+
+  const handleEdit = async (booking) => {
+    sessionStorage.setItem('booking', JSON.stringify(booking));
+    navigate(`/admin/property-details/${booking.id}?edit=true`);
   };
 
   const getBookingDate = (booking) => {
@@ -258,10 +263,17 @@ const PropertyConfirmation = () => {
                       <td className="px-3 py-2 text-gray-700">
                         <div className="flex justify-center gap-2">
 
-                              <Button 
+                              <Button
                                  onClick={() => handleView(booking)}
                                  className="bg-[#007bff] hover:bg-blue-600 text-white">
                                    View
+                              </Button>
+                              <Button
+                                 onClick={() => handleEdit(booking)}
+                                 variant="outline"
+                                 className="text-blue-700 hover:bg-blue-50">
+                                   <Pencil className="w-4 h-4 mr-1" />
+                                   Edit
                               </Button>
                         </div>
                       </td>

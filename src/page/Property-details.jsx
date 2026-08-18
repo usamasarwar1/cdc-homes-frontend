@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Card,
@@ -10,7 +10,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Separator } from "../components/ui/separator";
 import { useToast } from "../hooks/use-toast.js";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { useParams } from "react-router-dom";
 import {
   Home,
@@ -30,12 +30,50 @@ import {
   Award,
   Users as UsersIcon,
   Loader2,
+  Pencil,
+  History as HistoryIcon,
 } from "lucide-react";
-import { getDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  getDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+  arrayUnion,
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+} from "firebase/firestore";
+import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../components/ui/dialoag";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Label } from "../components/ui/Label";
+import {
+  getTimeSlots,
+  isWeekendDate,
+  fetchAvailabilityData,
+  isTimeSlotBlocked,
+  normalizeDateKey,
+} from "../lib/appointmentAvailability";
 
 const PropertyDetails = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -43,6 +81,15 @@ const PropertyDetails = () => {
   const [message, setMessage] = useState("");
   const [messageError, setMessageError] = useState("");
   const [messageLoading, setMessageLoading] = useState(false);
+
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const appointmentSectionRef = useRef(null);
+  const autoEditTriggered = useRef(false);
+  const [availability, setAvailability] = useState(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [savingAppointment, setSavingAppointment] = useState(false);
 
   useEffect(() => {
     getBooking();
@@ -154,6 +201,168 @@ const PropertyDetails = () => {
     );
   };
 
+  const openEditDialog = async () => {
+    setEditDate(normalizeDateKey(booking.date) || "");
+    setEditTime(booking.time || "");
+    setShowEditDialog(true);
+    setAvailabilityLoading(true);
+    try {
+      const data = await fetchAvailabilityData(db, { excludeBookingId: booking.id });
+      setAvailability(data);
+    } catch (error) {
+      console.error("Error loading availability:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load current availability.",
+        variant: "destructive",
+      });
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+
+  // Deep-link from the bookings table's "Edit" button: jump straight to the
+  // appointment section and open the edit dialog once the booking has loaded.
+  useEffect(() => {
+    if (!booking || autoEditTriggered.current) return;
+    if (searchParams.get("edit") !== "true") return;
+
+    autoEditTriggered.current = true;
+    appointmentSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    openEditDialog();
+  }, [booking, searchParams]);
+
+  const editTimeSlots = editDate ? getTimeSlots(editDate) : [];
+
+  // True once the currently selected date has no bookable slot left —
+  // either every slot collides with the admin's "blockDates" ranges/weekday
+  // rules, or every slot is already taken by another appointment.
+  const isEditDateFullyBlocked =
+    !!editDate &&
+    !isWeekendDate(editDate) &&
+    !!availability &&
+    editTimeSlots.length > 0 &&
+    editTimeSlots.every((slot) => isTimeSlotBlocked(editDate, slot, availability));
+
+  const handleEditDateChange = (value) => {
+    setEditDate(value);
+    setEditTime("");
+  };
+
+  const handleSaveAppointment = async () => {
+    if (!editDate || !editTime) {
+      toast({
+        title: "Selection Required",
+        description: "Please select both a date and time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isWeekendDate(editDate)) {
+      toast({
+        title: "Weekend Not Available",
+        description: "Please select a weekday (Monday-Friday).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (availability && isTimeSlotBlocked(editDate, editTime, availability)) {
+      toast({
+        title: "Slot Unavailable",
+        description:
+          "This date and time is already booked or blocked. Please choose another slot.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingAppointment(true);
+    try {
+      const dateObj = new Date(`${editDate}T00:00:00`);
+      const newFormattedDateTime = `${format(dateObj, "EEEE, MMMM do, yyyy")} at ${editTime}`;
+
+      const previousDate = booking.date || null;
+      const previousTime = booking.time || null;
+      const previousFormattedDateTime = booking.formattedDateTime || null;
+
+      const bookingRef = doc(db, "bookings", booking.id);
+      await updateDoc(bookingRef, {
+        date: editDate,
+        time: editTime,
+        formattedDateTime: newFormattedDateTime,
+        updatedAt: serverTimestamp(),
+        history: arrayUnion({
+          date: previousDate,
+          time: previousTime,
+          formattedDateTime: previousFormattedDateTime,
+          changedAt: new Date().toISOString(),
+          changedBy: auth.currentUser?.email || "admin",
+        }),
+      });
+
+      // Keep the calendar's blocked-slot source of truth (inspectionDates) in sync
+      const inspectionDatesSnap = await getDocs(
+        query(collection(db, "inspectionDates"), where("bookingId", "==", booking.id)),
+      );
+
+      if (!inspectionDatesSnap.empty) {
+        await Promise.all(
+          inspectionDatesSnap.docs.map((docSnap) =>
+            updateDoc(doc(db, "inspectionDates", docSnap.id), {
+              inceptionDate: newFormattedDateTime,
+            }),
+          ),
+        );
+      } else {
+        await addDoc(collection(db, "inspectionDates"), {
+          bookingId: booking.id,
+          inceptionDate: newFormattedDateTime,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      // Notify the user of the change (best-effort; does not block the save)
+      const notifyEmail = getCustomerEmail(booking);
+      if (notifyEmail && notifyEmail !== "N/A") {
+        const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+        fetch(`${VITE_BASE_URL}/appointmentUpdated`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: notifyEmail,
+            name: getCustomerName(booking),
+            propertyAddress: booking.property?.address || "",
+            previousDateTime: previousFormattedDateTime,
+            newDateTime: newFormattedDateTime,
+          }),
+        }).catch((err) =>
+          console.error("Error sending appointment update email:", err),
+        );
+      }
+
+      toast({
+        title: "Appointment Updated",
+        description: "The user has been notified of the change.",
+      });
+      setShowEditDialog(false);
+      getBooking();
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update appointment.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingAppointment(false);
+    }
+  };
+
   const getBooking = async () => {
     try {
       setLoading(true);
@@ -189,6 +398,7 @@ const PropertyDetails = () => {
         ...(bookingData.formattedDateTime && {
           formattedDateTime: bookingData.formattedDateTime,
         }),
+        ...(bookingData.history && { history: bookingData.history }),
       };
 
       // console.log("combinedBooking", combinedBooking);
@@ -645,13 +855,22 @@ const PropertyDetails = () => {
             </Card>
           )}
 
-          {!isDiscount && booking.verifiedContact && (
-            <Card>
-              <CardHeader>
+          {(booking.formattedDateTime || booking.date) && (
+            <Card ref={appointmentSectionRef}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-blue-600" />
                   Appointment Details
                 </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openEditDialog}
+                  className="text-blue-700 hover:bg-blue-50"
+                >
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -670,6 +889,47 @@ const PropertyDetails = () => {
                       </p>
                     )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {booking.history?.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HistoryIcon className="w-5 h-5 text-gray-500" />
+                  Appointment History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[...booking.history]
+                    .sort(
+                      (a, b) =>
+                        new Date(b.changedAt || 0) - new Date(a.changedAt || 0),
+                    )
+                    .map((entry, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+                      >
+                        <Clock className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-700">
+                            Previously scheduled for{" "}
+                            <span className="font-medium text-gray-900">
+                              {entry.formattedDateTime ||
+                                `${entry.date || "N/A"}${entry.time ? ` at ${entry.time}` : ""}`}
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Changed {formatDate(entry.changedAt)}
+                            {entry.changedBy ? ` by ${entry.changedBy}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -1000,6 +1260,99 @@ const PropertyDetails = () => {
           )}
         </div>
       </div>
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-[#fff]">
+          <DialogHeader>
+            <DialogTitle>Edit Appointment</DialogTitle>
+            <DialogDescription>
+              Only the date and time can be changed. Payment is not affected.
+              The user will be notified by email once saved.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4" >
+            <div>
+              <Label htmlFor="edit-date">Date</Label>
+              <input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => handleEditDateChange(e.target.value)}
+                className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              />
+              {editDate && isWeekendDate(editDate) && (
+                <p className="text-sm text-red-600 mt-1">
+                  Weekends are not available. Please choose a weekday.
+                </p>
+              )}
+              {!availabilityLoading && isEditDateFullyBlocked && (
+                <p className="text-sm text-red-600 mt-1">
+                  This date is fully blocked check in right side blocks section or existing date
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="edit-time">Time</Label>
+              <Select
+                value={editTime}
+                onValueChange={setEditTime}
+                disabled={
+                  !editDate || availabilityLoading || isEditDateFullyBlocked
+                }
+              >
+                <SelectTrigger id="edit-time" className="mt-1 border">
+                  <SelectValue
+                    placeholder={
+                      availabilityLoading
+                        ? "Loading availability..."
+                        : isEditDateFullyBlocked
+                          ? "No slots available for this date"
+                          : "Select a time"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {editTimeSlots.map((slot) => {
+                    const blocked =
+                      !!availability &&
+                      isTimeSlotBlocked(editDate, slot, availability);
+                    return (
+                      <SelectItem key={slot} value={slot} disabled={blocked}>
+                        {slot} {blocked ? "( Already Book Slot )" : ""}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEditDialog(false)}
+              disabled={savingAppointment}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveAppointment}
+              disabled={
+                savingAppointment || availabilityLoading || isEditDateFullyBlocked
+              }
+              className="bg-[#007bff] hover:bg-blue-600 text-white"
+            >
+              {savingAppointment ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

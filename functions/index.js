@@ -527,6 +527,122 @@ exports.propertyValidate = functions
     });
   });
 
+  exports.appointmentUpdated = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
+      try {
+        const { email, name, propertyAddress, previousDateTime, newDateTime } = req.body;
+
+        if (!email || !newDateTime) {
+          return res.status(400).json({ error: "Missing required fields: email, newDateTime" });
+        }
+
+        const apiKey = process.env.SENDGRID_API_KEY;
+        const fromEmail = process.env.SENDGRID_FROM_EMAIL;
+
+        if (!apiKey) {
+          return res.status(500).json({ error: "SendGrid API key missing" });
+        }
+
+        sgMail.setApiKey(apiKey);
+
+        const displayName = name || "there";
+
+        const msg = {
+          to: email,
+          from: fromEmail,
+          subject: "Your Inspection Appointment Has Been Rescheduled",
+          text: `Hello ${displayName},
+
+Your home inspection appointment${propertyAddress ? ` for ${propertyAddress}` : ""} has been rescheduled by our team.
+
+${previousDateTime ? `Previous date & time: ${previousDateTime}\n` : ""}New date & time: ${newDateTime}
+
+If this new time does not work for you, please reply to this email and we will help find another slot.
+
+– CDC Inspection Team`,
+          html: `
+          <!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f9f9f9;">
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" style="padding:20px 10px;">
+
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#007bff;padding:20px;">
+            <h1 style="margin:0;font-size:22px;color:#ffffff;font-family:Arial,sans-serif;">
+              Appointment Rescheduled
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:25px;font-family:Arial,sans-serif;color:#333;">
+            <p style="font-size:16px;margin:0 0 12px;">
+              Hello <strong>${displayName}</strong>,
+            </p>
+
+            <p style="font-size:15px;line-height:1.6;margin:0 0 15px;">
+              Your home inspection appointment${propertyAddress ? ` for <strong>${propertyAddress}</strong>` : ""} has been rescheduled by our team.
+            </p>
+
+            <table width="100%" style="background:#f0f7ff;border-left:4px solid #007bff;margin:20px 0;">
+              <tr>
+                <td style="padding:14px;font-size:14px;line-height:1.8;">
+                  ${previousDateTime ? `<span style="color:#777;text-decoration:line-through;">Previous: ${previousDateTime}</span><br/>` : ""}
+                  <strong>New date &amp; time: ${newDateTime}</strong>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:14px;line-height:1.6;">
+              If this new time does not work for you, simply reply to this email and we will help find another slot.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f3f3f3;padding:18px;text-align:center;
+            font-size:12px;font-family:Arial,sans-serif;color:#777;">
+            <p style="margin:0;">
+              © ${new Date().getFullYear()} CDC Inspection. All rights reserved.
+            </p>
+            <p style="margin:6px 0 0;">
+              This is an automated message. Replies are monitored.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+
+          `,
+        };
+
+        await sgMail.send(msg);
+
+        return res.status(200).json({
+          success: true,
+          message: "Appointment update email sent successfully",
+        });
+      } catch (error) {
+        console.error("appointmentUpdated error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+    });
+  });
+
   exports.createPaymentIntent = functions.https.onRequest((req, res) => {
     corsHandler(req, res, async () => {
       try {
