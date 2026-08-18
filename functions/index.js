@@ -643,7 +643,7 @@ exports.propertyValidate = functions
         } else if (metadata.bookingPayload) {
           try {
             bookingPayload = typeof metadata.bookingPayload === 'string' 
-              ? JSON.parse(metadata.bookingPayload) 
+              ? JSON.parse(metadata.bookingPayload)
               : metadata.bookingPayload;
           } catch (e) {
             console.error("Failed to parse bookingPayload from metadata:", e);
@@ -1050,11 +1050,12 @@ exports.propertyValidate = functions
         
         // Extract booking details
         const propertyAddress = bookingData.property?.address || 'N/A';
-        const formattedDateTime = bookingData.formattedDateTime || 
+        const formattedDateTime = bookingData.formattedDateTime ||
                                   `${bookingData.date || 'N/A'} at ${bookingData.time || 'N/A'}`;
         const price = bookingData.fullPrice || bookingData.price || 0;
         const paymentMethod = bookingData.property?.paymentMethod === 'challenge' ? 'Challenge (50% Discount)' : 'Pay Now';
-  
+        const customerPhone = bookingData.verifiedContact?.phoneNumber || 'N/A';
+
         const msg = {
           to: customerEmail,
           from: fromEmail,
@@ -1160,12 +1161,125 @@ exports.propertyValidate = functions
         };
   
         await sgMail.send(msg);
-  
+
+        // Notify internal team of the new appointment (best-effort — must not fail the client confirmation)
+        try {
+          const adminMsg = {
+            // to: ["cdcqualitycontrol@gmail.com", "cdchomeinspections@gmail.com"],
+            to: ["haideralimughal845@gmail.com", "devmetaxols@gmail.com"],
+            from: fromEmail,
+            replyTo: customerEmail,
+            subject: `New Appointment Scheduled – ${propertyAddress}`,
+            text: `A new home inspection appointment has been booked and paid.
+
+Client Details:
+- Name: ${customerName}
+- Email: ${customerEmail}
+- Phone: ${customerPhone}
+
+Booking Details:
+- Property Address: ${propertyAddress}
+- Inspection Date & Time: ${formattedDateTime}
+- Payment Amount: $${price.toFixed(2)}
+- Payment Method: ${paymentMethod}
+
+– CDC Booking System`,
+            html: `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;">
+    <tr>
+      <td align="center" style="padding:20px 10px;">
+        <table width="100%" cellpadding="0" cellspacing="0"
+          style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#FF0000;padding:20px;">
+              <h1 style="margin:0;font-size:22px;color:#ffffff;font-family:Arial,sans-serif;">
+                New Appointment Scheduled
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:25px;font-family:Arial,sans-serif;color:#333;">
+              <p style="font-size:15px;line-height:1.6;margin:0 0 15px;">
+                A new home inspection appointment has been booked and paid.
+              </p>
+
+              <!-- Client Details Box -->
+              <table width="100%" style="background:#f8f9fa;border-radius:6px;padding:20px;margin:0 0 20px;border-left:4px solid #FF0000;">
+                <tr>
+                  <td style="padding:0;">
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Client Name:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">${customerName}</p>
+
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Client Email:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">${customerEmail}</p>
+
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Client Phone:</strong></p>
+                    <p style="margin:0;font-size:15px;color:#333;font-weight:500;">${customerPhone}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Booking Details Box -->
+              <table width="100%" style="background:#f8f9fa;border-radius:6px;padding:20px;margin:0 0 20px;border-left:4px solid #FF0000;">
+                <tr>
+                  <td style="padding:0;">
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Property Address:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">${propertyAddress}</p>
+
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Inspection Date & Time:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">${formattedDateTime}</p>
+
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Payment Amount:</strong></p>
+                    <p style="margin:0 0 15px;font-size:15px;color:#333;font-weight:500;">$${price.toFixed(2)}</p>
+
+                    <p style="margin:0 0 10px;font-size:14px;color:#666;"><strong style="color:#333;">Payment Method:</strong></p>
+                    <p style="margin:0;font-size:15px;color:#333;font-weight:500;">${paymentMethod}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f3f3f3;padding:18px;text-align:center;
+              font-size:12px;font-family:Arial,sans-serif;color:#777;">
+              <p style="margin:0;">
+                © ${new Date().getFullYear()} CDC Inspection. Internal notification.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+  </body>
+  </html>
+          `,
+          };
+
+          await sgMail.send(adminMsg);
+        } catch (adminEmailError) {
+          console.error("paymentSuccessConfirmation: failed to send admin notification", adminEmailError);
+        }
+
         return res.status(200).json({
           success: true,
           message: "Payment confirmation email sent successfully",
         });
-        
+
       } catch (error) {
         console.error("paymentSuccessConfirmation error:", error);
         return res.status(500).json({ error: "Internal server error" });
